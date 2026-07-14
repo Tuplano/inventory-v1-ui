@@ -1,4 +1,4 @@
-import type { MovementType, PoStatus, SerialStatus, Tone } from '@/mock/types'
+import type { MovementType, PoStatus, SerialStatus, Tone } from '@/entities/types'
 import { daysUntil } from './format'
 
 export function toneClasses(tone: Tone): { bg: string; fg: string } {

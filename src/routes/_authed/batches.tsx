@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createBatchesConfig } from '@/entities/batches.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useBatches } from '@/hooks/queries/use-batches'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 
 export const Route = createFileRoute('/_authed/batches')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/batches')({
 })
 
 function BatchesPage() {
-  const branchId = useScopeStore((s) => s.branchId)
-  const branch = mockStore.getBranch(branchId)
+  const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = useBatches()
   const config = createBatchesConfig(branch?.name ?? '')
 

@@ -5,6 +5,16 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { RecordDrawer } from '@/components/record-drawer/RecordDrawer'
 import type { EntityTableConfig, EntityTableSearch } from '@/entities/types'
@@ -17,16 +27,21 @@ export function EntityTableView<TRow>({
   isLoading,
   onCreate,
   onEditRow,
+  onDeleteRow,
+  isDeleting,
 }: {
   config: EntityTableConfig<TRow>
   rows: TRow[]
   isLoading?: boolean
   onCreate?: () => void
   onEditRow?: (row: TRow) => void
+  onDeleteRow?: (row: TRow) => void
+  isDeleting?: boolean
 }) {
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
   const [localPage, setLocalPage] = useState(1)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   function setSearch(patch: Partial<EntityTableSearch>) {
     navigate({
@@ -90,6 +105,12 @@ export function EntityTableView<TRow>({
 
   function closeDrawer() {
     setSearch({ recordId: undefined })
+  }
+
+  function confirmDelete() {
+    if (selectedRow && onDeleteRow) onDeleteRow(selectedRow)
+    setDeleteConfirmOpen(false)
+    closeDrawer()
   }
 
   return (
@@ -215,7 +236,23 @@ export function EntityTableView<TRow>({
         onOpenChange={(open) => !open && closeDrawer()}
         content={drawerContent}
         onEdit={onEditRow && selectedRow ? () => onEditRow(selectedRow) : undefined}
+        onDelete={onDeleteRow && selectedRow ? () => setDeleteConfirmOpen(true) : undefined}
       />
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {drawerContent?.title}?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" disabled={isDeleting} onClick={confirmDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

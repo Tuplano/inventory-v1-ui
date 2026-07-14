@@ -1,10 +1,14 @@
 import type { EntityTableConfig } from './types'
-import type { PoStatus, PurchaseOrder } from '@/mock/types'
+import type { PoStatus } from '@/entities/types'
 import { MonoCell, StockCell, ToneBadge } from '@/components/entity-table/cells'
 import { formatCurrency } from '@/lib/format'
 import { poStatusTone } from '@/lib/tone'
 
-export interface PurchaseOrderRow extends PurchaseOrder {
+export interface PurchaseOrderRow {
+  id: string
+  number: string
+  status: PoStatus
+  orderDate: string
   supplierName: string
   lineCount: number
   value: number

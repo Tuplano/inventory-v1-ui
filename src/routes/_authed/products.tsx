@@ -6,6 +6,7 @@ import { createProductsConfig, type ProductRow } from '@/entities/products.confi
 import { entityTableSearchSchema } from '@/entities/types'
 import { useProducts } from '@/hooks/queries/use-products'
 import { useCurrentCompany } from '@/hooks/queries/use-companies'
+import { useDeleteProduct } from '@/hooks/mutations/use-delete-product'
 
 export const Route = createFileRoute('/_authed/products')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -18,6 +19,7 @@ function ProductsPage() {
   const config = createProductsConfig(company?.code ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<ProductRow | null>(null)
+  const deleteProduct = useDeleteProduct()
 
   return (
     <>
@@ -33,6 +35,8 @@ function ProductsPage() {
           setEditingRow(row)
           setFormOpen(true)
         }}
+        onDeleteRow={(row) => deleteProduct.mutate(row.id)}
+        isDeleting={deleteProduct.isPending}
       />
       <ProductFormDialog open={formOpen} onOpenChange={setFormOpen} product={editingRow} />
     </>

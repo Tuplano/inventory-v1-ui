@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createInventoryConfig } from '@/entities/inventory.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useInventory } from '@/hooks/queries/use-inventory'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 
 export const Route = createFileRoute('/_authed/inventory')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/inventory')({
 })
 
 function InventoryPage() {
-  const branchId = useScopeStore((s) => s.branchId)
-  const branch = mockStore.getBranch(branchId)
+  const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = useInventory()
   const config = createInventoryConfig(branch?.name ?? '')
 

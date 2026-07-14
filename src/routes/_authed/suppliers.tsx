@@ -6,6 +6,7 @@ import { createSuppliersConfig, type SupplierRecord } from '@/entities/suppliers
 import { entityTableSearchSchema } from '@/entities/types'
 import { useSuppliers } from '@/hooks/queries/use-suppliers'
 import { useCurrentCompany } from '@/hooks/queries/use-companies'
+import { useDeleteSupplier } from '@/hooks/mutations/use-delete-supplier'
 
 export const Route = createFileRoute('/_authed/suppliers')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -18,6 +19,7 @@ function SuppliersPage() {
   const config = createSuppliersConfig(company?.code ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<SupplierRecord | null>(null)
+  const deleteSupplier = useDeleteSupplier()
 
   return (
     <>
@@ -33,6 +35,8 @@ function SuppliersPage() {
           setEditingRow(row)
           setFormOpen(true)
         }}
+        onDeleteRow={(row) => deleteSupplier.mutate(row.id)}
+        isDeleting={deleteSupplier.isPending}
       />
       <SupplierFormDialog open={formOpen} onOpenChange={setFormOpen} supplier={editingRow} />
     </>

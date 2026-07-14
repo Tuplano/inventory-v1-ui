@@ -1,33 +1,41 @@
 import { useQuery } from '@tanstack/react-query'
-import { mockStore } from '@/mock'
+import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
-import type { InventoryRow } from '@/entities/inventory.config'
+import type { InventoryItemRecord, InventoryRow } from '@/entities/inventory.config'
+import type { ProductRecord } from '@/entities/products.config'
 
 export function useInventory() {
-  const { branchId } = useScopeStore()
+  const { companyId, branchId } = useScopeStore()
   return useQuery({
-    queryKey: ['inventory', branchId],
+    queryKey: ['inventory', companyId, branchId],
     queryFn: async (): Promise<InventoryRow[]> => {
-      const [inventory, products, suppliers] = await Promise.all([
-        mockStore.listInventory(),
-        mockStore.listProducts(),
-        mockStore.listSuppliers(),
+      const [{ data: items }, { data: products }] = await Promise.all([
+        apiClient.get<InventoryItemRecord[]>('/inventory-items'),
+        apiClient.get<ProductRecord[]>('/products'),
       ])
-      return inventory
-        .filter((i) => i.branchId === branchId)
-        .map((i) => {
-          const product = products.find((p) => p.id === i.productId)
-          const status = i.qty <= 0 ? 'out' : i.qty < i.min ? 'low' : 'ok'
-          return {
-            ...i,
-            code: product?.code ?? '',
-            name: product?.name ?? '',
-            base: product?.base ?? '',
-            supplierName: suppliers.find((s) => s.id === product?.sup)?.name ?? '',
-            status,
-          }
-        })
+      return items.map((i) => {
+        const product = products.find((p) => p.id === i.productId)
+        const quantity = Number(i.quantity)
+        const minStockLevel = i.minStockLevel != null ? Number(i.minStockLevel) : null
+        const maxStockLevel = i.maxStockLevel != null ? Number(i.maxStockLevel) : null
+        const status: InventoryRow['status'] =
+          quantity <= 0 ? 'out' : minStockLevel != null && quantity < minStockLevel ? 'low' : 'ok'
+        return {
+          id: i.id,
+          companyId: i.companyId,
+          branchId: i.branchId,
+          productId: i.productId,
+          quantity,
+          minStockLevel,
+          maxStockLevel,
+          code: product?.code ?? '',
+          name: product?.name ?? '',
+          base: product?.baseUom.abbreviation ?? '',
+          status,
+        }
+      })
     },
+    enabled: !!companyId && !!branchId,
   })
 }
 

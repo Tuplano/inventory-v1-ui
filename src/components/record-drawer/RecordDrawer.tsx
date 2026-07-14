@@ -9,11 +9,13 @@ export function RecordDrawer({
   onOpenChange,
   content,
   onEdit,
+  onDelete,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   content: DrawerContent | null
   onEdit?: () => void
+  onDelete?: () => void
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -55,6 +57,11 @@ export function RecordDrawer({
 
             <SheetFooter className="flex-row border-t border-[var(--border-2)] p-3.5">
               <SheetClose render={<Button variant="outline" className="flex-1" />}>Close</SheetClose>
+              {onDelete && (
+                <Button variant="destructive" className="flex-1" onClick={onDelete}>
+                  Delete
+                </Button>
+              )}
               <Button
                 className="flex-1"
                 onClick={onEdit ?? (() => toast.info('Editing is not available in this preview'))}

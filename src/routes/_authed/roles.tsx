@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createRolesConfig } from '@/entities/roles.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useRoles } from '@/hooks/queries/use-roles'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentCompany } from '@/hooks/queries/use-companies'
 
 export const Route = createFileRoute('/_authed/roles')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/roles')({
 })
 
 function RolesPage() {
-  const companyId = useScopeStore((s) => s.companyId)
-  const company = mockStore.getCompany(companyId)
+  const company = useCurrentCompany()
   const { data: rows = [], isLoading } = useRoles()
   const config = createRolesConfig(company?.code ?? '')
 

@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createSettingsConfig } from '@/entities/settings.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useSettings } from '@/hooks/queries/use-settings'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentCompany } from '@/hooks/queries/use-companies'
 
 export const Route = createFileRoute('/_authed/settings')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/settings')({
 })
 
 function SettingsPage() {
-  const companyId = useScopeStore((s) => s.companyId)
-  const company = mockStore.getCompany(companyId)
+  const company = useCurrentCompany()
   const { data: rows = [], isLoading } = useSettings()
   const config = createSettingsConfig(company?.code ?? '')
 

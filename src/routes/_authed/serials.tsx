@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createSerialsConfig } from '@/entities/serials.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useSerials } from '@/hooks/queries/use-serials'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 
 export const Route = createFileRoute('/_authed/serials')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/serials')({
 })
 
 function SerialsPage() {
-  const branchId = useScopeStore((s) => s.branchId)
-  const branch = mockStore.getBranch(branchId)
+  const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = useSerials()
   const config = createSerialsConfig(branch?.name ?? '')
 

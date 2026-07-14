@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createPurchaseOrdersConfig } from '@/entities/purchase-orders.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { usePurchaseOrders } from '@/hooks/queries/use-purchase-orders'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 
 export const Route = createFileRoute('/_authed/purchase-orders/')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/purchase-orders/')({
 })
 
 function PurchaseOrdersPage() {
-  const branchId = useScopeStore((s) => s.branchId)
-  const branch = mockStore.getBranch(branchId)
+  const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = usePurchaseOrders()
   const config = createPurchaseOrdersConfig(branch?.name ?? '')
 

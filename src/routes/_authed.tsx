@@ -5,7 +5,12 @@ import { AppShell } from '@/components/app-shell/AppShell'
 
 export const Route = createFileRoute('/_authed')({
   beforeLoad: () => {
-    if (!useAuthStore.getState().authed) {
+    // The auth store persists to localStorage, which isn't available during
+    // SSR, so `authed` is always false on the server. Redirecting on that
+    // would bounce authenticated users to /login on every hard refresh.
+    // Defer the real check to the client-side bootstrap() below, which
+    // verifies the session against the server via the auth cookie.
+    if (typeof window !== 'undefined' && !useAuthStore.getState().authed) {
       throw redirect({ to: '/login' })
     }
   },

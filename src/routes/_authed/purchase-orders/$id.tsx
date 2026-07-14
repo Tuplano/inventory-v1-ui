@@ -11,7 +11,6 @@ import { usePurchaseOrder } from '@/hooks/queries/use-purchase-order'
 import { useConfirmPo } from '@/hooks/mutations/use-confirm-po'
 import { useCancelPo } from '@/hooks/mutations/use-cancel-po'
 import { useClosePoLine } from '@/hooks/mutations/use-close-po-line'
-import { mockStore } from '@/mock'
 
 export const Route = createFileRoute('/_authed/purchase-orders/$id')({
   component: PurchaseOrderDetailPage,
@@ -89,7 +88,6 @@ function PurchaseOrderDetailPage() {
           open={receiveOpen}
           onOpenChange={setReceiveOpen}
           po={po}
-          receivingNumber={mockStore.nextReceivingNumber(po.number)}
           supplierName={po.supplierName}
         />
       )}

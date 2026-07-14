@@ -1,21 +1,54 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { mockStore, type PostReceivingInput } from '@/mock'
+import { apiClient } from '@/lib/api-client'
+import type { ReceivingRecord } from '@/hooks/queries/use-receivings'
+
+export interface PostReceivingLineInput {
+  purchaseOrderLineId: string
+  receivedQty: number
+  unitCost?: number
+  /** Lot/batch number typed by the user for BATCH-tracked products; posted as a new batch. */
+  batchNumber?: string
+  toLocationId?: string
+}
+
+export interface PostReceivingInput {
+  purchaseOrderId: string
+  referenceNumber?: string
+  /** Date-only string (YYYY-MM-DD); converted to a full ISO datetime before posting. */
+  receivedDate?: string
+  lines: PostReceivingLineInput[]
+}
 
 export function usePostReceiving() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: PostReceivingInput) => mockStore.postReceiving(input),
+    mutationFn: async (input: PostReceivingInput) => {
+      const { data } = await apiClient.post<ReceivingRecord>('/receivings', {
+        purchaseOrderId: input.purchaseOrderId,
+        referenceNumber: input.referenceNumber || undefined,
+        receivedDate: input.receivedDate ? new Date(input.receivedDate).toISOString() : undefined,
+        lines: input.lines.map((l) => ({
+          purchaseOrderLineId: l.purchaseOrderLineId,
+          receivedQty: l.receivedQty,
+          unitCost: l.unitCost,
+          newBatch: l.batchNumber ? { batchNumber: l.batchNumber } : undefined,
+          toLocationId: l.toLocationId || undefined,
+        })),
+      })
+      return data
+    },
     onSuccess: (receiving) => {
-      queryClient.invalidateQueries({ queryKey: ['purchase-order', receiving.poId] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-order', receiving.purchaseOrderId] })
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] })
       queryClient.invalidateQueries({ queryKey: ['receivings'] })
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       queryClient.invalidateQueries({ queryKey: ['movements'] })
       queryClient.invalidateQueries({ queryKey: ['batches'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      const units = receiving.lines.reduce((a, l) => a + l.qty, 0)
-      toast.success(`${receiving.number} posted · ${units.toLocaleString()} units · ${receiving.lines.length} lines`)
+      const units = receiving.lines.reduce((a, l) => a + Number(l.receivedQty), 0)
+      toast.success(`${receiving.receivingNumber} posted · ${units.toLocaleString()} units · ${receiving.lines.length} lines`)
     },
+    onError: (error) => toast.error(error.message),
   })
 }

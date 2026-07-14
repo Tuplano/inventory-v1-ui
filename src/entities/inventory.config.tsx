@@ -1,13 +1,29 @@
 import type { EntityTableConfig } from './types'
-import type { InventoryItem } from '@/mock/types'
 import { MonoCell, StockCell, ToneBadge } from '@/components/entity-table/cells'
 import { stockTone } from '@/lib/tone'
 
-export interface InventoryRow extends InventoryItem {
+/** Raw wire shape from GET /inventory-items (Decimal fields arrive as strings). */
+export interface InventoryItemRecord {
+  id: string
+  companyId: string
+  branchId: string
+  productId: string
+  quantity: string
+  minStockLevel: string | null
+  maxStockLevel: string | null
+}
+
+export interface InventoryRow {
+  id: string
+  companyId: string
+  branchId: string
+  productId: string
+  quantity: number
+  minStockLevel: number | null
+  maxStockLevel: number | null
   code: string
   name: string
   base: string
-  supplierName: string
   status: 'out' | 'low' | 'ok'
 }
 
@@ -18,7 +34,7 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
     subtitle: `Stock levels at ${branchName}`,
     primaryActionLabel: 'Adjust stock',
     searchKeys: ['code', 'name'],
-    getRowId: (row) => row.productId,
+    getRowId: (row) => row.id,
     filters: [
       { key: 'all', label: 'All' },
       { key: 'low', label: 'Low stock', predicate: (r) => r.status !== 'ok' },
@@ -27,16 +43,21 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
     columns: [
       { key: 'code', header: 'Code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} color="var(--brand-accent-d)" weight={600} /> },
       { key: 'name', header: 'Product', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'loc', header: 'Location', align: 'center', render: (r) => <MonoCell value={r.loc} color="var(--text-2)" /> },
-      { key: 'min', header: 'Min', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.min.toLocaleString()}</span> },
-      { key: 'max', header: 'Max', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.max.toLocaleString()}</span> },
+      { key: 'minStockLevel', header: 'Min', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.minStockLevel != null ? r.minStockLevel.toLocaleString() : '—'}</span> },
+      { key: 'maxStockLevel', header: 'Max', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.maxStockLevel != null ? r.maxStockLevel.toLocaleString() : '—'}</span> },
       {
-        key: 'qty',
+        key: 'quantity',
         header: 'On hand',
         align: 'right',
         sortable: true,
-        sortValue: (r) => r.qty,
-        render: (r) => <StockCell value={r.qty.toLocaleString()} pct={Math.round((r.qty / r.max) * 100)} tone={stockTone(r.qty, r.min)} />,
+        sortValue: (r) => r.quantity,
+        render: (r) => (
+          <StockCell
+            value={r.quantity.toLocaleString()}
+            pct={r.maxStockLevel ? Math.round((r.quantity / r.maxStockLevel) * 100) : 100}
+            tone={stockTone(r.quantity, r.minStockLevel ?? 0)}
+          />
+        ),
       },
       {
         key: 'status',
@@ -62,17 +83,21 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
         {
           label: 'Levels',
           rows: [
-            { label: 'On hand', value: row.qty.toLocaleString() },
-            { label: 'Minimum', value: row.min.toLocaleString() },
-            { label: 'Maximum', value: row.max.toLocaleString() },
-            { label: 'Location', value: row.loc },
+            { label: 'On hand', value: row.quantity.toLocaleString() },
+            { label: 'Minimum', value: row.minStockLevel != null ? row.minStockLevel.toLocaleString() : '—' },
+            { label: 'Maximum', value: row.maxStockLevel != null ? row.maxStockLevel.toLocaleString() : '—' },
           ],
         },
         {
           label: 'Reorder',
           rows: [
-            { label: 'Suggested order', value: row.status !== 'ok' ? `${(row.max - row.qty).toLocaleString()} ${row.base}` : '—' },
-            { label: 'Preferred supplier', value: row.supplierName },
+            {
+              label: 'Suggested order',
+              value:
+                row.status !== 'ok' && row.maxStockLevel != null
+                  ? `${(row.maxStockLevel - row.quantity).toLocaleString()} ${row.base}`
+                  : '—',
+            },
           ],
         },
       ],

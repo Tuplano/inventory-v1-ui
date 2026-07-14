@@ -6,6 +6,7 @@ import { createCategoriesConfig, type CategoryRecord } from '@/entities/categori
 import { entityTableSearchSchema } from '@/entities/types'
 import { useCategories } from '@/hooks/queries/use-categories'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
+import { useDeleteCategory } from '@/hooks/mutations/use-delete-category'
 
 export const Route = createFileRoute('/_authed/categories')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -18,6 +19,7 @@ function CategoriesPage() {
   const config = createCategoriesConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<CategoryRecord | null>(null)
+  const deleteCategory = useDeleteCategory()
 
   return (
     <>
@@ -33,6 +35,8 @@ function CategoriesPage() {
           setEditingRow(row)
           setFormOpen(true)
         }}
+        onDeleteRow={(row) => deleteCategory.mutate(row.id)}
+        isDeleting={deleteCategory.isPending}
       />
       <CategoryFormDialog open={formOpen} onOpenChange={setFormOpen} category={editingRow} />
     </>

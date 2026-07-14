@@ -1,9 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { mockStore } from '@/mock'
+import { apiClient } from '@/lib/api-client'
+import { useScopeStore } from '@/stores/scope-store'
+import type { UserRecord } from '@/entities/users.config'
 
 export function useUsers() {
+  const { companyId } = useScopeStore()
   return useQuery({
-    queryKey: ['users'],
-    queryFn: () => mockStore.listUsers(),
+    queryKey: ['users', companyId],
+    queryFn: async (): Promise<UserRecord[]> => {
+      const { data } = await apiClient.get<UserRecord[]>('/users')
+      return data
+    },
+    enabled: !!companyId,
   })
 }

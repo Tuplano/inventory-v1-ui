@@ -3,8 +3,7 @@ import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createLocationsConfig } from '@/entities/locations.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useLocations } from '@/hooks/queries/use-locations'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 
 export const Route = createFileRoute('/_authed/locations')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,8 +11,7 @@ export const Route = createFileRoute('/_authed/locations')({
 })
 
 function LocationsPage() {
-  const branchId = useScopeStore((s) => s.branchId)
-  const branch = mockStore.getBranch(branchId)
+  const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = useLocations()
   const config = createLocationsConfig(branch?.name ?? '')
 

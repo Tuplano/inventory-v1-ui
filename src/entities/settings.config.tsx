@@ -1,13 +1,26 @@
 import type { EntityTableConfig } from './types'
-import type { Setting } from '@/mock/types'
 import { MonoCell, ToneBadge } from '@/components/entity-table/cells'
 
-export function createSettingsConfig(companyCode: string): EntityTableConfig<Setting> {
+/**
+ * The real GET /api/v1/company-settings endpoint returns a single fixed-shape
+ * settings object (one row per company with named boolean/enum fields), not an
+ * arbitrary key/value list like the mock's `Setting[]`. `use-settings.ts`
+ * flattens that object's known fields into synthetic rows so this page can
+ * keep using the existing EntityTableView list layout without fabricating
+ * data — every row still reflects a real field the API returned.
+ */
+export interface SettingRow {
+  id: string
+  key: string
+  value: string
+  type: 'boolean' | 'enum'
+}
+
+export function createSettingsConfig(companyCode: string): EntityTableConfig<SettingRow> {
   return {
     key: 'settings',
     title: 'Company settings',
-    subtitle: `Key/value configuration · ${companyCode}`,
-    primaryActionLabel: 'New setting',
+    subtitle: `Feature configuration · ${companyCode}`,
     searchKeys: ['key', 'value'],
     getRowId: (row) => row.id,
     columns: [

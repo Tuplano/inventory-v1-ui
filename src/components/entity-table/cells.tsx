@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Tone } from '@/mock/types'
+import type { Tone } from '@/entities/types'
 import { toneClasses } from '@/lib/tone'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'

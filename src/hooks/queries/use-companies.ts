@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import { mockStore } from '@/mock'
 import { useScopeStore } from '@/stores/scope-store'
 import type { CompanyRow } from '@/entities/companies.config'
+import type { BranchRecord } from './use-branches'
 
 export interface CompanyRecord {
   id: string
@@ -38,15 +38,42 @@ export function useCurrentCompany() {
   return companies.find((c) => c.id === companyId)
 }
 
-/** @deprecated Phase-2 companies management page still runs on mock data — not yet wired to the real API. */
 export function useCompanyRows() {
   return useQuery({
     queryKey: ['companies', 'rows'],
     queryFn: async (): Promise<CompanyRow[]> => {
-      const [companies, branches] = await Promise.all([mockStore.listCompanies(), mockStore.listBranches()])
-      return companies.map((c) => {
-        const companyBranches = branches.filter((b) => b.companyId === c.id)
-        return { ...c, branchCount: companyBranches.length, companyBranches }
+      const { data: companies } = await apiClient.get<CompanyRecord[]>('/companies')
+
+      const branchesByCompany = await Promise.all(
+        companies.map((c) =>
+          apiClient
+            .get<BranchRecord[]>('/branches', { headers: { 'x-company-id': c.id } })
+            .then((res) => res.data),
+        ),
+      )
+
+      return companies.map((c, index) => {
+        const companyBranches = (branchesByCompany[index] ?? []).map((b) => ({
+          id: b.id,
+          companyId: b.companyId,
+          name: b.name,
+          code: b.code,
+          address: b.address ?? '',
+          active: true,
+        }))
+
+        return {
+          id: c.id,
+          name: c.name,
+          code: c.code,
+          color: '',
+          legal: c.legalName ?? '',
+          tax: c.taxId ?? '',
+          email: c.email ?? '',
+          active: true,
+          branchCount: companyBranches.length,
+          companyBranches,
+        }
       })
     },
   })

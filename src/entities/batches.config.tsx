@@ -1,12 +1,39 @@
-import type { EntityTableConfig } from './types'
-import type { Batch, Tone } from '@/mock/types'
+import type { EntityTableConfig, Tone } from './types'
 import { MonoCell, StockCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 import { daysUntil } from '@/lib/format'
 
-export interface BatchRow extends Batch {
+/** Raw wire shape from GET /batches (Decimal fields arrive as strings). */
+export interface BatchRecord {
+  id: string
+  companyId: string
+  productId: string
+  supplierId: string | null
+  batchNumber: string
+  lotNumber: string | null
+  manufacturingDate: string | null
+  expiryDate: string | null
+  initialQty: string
+  remainingQty: string
+  isActive: boolean
+  createdAt: string
+}
+
+export interface BatchRow {
+  id: string
+  companyId: string
+  productId: string
+  supplierId: string | null
+  batchNumber: string
+  lotNumber: string | null
+  manufacturingDate: string | null
+  expiryDate: string | null
+  initialQty: number
+  remainingQty: number
+  isActive: boolean
+  createdAt: string
   code: string
   name: string
-  daysLeft: number
+  daysLeft: number | null
   status: 'expired' | 'soon' | 'ok' | 'depleted'
 }
 
@@ -19,9 +46,13 @@ const statusMeta: Record<BatchRow['status'], { tone: Tone }> = {
 
 function statusLabel(row: BatchRow) {
   if (row.status === 'expired') return 'Expired'
-  if (row.status === 'soon') return `${row.daysLeft}d left`
+  if (row.status === 'soon') return `${row.daysLeft ?? 0}d left`
   if (row.status === 'depleted') return 'Depleted'
   return 'OK'
+}
+
+function fmtDate(value: string | null): string {
+  return value ? value.slice(0, 10) : '—'
 }
 
 export function createBatchesConfig(branchName: string): EntityTableConfig<BatchRow> {
@@ -30,7 +61,7 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
     title: 'Batches',
     subtitle: `Lot tracking & expiry · ${branchName}`,
     primaryActionLabel: 'New batch',
-    searchKeys: ['batchNo', 'name'],
+    searchKeys: ['batchNumber', 'name'],
     getRowId: (row) => row.id,
     filters: [
       { key: 'all', label: 'All' },
@@ -40,31 +71,31 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
       { key: 'depleted', label: 'Depleted', predicate: (r) => r.status === 'depleted' },
     ],
     columns: [
-      { key: 'batchNo', header: 'Batch #', sortable: true, sortValue: (r) => r.batchNo, render: (r) => <MonoCell value={r.batchNo} weight={600} /> },
-      { key: 'lot', header: 'Lot', render: (r) => <MonoCell value={r.lot} color="var(--text-2)" /> },
+      { key: 'batchNumber', header: 'Batch #', sortable: true, sortValue: (r) => r.batchNumber, render: (r) => <MonoCell value={r.batchNumber} weight={600} /> },
+      { key: 'lotNumber', header: 'Lot', render: (r) => <MonoCell value={r.lotNumber ?? '—'} color="var(--text-2)" /> },
       { key: 'name', header: 'Product', render: (r) => <SubCell main={r.name} sub={r.code} /> },
-      { key: 'mfg', header: 'Mfg', render: (r) => <MonoCell value={r.mfg} color="var(--text-3)" /> },
+      { key: 'manufacturingDate', header: 'Mfg', render: (r) => <MonoCell value={fmtDate(r.manufacturingDate)} color="var(--text-3)" /> },
       {
-        key: 'expiry',
+        key: 'expiryDate',
         header: 'Expiry',
         sortable: true,
-        sortValue: (r) => r.expiry,
+        sortValue: (r) => r.expiryDate ?? '',
         render: (r) => (
           <MonoCell
-            value={r.expiry}
+            value={fmtDate(r.expiryDate)}
             weight={600}
             color={r.status === 'expired' ? 'var(--red)' : r.status === 'soon' ? 'var(--amber)' : 'var(--text-2)'}
           />
         ),
       },
       {
-        key: 'remaining',
+        key: 'remainingQty',
         header: 'Remaining',
         align: 'right',
         render: (r) => (
           <StockCell
-            value={r.remaining.toLocaleString()}
-            pct={Math.round((r.remaining / (r.initial || 1)) * 100)}
+            value={r.remainingQty.toLocaleString()}
+            pct={Math.round((r.remainingQty / (r.initialQty || 1)) * 100)}
             tone={r.status === 'expired' ? 'red' : 'teal'}
           />
         ),
@@ -73,16 +104,19 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
     ],
     drawer: (row) => ({
       title: row.name,
-      subtitle: row.batchNo,
+      subtitle: row.batchNumber,
       badge: { label: statusLabel(row), tone: statusMeta[row.status].tone },
       sections: [
         {
           label: 'Lot',
           rows: [
-            { label: 'Manufactured', value: row.mfg },
-            { label: 'Expiry', value: row.expiry },
-            { label: 'Days to expiry', value: row.daysLeft < 0 ? `expired ${-row.daysLeft}d ago` : `${row.daysLeft}d` },
-            { label: 'Remaining', value: row.remaining.toLocaleString() },
+            { label: 'Manufactured', value: fmtDate(row.manufacturingDate) },
+            { label: 'Expiry', value: fmtDate(row.expiryDate) },
+            {
+              label: 'Days to expiry',
+              value: row.daysLeft == null ? '—' : row.daysLeft < 0 ? `expired ${-row.daysLeft}d ago` : `${row.daysLeft}d`,
+            },
+            { label: 'Remaining', value: row.remainingQty.toLocaleString() },
           ],
         },
       ],
@@ -90,9 +124,13 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
   }
 }
 
-export function batchStatus(remaining: number, expiry: string): { status: BatchRow['status']; daysLeft: number } {
-  const d = daysUntil(expiry)
-  if (remaining <= 0) return { status: 'depleted', daysLeft: d }
+export function batchStatus(
+  remainingQty: number,
+  expiryDate: string | null,
+): { status: BatchRow['status']; daysLeft: number | null } {
+  if (remainingQty <= 0) return { status: 'depleted', daysLeft: expiryDate ? daysUntil(expiryDate) : null }
+  if (!expiryDate) return { status: 'ok', daysLeft: null }
+  const d = daysUntil(expiryDate)
   if (d < 0) return { status: 'expired', daysLeft: d }
   if (d <= 60) return { status: 'soon', daysLeft: d }
   return { status: 'ok', daysLeft: d }

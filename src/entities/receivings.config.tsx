@@ -1,13 +1,29 @@
 import type { EntityTableConfig } from './types'
-import type { Receiving } from '@/mock/types'
 import { MonoCell } from '@/components/entity-table/cells'
 import { formatCurrency } from '@/lib/format'
 
-export interface ReceivingRow extends Receiving {
+export interface ReceivingLineRow {
+  id: string
+  purchaseOrderLineId: string
+  productId: string
+  qty: number
+  uom: string
+  toLoc: string
+}
+
+export interface ReceivingRow {
+  id: string
+  number: string
+  poId: string
+  poNumber: string
   supplierName: string
+  ref: string
+  date: string
+  by: string
   lineCount: number
   units: number
   value: number
+  lines: ReceivingLineRow[]
   productCode: (productId: string) => string
 }
 

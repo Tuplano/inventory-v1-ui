@@ -26,8 +26,10 @@ async function ensureCsrfToken() {
 
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const { companyId, branchId } = useScopeStore.getState()
-  if (companyId) config.headers.set('x-company-id', companyId)
-  if (branchId) config.headers.set('x-branch-id', branchId)
+  // Don't clobber a header the caller explicitly set (e.g. fetching data scoped
+  // to a specific company regardless of the current sidebar selection).
+  if (companyId && !config.headers.has('x-company-id')) config.headers.set('x-company-id', companyId)
+  if (branchId && !config.headers.has('x-branch-id')) config.headers.set('x-branch-id', branchId)
 
   const method = (config.method ?? 'get').toLowerCase()
   const isMutating = !['get', 'head', 'options'].includes(method)

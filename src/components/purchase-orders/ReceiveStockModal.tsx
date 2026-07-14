@@ -9,8 +9,9 @@ import { formatCurrency, formatNumber } from '@/lib/format'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { usePostReceiving } from '@/hooks/mutations/use-post-receiving'
 import { useAuthStore } from '@/stores/auth-store'
-import { mockStore } from '@/mock'
 import type { PoDetail } from '@/hooks/queries/use-purchase-order'
+
+const DEFAULT_RECEIVING_LOCATION = 'RCV-DOCK-1'
 
 interface LineState {
   qty: string
@@ -23,19 +24,16 @@ export function ReceiveStockModal({
   open,
   onOpenChange,
   po,
-  receivingNumber,
   supplierName,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   po: PoDetail
-  receivingNumber: string
   supplierName: string
 }) {
   const { data: locations = [] } = useLocations()
   const postReceiving = usePostReceiving()
   const user = useAuthStore((s) => s.user)
-  const defaultLoc = mockStore.getSetting('movement.default_receiving_loc')?.value ?? 'RCV-DOCK-1'
 
   const [ref, setRef] = useState('')
   const [date, setDate] = useState('2026-07-13')
@@ -48,10 +46,10 @@ export function ReceiveStockModal({
     const initial: Record<string, LineState> = {}
     po.lines.forEach((l) => {
       const remaining = Math.max(0, l.ordered - l.received)
-      initial[l.id] = { qty: String(remaining), cost: l.cost.toFixed(2), batch: '', loc: defaultLoc }
+      initial[l.id] = { qty: String(remaining), cost: l.cost.toFixed(2), batch: '', loc: DEFAULT_RECEIVING_LOCATION }
     })
     setLines(initial)
-  }, [open, po, defaultLoc])
+  }, [open, po])
 
   function setField(lineId: string, field: keyof LineState, raw: string) {
     let value = raw
@@ -65,22 +63,34 @@ export function ReceiveStockModal({
   const lineCount = Object.values(lines).filter((v) => Number(v.qty) > 0).length
 
   function handleSubmit() {
-    if (lineCount === 0) {
+    const activeLines = Object.entries(lines).filter(([, v]) => Number(v.qty) > 0)
+
+    if (activeLines.length === 0) {
       toast.warning('Enter a quantity on at least one line')
       return
     }
+
+    const missingBatch = activeLines.find(([lineId, v]) => {
+      const line = po.lines.find((l) => l.id === lineId)
+      return line?.track === 'BATCH' && !v.batch.trim()
+    })
+    if (missingBatch) {
+      toast.warning('Enter a batch / lot # for batch-tracked lines')
+      return
+    }
+
     postReceiving.mutate(
       {
-        poId: po.id,
-        ref,
-        date,
-        receivedBy: user?.name ?? 'Unknown',
-        lines: Object.entries(lines).map(([lineId, v]) => ({
-          lineId,
-          qty: Number(v.qty) || 0,
-          cost: Number(v.cost) || 0,
-          batchNo: v.batch,
-          toLoc: v.loc,
+        purchaseOrderId: po.id,
+        referenceNumber: ref || undefined,
+        receivedDate: date || undefined,
+        lines: activeLines.map(([lineId, v]) => ({
+          purchaseOrderLineId: lineId,
+          receivedQty: Number(v.qty) || 0,
+          unitCost: Number(v.cost) || 0,
+          batchNumber: v.batch.trim() || undefined,
+          // Location codes aren't backed by real location records yet, so we
+          // don't send toLocationId — posting still succeeds without it.
         })),
       },
       { onSuccess: () => onOpenChange(false) },
@@ -95,11 +105,9 @@ export function ReceiveStockModal({
             <Truck className="size-[17px]" strokeWidth={1.8} />
           </div>
           <div className="flex-1">
-            <DialogTitle className="text-[15px] font-bold">
-              New receiving · <span className="font-mono">{receivingNumber}</span>
-            </DialogTitle>
+            <DialogTitle className="text-[15px] font-bold">New receiving</DialogTitle>
             <div className="text-xs text-[var(--text-3)]">
-              Against {po.number} · {supplierName} — posts RECEIVING movements &amp; updates stock on hand
+              Against {po.number} · {supplierName} — number assigned on post · posts RECEIVING movements &amp; updates stock on hand
             </div>
           </div>
         </DialogHeader>

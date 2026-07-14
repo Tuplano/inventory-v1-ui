@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import type { EntityTableConfig } from './types'
-import type { Tone } from '@/mock/types'
+import type { EntityTableConfig, Tone } from './types'
 import { MonoCell, ToneBadge } from '@/components/entity-table/cells'
 
 export const trackingTypes = ['NONE', 'BATCH', 'SERIAL'] as const
