@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useCompanies } from '@/hooks/queries/use-companies'
 import { useBranches } from '@/hooks/queries/use-branches'
 import { useScopeStore } from '@/stores/scope-store'
 import { cn } from '@/lib/utils'
+import { hashTone, toneColor } from '@/lib/tone'
 
 export function CompanyBranchSwitcher() {
   const { data: companies = [] } = useCompanies()
@@ -12,14 +14,21 @@ export function CompanyBranchSwitcher() {
 
   const company = companies.find((c) => c.id === companyId)
   const branch = branches.find((b) => b.id === branchId)
-  const companyBranches = branches.filter((b) => b.companyId === companyId)
+
+  useEffect(() => {
+    if (!companyId && companies.length > 0) setCompany(companies[0].id)
+  }, [companyId, companies, setCompany])
+
+  useEffect(() => {
+    if (companyId && !branchId && branches.length > 0) setBranch(branches[0].id)
+  }, [companyId, branchId, branches, setBranch])
 
   return (
     <Popover>
       <PopoverTrigger className="flex items-center gap-2.5 rounded-lg border border-border bg-[var(--surface-2)] px-2.5 py-1.5 hover:border-[var(--text-3)]">
         <div
           className="flex size-6 flex-none items-center justify-center rounded-md font-mono text-[11px] font-bold text-white"
-          style={{ background: company?.color }}
+          style={{ background: company ? toneColor(hashTone(company.code)) : undefined }}
         >
           {company?.code.slice(0, 3)}
         </div>
@@ -50,7 +59,7 @@ export function CompanyBranchSwitcher() {
               >
                 <div
                   className="flex size-[22px] flex-none items-center justify-center rounded-[5px] font-mono text-[10px] font-bold text-white"
-                  style={{ background: c.color }}
+                  style={{ background: toneColor(hashTone(c.code)) }}
                 >
                   {c.code.slice(0, 3)}
                 </div>
@@ -67,7 +76,7 @@ export function CompanyBranchSwitcher() {
             <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.05em] text-[var(--text-3)]">
               Branch
             </div>
-            {companyBranches.map((b) => (
+            {branches.map((b) => (
               <button
                 key={b.id}
                 type="button"

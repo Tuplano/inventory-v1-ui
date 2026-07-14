@@ -15,10 +15,14 @@ export function EntityTableView<TRow>({
   config,
   rows,
   isLoading,
+  onCreate,
+  onEditRow,
 }: {
   config: EntityTableConfig<TRow>
   rows: TRow[]
   isLoading?: boolean
+  onCreate?: () => void
+  onEditRow?: (row: TRow) => void
 }) {
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
@@ -96,7 +100,7 @@ export function EntityTableView<TRow>({
           {config.subtitle && <div className="mt-0.5 text-[12.5px] text-[var(--text-3)]">{config.subtitle}</div>}
         </div>
         {config.primaryActionLabel && (
-          <Button onClick={() => toast(`${config.primaryActionLabel} — form opens here`)}>
+          <Button onClick={onCreate ?? (() => toast(`${config.primaryActionLabel} — form opens here`))}>
             <Plus data-icon="inline-start" />
             {config.primaryActionLabel}
           </Button>
@@ -206,7 +210,12 @@ export function EntityTableView<TRow>({
         </div>
       </Card>
 
-      <RecordDrawer open={!!drawerContent} onOpenChange={(open) => !open && closeDrawer()} content={drawerContent} />
+      <RecordDrawer
+        open={!!drawerContent}
+        onOpenChange={(open) => !open && closeDrawer()}
+        content={drawerContent}
+        onEdit={onEditRow && selectedRow ? () => onEditRow(selectedRow) : undefined}
+      />
     </div>
   )
 }

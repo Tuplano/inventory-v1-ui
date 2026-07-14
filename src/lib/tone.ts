@@ -79,6 +79,14 @@ export function serialStatusTone(status: SerialStatus): Tone {
   return map[status]
 }
 
+const HASH_TONES: Tone[] = ['accent', 'violet', 'teal', 'amber', 'green', 'red']
+
+export function hashTone(seed: string): Tone {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  return HASH_TONES[hash % HASH_TONES.length]
+}
+
 export function expiryTone(expiry: string, remaining: number): Tone {
   if (remaining <= 0) return 'neutral'
   const d = daysUntil(expiry)

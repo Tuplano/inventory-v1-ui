@@ -1,44 +1,83 @@
+import { z } from 'zod'
 import type { EntityTableConfig } from './types'
-import type { Uom, UomConversion } from '@/mock/types'
 import { ToneBadge } from '@/components/entity-table/cells'
 
-export interface UomRow extends Uom {
-  conversionCount: number
-  conversionsList: UomConversion[]
+export const uomTypes = ['PIECE', 'WEIGHT', 'VOLUME', 'LENGTH', 'TIME'] as const
+export type UomType = (typeof uomTypes)[number]
+
+export interface UomRecord {
+  id: string
+  companyId: string
+  name: string
+  abbreviation: string
+  type: UomType
+  isActive: boolean
 }
 
-export function createUomConfig(companyCode: string): EntityTableConfig<UomRow> {
+export interface UomConversionRecord {
+  id: string
+  companyId: string
+  fromUomId: string
+  toUomId: string
+  conversionFactor: number
+}
+
+export interface UomWithConversions extends UomRecord {
+  fromConversions: UomConversionRecord[]
+  toConversions: UomConversionRecord[]
+}
+
+export const createUomSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  abbreviation: z.string().min(1, 'Abbreviation is required').max(10, 'Max 10 characters'),
+  type: z.enum(uomTypes),
+})
+
+export const updateUomSchema = z.object({
+  name: z.string().min(1).optional(),
+  isActive: z.boolean().optional(),
+})
+
+export const createConversionSchema = z.object({
+  toUomId: z.string().min(1, 'Target unit is required'),
+  conversionFactor: z.number().positive('Must be greater than 0'),
+})
+
+export type CreateUomInput = z.infer<typeof createUomSchema>
+export type UpdateUomInput = z.infer<typeof updateUomSchema>
+export type CreateConversionInput = z.infer<typeof createConversionSchema>
+
+function typeTone(type: UomType) {
+  return type === 'VOLUME' ? 'teal' : type === 'WEIGHT' ? 'amber' : type === 'LENGTH' ? 'violet' : 'neutral'
+}
+
+export function createUomConfig(companyCode: string): EntityTableConfig<UomRecord> {
   return {
     key: 'uom',
     title: 'Units of measure',
     subtitle: `Base units · ${companyCode}`,
     primaryActionLabel: 'New unit',
-    searchKeys: ['code', 'name', 'type'],
+    searchKeys: ['abbreviation', 'name', 'type'],
     getRowId: (row) => row.id,
     columns: [
-      { key: 'code', header: 'Code', align: 'center', sortable: true, sortValue: (r) => r.code, render: (r) => <ToneBadge tone="accent" label={r.code} /> },
+      { key: 'abbreviation', header: 'Code', align: 'center', sortable: true, sortValue: (r) => r.abbreviation, render: (r) => <ToneBadge tone="accent" label={r.abbreviation} /> },
       { key: 'name', header: 'Name', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'type', header: 'Type', align: 'center', render: (r) => <ToneBadge tone={r.type === 'VOLUME' ? 'teal' : 'neutral'} label={r.type} /> },
-      { key: 'conv', header: 'Conversions', render: (r) => <span className="text-[var(--text-2)]">{r.conversionCount} defined</span> },
+      { key: 'type', header: 'Type', align: 'center', render: (r) => <ToneBadge tone={typeTone(r.type)} label={r.type} /> },
+      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,
-      subtitle: row.code,
-      badge: { label: row.type, tone: row.type === 'VOLUME' ? 'teal' : 'neutral' },
+      subtitle: row.abbreviation,
+      badge: { label: row.type, tone: typeTone(row.type) },
       sections: [
         {
           label: 'Unit',
           rows: [
-            { label: 'Code', value: row.code },
+            { label: 'Abbreviation', value: row.abbreviation },
             { label: 'Name', value: row.name },
             { label: 'Type', value: row.type },
+            { label: 'Status', value: row.isActive ? 'Active' : 'Inactive' },
           ],
-        },
-        {
-          label: 'Conversions',
-          rows: row.conversionsList.length
-            ? row.conversionsList.map((c) => ({ label: `${c.from} → ${c.to}`, value: `× ${c.factor.toLocaleString()}` }))
-            : [{ label: 'None', value: '—' }],
         },
       ],
     }),

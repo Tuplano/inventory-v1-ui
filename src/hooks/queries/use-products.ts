@@ -1,29 +1,26 @@
 import { useQuery } from '@tanstack/react-query'
-import { mockStore } from '@/mock'
+import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
-import type { ProductRow } from '@/entities/products.config'
+import type { CategoryRecord } from '@/entities/categories.config'
+import type { ProductRecord, ProductRow } from '@/entities/products.config'
 
 export function useProducts() {
-  const { branchId } = useScopeStore()
+  const { companyId, branchId } = useScopeStore()
   return useQuery({
-    queryKey: ['products', branchId],
+    queryKey: ['products', companyId, branchId],
     queryFn: async (): Promise<ProductRow[]> => {
-      const [products, suppliers, inventory] = await Promise.all([
-        mockStore.listProducts(),
-        mockStore.listSuppliers(),
-        mockStore.listInventory(),
+      const [{ data: products }, categories] = await Promise.all([
+        apiClient.get<ProductRecord[]>('/products'),
+        apiClient
+          .get<CategoryRecord[]>('/categories')
+          .then((res) => res.data)
+          .catch(() => [] as CategoryRecord[]),
       ])
-      return products.map((p) => {
-        const inv = inventory.find((i) => i.productId === p.id && i.branchId === branchId)
-        return {
-          ...p,
-          supplierName: suppliers.find((s) => s.id === p.sup)?.name ?? '',
-          inventoryQty: inv?.qty,
-          inventoryMin: inv?.min,
-          inventoryMax: inv?.max,
-          inventoryLoc: inv?.loc,
-        }
-      })
+      return products.map((p) => ({
+        ...p,
+        categoryName: categories.find((c) => c.id === p.categoryId)?.name,
+      }))
     },
+    enabled: !!companyId,
   })
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -17,18 +18,24 @@ type FormValues = z.infer<typeof schema>
 export function LoginForm() {
   const login = useAuthStore((s) => s.login)
   const navigate = useNavigate()
+  const [formError, setFormError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: 'd.reyes@meridianhealth.co', password: '••••••••••' },
+    defaultValues: { email: '', password: '' },
   })
 
-  function onSubmit(values: FormValues) {
-    login(values.email, values.password)
-    navigate({ to: '/dashboard' })
+  async function onSubmit(values: FormValues) {
+    setFormError(null)
+    try {
+      await login(values.email, values.password)
+      navigate({ to: '/dashboard' })
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Unable to sign in')
+    }
   }
 
   return (
@@ -47,6 +54,7 @@ export function LoginForm() {
         <Input id="password" type="password" {...register('password')} />
         {errors.password && <p className="mt-1 text-xs text-[var(--red)]">{errors.password.message}</p>}
       </div>
+      {formError && <p className="text-xs text-[var(--red)]">{formError}</p>}
       <Button type="submit" disabled={isSubmitting} className="mt-1.5 w-full">
         Sign in
       </Button>

@@ -13,3 +13,8 @@ export function formatDate(dateStr: string): string {
 export function daysUntil(dateStr: string, today = new Date('2026-07-13')): number {
   return Math.round((new Date(dateStr).getTime() - today.getTime()) / 86400000)
 }
+
+export function initials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return (parts[0]?.[0] ?? '').concat(parts[1]?.[0] ?? '').toUpperCase() || 'U'
+}

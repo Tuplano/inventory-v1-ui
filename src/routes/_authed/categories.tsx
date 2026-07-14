@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
-import { createCategoriesConfig } from '@/entities/categories.config'
+import { CategoryFormDialog } from '@/components/categories/CategoryFormDialog'
+import { createCategoriesConfig, type CategoryRecord } from '@/entities/categories.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useCategories } from '@/hooks/queries/use-categories'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 
 export const Route = createFileRoute('/_authed/categories')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -12,10 +13,28 @@ export const Route = createFileRoute('/_authed/categories')({
 })
 
 function CategoriesPage() {
-  const branchId = useScopeStore((s) => s.branchId)
-  const branch = mockStore.getBranch(branchId)
+  const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = useCategories()
   const config = createCategoriesConfig(branch?.name ?? '')
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingRow, setEditingRow] = useState<CategoryRecord | null>(null)
 
-  return <EntityTableView config={config} rows={rows} isLoading={isLoading} />
+  return (
+    <>
+      <EntityTableView
+        config={config}
+        rows={rows}
+        isLoading={isLoading}
+        onCreate={() => {
+          setEditingRow(null)
+          setFormOpen(true)
+        }}
+        onEditRow={(row) => {
+          setEditingRow(row)
+          setFormOpen(true)
+        }}
+      />
+      <CategoryFormDialog open={formOpen} onOpenChange={setFormOpen} category={editingRow} />
+    </>
+  )
 }

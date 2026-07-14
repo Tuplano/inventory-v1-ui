@@ -1,16 +1,66 @@
+import { z } from 'zod'
 import type { EntityTableConfig } from './types'
-import type { Product, Tone } from '@/mock/types'
+import type { Tone } from '@/mock/types'
 import { MonoCell, ToneBadge } from '@/components/entity-table/cells'
 
-export interface ProductRow extends Product {
-  supplierName: string
-  inventoryQty?: number
-  inventoryMin?: number
-  inventoryMax?: number
-  inventoryLoc?: string
+export const trackingTypes = ['NONE', 'BATCH', 'SERIAL'] as const
+export type TrackingType = (typeof trackingTypes)[number]
+
+export interface UomSummary {
+  id: string
+  name: string
+  abbreviation: string
+  type: string
 }
 
-export function trackTone(track: Product['track']): Tone {
+export interface ProductRecord {
+  id: string
+  companyId: string
+  categoryId: string | null
+  name: string
+  code: string
+  description: string | null
+  baseUomId: string
+  purchaseUomId: string | null
+  saleUomId: string | null
+  trackingType: TrackingType
+  isActive: boolean
+  baseUom: UomSummary
+  purchaseUom: UomSummary | null
+  saleUom: UomSummary | null
+}
+
+export interface ProductRow extends ProductRecord {
+  categoryName?: string
+}
+
+export const createProductSchema = z.object({
+  categoryId: z.string().optional(),
+  name: z.string().min(1, 'Name is required'),
+  code: z.string().min(1, 'Code is required'),
+  description: z.string().optional(),
+  baseUomId: z.string().min(1, 'Base unit is required'),
+  purchaseUomId: z.string().optional(),
+  saleUomId: z.string().optional(),
+  trackingType: z.enum(trackingTypes).optional(),
+})
+
+export const updateProductSchema = z.object({
+  categoryId: z.string().nullable().optional(),
+  name: z.string().min(1).optional(),
+  code: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  baseUomId: z.string().min(1).optional(),
+  purchaseUomId: z.string().nullable().optional(),
+  saleUomId: z.string().nullable().optional(),
+  trackingType: z.enum(trackingTypes).optional(),
+  isActive: z.boolean().optional(),
+})
+
+export type CreateProductInput = z.infer<typeof createProductSchema>
+export type UpdateProductInput = z.infer<typeof updateProductSchema>
+
+export function trackTone(track: TrackingType): Tone {
   if (track === 'SERIAL') return 'violet'
   if (track === 'BATCH') return 'teal'
   return 'neutral'
@@ -22,7 +72,7 @@ export function createProductsConfig(companyCode: string): EntityTableConfig<Pro
     title: 'Products',
     subtitle: `Catalog SKUs · scoped to ${companyCode}`,
     primaryActionLabel: 'New product',
-    searchKeys: ['code', 'name', 'cat'],
+    searchKeys: ['code', 'name'],
     getRowId: (row) => row.id,
     columns: [
       {
@@ -40,54 +90,43 @@ export function createProductsConfig(companyCode: string): EntityTableConfig<Pro
         render: (r) => <span className="font-medium">{r.name}</span>,
       },
       {
-        key: 'cat',
+        key: 'category',
         header: 'Category',
         sortable: true,
-        sortValue: (r) => r.cat,
-        render: (r) => <ToneBadge tone="neutral" label={r.cat} />,
+        sortValue: (r) => r.categoryName ?? '',
+        render: (r) => <ToneBadge tone="neutral" label={r.categoryName ?? '—'} />,
       },
       {
         key: 'track',
         header: 'Tracking',
         align: 'center',
-        render: (r) => <ToneBadge tone={trackTone(r.track)} label={r.track} />,
+        render: (r) => <ToneBadge tone={trackTone(r.trackingType)} label={r.trackingType} />,
       },
-      { key: 'base', header: 'Base', align: 'center', render: (r) => <MonoCell value={r.base} color="var(--text-2)" /> },
-      { key: 'purch', header: 'Purchase', align: 'center', render: (r) => <MonoCell value={r.purch} color="var(--text-2)" /> },
-      { key: 'sale', header: 'Sale', align: 'center', render: (r) => <MonoCell value={r.sale} color="var(--text-2)" /> },
-      { key: 'sup', header: 'Supplier', render: (r) => <span className="text-[var(--text-2)]">{r.supplierName}</span> },
+      { key: 'base', header: 'Base', align: 'center', render: (r) => <MonoCell value={r.baseUom.abbreviation} color="var(--text-2)" /> },
+      { key: 'purch', header: 'Purchase', align: 'center', render: (r) => <MonoCell value={r.purchaseUom?.abbreviation ?? '—'} color="var(--text-2)" /> },
+      { key: 'sale', header: 'Sale', align: 'center', render: (r) => <MonoCell value={r.saleUom?.abbreviation ?? '—'} color="var(--text-2)" /> },
+      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,
       subtitle: row.code,
-      badge: { label: row.track, tone: trackTone(row.track) },
+      badge: { label: row.trackingType, tone: trackTone(row.trackingType) },
       sections: [
         {
           label: 'Details',
           rows: [
-            { label: 'Category', value: row.cat },
-            { label: 'Tracking', value: row.track },
-            { label: 'Supplier', value: row.supplierName },
+            { label: 'Category', value: row.categoryName ?? '—' },
+            { label: 'Tracking', value: row.trackingType },
+            { label: 'Status', value: row.isActive ? 'Active' : 'Inactive' },
           ],
         },
         {
           label: 'Units',
           rows: [
-            { label: 'Base UOM', value: row.base },
-            { label: 'Purchase UOM', value: row.purch },
-            { label: 'Sale UOM', value: row.sale },
+            { label: 'Base UOM', value: `${row.baseUom.abbreviation} — ${row.baseUom.name}` },
+            { label: 'Purchase UOM', value: row.purchaseUom ? `${row.purchaseUom.abbreviation} — ${row.purchaseUom.name}` : '—' },
+            { label: 'Sale UOM', value: row.saleUom ? `${row.saleUom.abbreviation} — ${row.saleUom.name}` : '—' },
           ],
-        },
-        {
-          label: 'Stock',
-          rows:
-            row.inventoryQty != null
-              ? [
-                  { label: 'On hand', value: row.inventoryQty.toLocaleString() },
-                  { label: 'Min / Max', value: `${row.inventoryMin} / ${row.inventoryMax}` },
-                  { label: 'Location', value: row.inventoryLoc },
-                ]
-              : [{ label: 'On hand', value: '—' }],
         },
       ],
     }),

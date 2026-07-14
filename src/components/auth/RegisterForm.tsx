@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,7 +11,7 @@ import { useAuthStore } from '@/stores/auth-store'
 const schema = z.object({
   name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Enter a valid email'),
-  password: z.string().min(6, 'At least 6 characters'),
+  password: z.string().min(8, 'At least 8 characters'),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -18,18 +19,24 @@ type FormValues = z.infer<typeof schema>
 export function RegisterForm() {
   const register_ = useAuthStore((s) => s.register)
   const navigate = useNavigate()
+  const [formError, setFormError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: 'Dana Reyes', email: 'd.reyes@meridianhealth.co', password: '••••••••••' },
+    defaultValues: { name: '', email: '', password: '' },
   })
 
-  function onSubmit(values: FormValues) {
-    register_(values.name, values.email, values.password)
-    navigate({ to: '/dashboard' })
+  async function onSubmit(values: FormValues) {
+    setFormError(null)
+    try {
+      await register_(values.name, values.email, values.password)
+      navigate({ to: '/dashboard' })
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Unable to create account')
+    }
   }
 
   return (
@@ -55,6 +62,7 @@ export function RegisterForm() {
         <Input id="reg-password" type="password" {...register('password')} />
         {errors.password && <p className="mt-1 text-xs text-[var(--red)]">{errors.password.message}</p>}
       </div>
+      {formError && <p className="text-xs text-[var(--red)]">{formError}</p>}
       <Button type="submit" disabled={isSubmitting} className="mt-1.5 w-full">
         Create account
       </Button>

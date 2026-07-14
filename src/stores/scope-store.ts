@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { mockStore } from '@/mock'
 
 interface ScopeState {
   companyId: string
@@ -12,12 +11,9 @@ interface ScopeState {
 export const useScopeStore = create<ScopeState>()(
   persist(
     (set) => ({
-      companyId: 'c1',
-      branchId: 'b1',
-      setCompany: (companyId) => {
-        const firstBranch = mockStore.branchesOf(companyId)[0]
-        set({ companyId, branchId: firstBranch?.id ?? '' })
-      },
+      companyId: '',
+      branchId: '',
+      setCompany: (companyId) => set({ companyId, branchId: '' }),
       setBranch: (branchId) => set({ branchId }),
     }),
     { name: 'palletyx-scope' },
