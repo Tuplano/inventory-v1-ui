@@ -9,14 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AboutRouteImport } from './routes/about'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
-import { Route as DemoPrismaRouteImport } from './routes/demo/prisma'
+import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
+import { Route as AuthedUomRouteImport } from './routes/_authed/uom'
+import { Route as AuthedSuppliersRouteImport } from './routes/_authed/suppliers'
+import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
+import { Route as AuthedSerialsRouteImport } from './routes/_authed/serials'
+import { Route as AuthedRolesRouteImport } from './routes/_authed/roles'
+import { Route as AuthedReceivingsRouteImport } from './routes/_authed/receivings'
+import { Route as AuthedProductsRouteImport } from './routes/_authed/products'
+import { Route as AuthedPermissionsRouteImport } from './routes/_authed/permissions'
+import { Route as AuthedMovementsRouteImport } from './routes/_authed/movements'
+import { Route as AuthedLocationsRouteImport } from './routes/_authed/locations'
+import { Route as AuthedInventoryRouteImport } from './routes/_authed/inventory'
+import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedConversionsRouteImport } from './routes/_authed/conversions'
+import { Route as AuthedCompaniesRouteImport } from './routes/_authed/companies'
+import { Route as AuthedCategoriesRouteImport } from './routes/_authed/categories'
+import { Route as AuthedBatchesRouteImport } from './routes/_authed/batches'
+import { Route as AuthedPurchaseOrdersIndexRouteImport } from './routes/_authed/purchase-orders/index'
+import { Route as AuthedPurchaseOrdersIdRouteImport } from './routes/_authed/purchase-orders/$id'
 
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -24,58 +46,267 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
+const AuthedUsersRoute = AuthedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthedRoute,
 } as any)
-const DemoPrismaRoute = DemoPrismaRouteImport.update({
-  id: '/demo/prisma',
-  path: '/demo/prisma',
-  getParentRoute: () => rootRouteImport,
+const AuthedUomRoute = AuthedUomRouteImport.update({
+  id: '/uom',
+  path: '/uom',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSuppliersRoute = AuthedSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSerialsRoute = AuthedSerialsRouteImport.update({
+  id: '/serials',
+  path: '/serials',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedRolesRoute = AuthedRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedReceivingsRoute = AuthedReceivingsRouteImport.update({
+  id: '/receivings',
+  path: '/receivings',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedProductsRoute = AuthedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPermissionsRoute = AuthedPermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedMovementsRoute = AuthedMovementsRouteImport.update({
+  id: '/movements',
+  path: '/movements',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedLocationsRoute = AuthedLocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedInventoryRoute = AuthedInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedConversionsRoute = AuthedConversionsRouteImport.update({
+  id: '/conversions',
+  path: '/conversions',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedCompaniesRoute = AuthedCompaniesRouteImport.update({
+  id: '/companies',
+  path: '/companies',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedCategoriesRoute = AuthedCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedBatchesRoute = AuthedBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPurchaseOrdersIndexRoute =
+  AuthedPurchaseOrdersIndexRouteImport.update({
+    id: '/purchase-orders/',
+    path: '/purchase-orders/',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedPurchaseOrdersIdRoute = AuthedPurchaseOrdersIdRouteImport.update({
+  id: '/purchase-orders/$id',
+  path: '/purchase-orders/$id',
+  getParentRoute: () => AuthedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/demo/prisma': typeof DemoPrismaRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/login': typeof LoginRoute
+  '/batches': typeof AuthedBatchesRoute
+  '/categories': typeof AuthedCategoriesRoute
+  '/companies': typeof AuthedCompaniesRoute
+  '/conversions': typeof AuthedConversionsRoute
+  '/dashboard': typeof AuthedDashboardRoute
+  '/inventory': typeof AuthedInventoryRoute
+  '/locations': typeof AuthedLocationsRoute
+  '/movements': typeof AuthedMovementsRoute
+  '/permissions': typeof AuthedPermissionsRoute
+  '/products': typeof AuthedProductsRoute
+  '/receivings': typeof AuthedReceivingsRoute
+  '/roles': typeof AuthedRolesRoute
+  '/serials': typeof AuthedSerialsRoute
+  '/settings': typeof AuthedSettingsRoute
+  '/suppliers': typeof AuthedSuppliersRoute
+  '/uom': typeof AuthedUomRoute
+  '/users': typeof AuthedUsersRoute
+  '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/purchase-orders/': typeof AuthedPurchaseOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/demo/prisma': typeof DemoPrismaRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/login': typeof LoginRoute
+  '/batches': typeof AuthedBatchesRoute
+  '/categories': typeof AuthedCategoriesRoute
+  '/companies': typeof AuthedCompaniesRoute
+  '/conversions': typeof AuthedConversionsRoute
+  '/dashboard': typeof AuthedDashboardRoute
+  '/inventory': typeof AuthedInventoryRoute
+  '/locations': typeof AuthedLocationsRoute
+  '/movements': typeof AuthedMovementsRoute
+  '/permissions': typeof AuthedPermissionsRoute
+  '/products': typeof AuthedProductsRoute
+  '/receivings': typeof AuthedReceivingsRoute
+  '/roles': typeof AuthedRolesRoute
+  '/serials': typeof AuthedSerialsRoute
+  '/settings': typeof AuthedSettingsRoute
+  '/suppliers': typeof AuthedSuppliersRoute
+  '/uom': typeof AuthedUomRoute
+  '/users': typeof AuthedUsersRoute
+  '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/purchase-orders': typeof AuthedPurchaseOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/demo/prisma': typeof DemoPrismaRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/_authed': typeof AuthedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authed/batches': typeof AuthedBatchesRoute
+  '/_authed/categories': typeof AuthedCategoriesRoute
+  '/_authed/companies': typeof AuthedCompaniesRoute
+  '/_authed/conversions': typeof AuthedConversionsRoute
+  '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/inventory': typeof AuthedInventoryRoute
+  '/_authed/locations': typeof AuthedLocationsRoute
+  '/_authed/movements': typeof AuthedMovementsRoute
+  '/_authed/permissions': typeof AuthedPermissionsRoute
+  '/_authed/products': typeof AuthedProductsRoute
+  '/_authed/receivings': typeof AuthedReceivingsRoute
+  '/_authed/roles': typeof AuthedRolesRoute
+  '/_authed/serials': typeof AuthedSerialsRoute
+  '/_authed/settings': typeof AuthedSettingsRoute
+  '/_authed/suppliers': typeof AuthedSuppliersRoute
+  '/_authed/uom': typeof AuthedUomRoute
+  '/_authed/users': typeof AuthedUsersRoute
+  '/_authed/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/_authed/purchase-orders/': typeof AuthedPurchaseOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/demo/prisma' | '/demo/tanstack-query'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/batches'
+    | '/categories'
+    | '/companies'
+    | '/conversions'
+    | '/dashboard'
+    | '/inventory'
+    | '/locations'
+    | '/movements'
+    | '/permissions'
+    | '/products'
+    | '/receivings'
+    | '/roles'
+    | '/serials'
+    | '/settings'
+    | '/suppliers'
+    | '/uom'
+    | '/users'
+    | '/purchase-orders/$id'
+    | '/purchase-orders/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/demo/prisma' | '/demo/tanstack-query'
-  id: '__root__' | '/' | '/about' | '/demo/prisma' | '/demo/tanstack-query'
+  to:
+    | '/'
+    | '/login'
+    | '/batches'
+    | '/categories'
+    | '/companies'
+    | '/conversions'
+    | '/dashboard'
+    | '/inventory'
+    | '/locations'
+    | '/movements'
+    | '/permissions'
+    | '/products'
+    | '/receivings'
+    | '/roles'
+    | '/serials'
+    | '/settings'
+    | '/suppliers'
+    | '/uom'
+    | '/users'
+    | '/purchase-orders/$id'
+    | '/purchase-orders'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authed'
+    | '/login'
+    | '/_authed/batches'
+    | '/_authed/categories'
+    | '/_authed/companies'
+    | '/_authed/conversions'
+    | '/_authed/dashboard'
+    | '/_authed/inventory'
+    | '/_authed/locations'
+    | '/_authed/movements'
+    | '/_authed/permissions'
+    | '/_authed/products'
+    | '/_authed/receivings'
+    | '/_authed/roles'
+    | '/_authed/serials'
+    | '/_authed/settings'
+    | '/_authed/suppliers'
+    | '/_authed/uom'
+    | '/_authed/users'
+    | '/_authed/purchase-orders/$id'
+    | '/_authed/purchase-orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  DemoPrismaRoute: typeof DemoPrismaRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  AuthedRoute: typeof AuthedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -85,29 +316,203 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authed/users': {
+      id: '/_authed/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthedUsersRouteImport
+      parentRoute: typeof AuthedRoute
     }
-    '/demo/prisma': {
-      id: '/demo/prisma'
-      path: '/demo/prisma'
-      fullPath: '/demo/prisma'
-      preLoaderRoute: typeof DemoPrismaRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authed/uom': {
+      id: '/_authed/uom'
+      path: '/uom'
+      fullPath: '/uom'
+      preLoaderRoute: typeof AuthedUomRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/suppliers': {
+      id: '/_authed/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof AuthedSuppliersRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/settings': {
+      id: '/_authed/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/serials': {
+      id: '/_authed/serials'
+      path: '/serials'
+      fullPath: '/serials'
+      preLoaderRoute: typeof AuthedSerialsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/roles': {
+      id: '/_authed/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AuthedRolesRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/receivings': {
+      id: '/_authed/receivings'
+      path: '/receivings'
+      fullPath: '/receivings'
+      preLoaderRoute: typeof AuthedReceivingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/products': {
+      id: '/_authed/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthedProductsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/permissions': {
+      id: '/_authed/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof AuthedPermissionsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/movements': {
+      id: '/_authed/movements'
+      path: '/movements'
+      fullPath: '/movements'
+      preLoaderRoute: typeof AuthedMovementsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/locations': {
+      id: '/_authed/locations'
+      path: '/locations'
+      fullPath: '/locations'
+      preLoaderRoute: typeof AuthedLocationsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/inventory': {
+      id: '/_authed/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AuthedInventoryRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/dashboard': {
+      id: '/_authed/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedDashboardRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/conversions': {
+      id: '/_authed/conversions'
+      path: '/conversions'
+      fullPath: '/conversions'
+      preLoaderRoute: typeof AuthedConversionsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/companies': {
+      id: '/_authed/companies'
+      path: '/companies'
+      fullPath: '/companies'
+      preLoaderRoute: typeof AuthedCompaniesRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/categories': {
+      id: '/_authed/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof AuthedCategoriesRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/batches': {
+      id: '/_authed/batches'
+      path: '/batches'
+      fullPath: '/batches'
+      preLoaderRoute: typeof AuthedBatchesRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/purchase-orders/': {
+      id: '/_authed/purchase-orders/'
+      path: '/purchase-orders'
+      fullPath: '/purchase-orders/'
+      preLoaderRoute: typeof AuthedPurchaseOrdersIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/purchase-orders/$id': {
+      id: '/_authed/purchase-orders/$id'
+      path: '/purchase-orders/$id'
+      fullPath: '/purchase-orders/$id'
+      preLoaderRoute: typeof AuthedPurchaseOrdersIdRouteImport
+      parentRoute: typeof AuthedRoute
     }
   }
 }
 
+interface AuthedRouteChildren {
+  AuthedBatchesRoute: typeof AuthedBatchesRoute
+  AuthedCategoriesRoute: typeof AuthedCategoriesRoute
+  AuthedCompaniesRoute: typeof AuthedCompaniesRoute
+  AuthedConversionsRoute: typeof AuthedConversionsRoute
+  AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedInventoryRoute: typeof AuthedInventoryRoute
+  AuthedLocationsRoute: typeof AuthedLocationsRoute
+  AuthedMovementsRoute: typeof AuthedMovementsRoute
+  AuthedPermissionsRoute: typeof AuthedPermissionsRoute
+  AuthedProductsRoute: typeof AuthedProductsRoute
+  AuthedReceivingsRoute: typeof AuthedReceivingsRoute
+  AuthedRolesRoute: typeof AuthedRolesRoute
+  AuthedSerialsRoute: typeof AuthedSerialsRoute
+  AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedSuppliersRoute: typeof AuthedSuppliersRoute
+  AuthedUomRoute: typeof AuthedUomRoute
+  AuthedUsersRoute: typeof AuthedUsersRoute
+  AuthedPurchaseOrdersIdRoute: typeof AuthedPurchaseOrdersIdRoute
+  AuthedPurchaseOrdersIndexRoute: typeof AuthedPurchaseOrdersIndexRoute
+}
+
+const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedBatchesRoute: AuthedBatchesRoute,
+  AuthedCategoriesRoute: AuthedCategoriesRoute,
+  AuthedCompaniesRoute: AuthedCompaniesRoute,
+  AuthedConversionsRoute: AuthedConversionsRoute,
+  AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedInventoryRoute: AuthedInventoryRoute,
+  AuthedLocationsRoute: AuthedLocationsRoute,
+  AuthedMovementsRoute: AuthedMovementsRoute,
+  AuthedPermissionsRoute: AuthedPermissionsRoute,
+  AuthedProductsRoute: AuthedProductsRoute,
+  AuthedReceivingsRoute: AuthedReceivingsRoute,
+  AuthedRolesRoute: AuthedRolesRoute,
+  AuthedSerialsRoute: AuthedSerialsRoute,
+  AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedSuppliersRoute: AuthedSuppliersRoute,
+  AuthedUomRoute: AuthedUomRoute,
+  AuthedUsersRoute: AuthedUsersRoute,
+  AuthedPurchaseOrdersIdRoute: AuthedPurchaseOrdersIdRoute,
+  AuthedPurchaseOrdersIndexRoute: AuthedPurchaseOrdersIndexRoute,
+}
+
+const AuthedRouteWithChildren =
+  AuthedRoute._addFileChildren(AuthedRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  DemoPrismaRoute: DemoPrismaRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  AuthedRoute: AuthedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

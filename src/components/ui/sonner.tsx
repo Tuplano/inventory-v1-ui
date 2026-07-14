@@ -1,11 +1,31 @@
 "use client"
 
-import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
+// Tracks the app's own THEME_INIT_SCRIPT / ThemeToggle mechanism (a `dark`/`light`
+// class on <html>) rather than next-themes, which this app doesn't provide a
+// <ThemeProvider> for.
+function useResolvedTheme(): "light" | "dark" {
+  const [theme, setTheme] = useState<"light" | "dark">(() =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light"
+  )
+
+  useEffect(() => {
+    const root = document.documentElement
+    const sync = () => setTheme(root.classList.contains("dark") ? "dark" : "light")
+    sync()
+    const observer = new MutationObserver(sync)
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] })
+    return () => observer.disconnect()
+  }, [])
+
+  return theme
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const theme = useResolvedTheme()
 
   return (
     <Sonner

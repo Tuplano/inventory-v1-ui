@@ -1,0 +1,229 @@
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { Truck } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { formatCurrency, formatNumber } from '@/lib/format'
+import { useLocations } from '@/hooks/queries/use-locations'
+import { usePostReceiving } from '@/hooks/mutations/use-post-receiving'
+import { useAuthStore } from '@/stores/auth-store'
+import { mockStore } from '@/mock'
+import type { PoDetail } from '@/hooks/queries/use-purchase-order'
+
+interface LineState {
+  qty: string
+  cost: string
+  batch: string
+  loc: string
+}
+
+export function ReceiveStockModal({
+  open,
+  onOpenChange,
+  po,
+  receivingNumber,
+  supplierName,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  po: PoDetail
+  receivingNumber: string
+  supplierName: string
+}) {
+  const { data: locations = [] } = useLocations()
+  const postReceiving = usePostReceiving()
+  const user = useAuthStore((s) => s.user)
+  const defaultLoc = mockStore.getSetting('movement.default_receiving_loc')?.value ?? 'RCV-DOCK-1'
+
+  const [ref, setRef] = useState('')
+  const [date, setDate] = useState('2026-07-13')
+  const [lines, setLines] = useState<Record<string, LineState>>({})
+
+  useEffect(() => {
+    if (!open) return
+    setRef('')
+    setDate('2026-07-13')
+    const initial: Record<string, LineState> = {}
+    po.lines.forEach((l) => {
+      const remaining = Math.max(0, l.ordered - l.received)
+      initial[l.id] = { qty: String(remaining), cost: l.cost.toFixed(2), batch: '', loc: defaultLoc }
+    })
+    setLines(initial)
+  }, [open, po, defaultLoc])
+
+  function setField(lineId: string, field: keyof LineState, raw: string) {
+    let value = raw
+    if (field === 'qty') value = raw.replace(/[^0-9]/g, '')
+    if (field === 'cost') value = raw.replace(/[^0-9.]/g, '')
+    setLines((prev) => ({ ...prev, [lineId]: { ...prev[lineId], [field]: value } }))
+  }
+
+  const totalUnits = Object.values(lines).reduce((a, v) => a + (Number(v.qty) || 0), 0)
+  const totalValue = Object.values(lines).reduce((a, v) => a + (Number(v.qty) || 0) * (Number(v.cost) || 0), 0)
+  const lineCount = Object.values(lines).filter((v) => Number(v.qty) > 0).length
+
+  function handleSubmit() {
+    if (lineCount === 0) {
+      toast.warning('Enter a quantity on at least one line')
+      return
+    }
+    postReceiving.mutate(
+      {
+        poId: po.id,
+        ref,
+        date,
+        receivedBy: user?.name ?? 'Unknown',
+        lines: Object.entries(lines).map(([lineId, v]) => ({
+          lineId,
+          qty: Number(v.qty) || 0,
+          cost: Number(v.cost) || 0,
+          batchNo: v.batch,
+          toLoc: v.loc,
+        })),
+      },
+      { onSuccess: () => onOpenChange(false) },
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-[880px]">
+        <DialogHeader className="flex-none flex-row items-center gap-3 border-b border-[var(--border-2)] p-4 pr-12">
+          <div className="flex size-8 flex-none items-center justify-center rounded-lg bg-[var(--brand-accent-weak)] text-[var(--brand-accent)]">
+            <Truck className="size-[17px]" strokeWidth={1.8} />
+          </div>
+          <div className="flex-1">
+            <DialogTitle className="text-[15px] font-bold">
+              New receiving · <span className="font-mono">{receivingNumber}</span>
+            </DialogTitle>
+            <div className="text-xs text-[var(--text-3)]">
+              Against {po.number} · {supplierName} — posts RECEIVING movements &amp; updates stock on hand
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="flex flex-none items-end gap-4 border-b border-[var(--border-2)] bg-[var(--surface-2)] px-4 py-3">
+          <div>
+            <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+              Supplier DR / Invoice ref
+            </Label>
+            <Input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="DR-00000" className="w-[180px] font-mono" />
+          </div>
+          <div>
+            <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+              Received date
+            </Label>
+            <Input value={date} onChange={(e) => setDate(e.target.value)} className="w-[130px] font-mono" />
+          </div>
+          <div className="flex-1" />
+          <div className="pb-1 text-[11px] text-[var(--text-3)]">
+            Received by <span className="font-semibold text-[var(--text-2)]">{user?.name}</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[var(--border-2)]">
+                <th className="px-5 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Product</th>
+                <th className="px-2.5 py-2 text-right text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Ord.</th>
+                <th className="px-2.5 py-2 text-right text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Rem.</th>
+                <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Receive</th>
+                <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Unit cost</th>
+                <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Batch / lot #</th>
+                <th className="px-5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">To location</th>
+              </tr>
+            </thead>
+            <tbody>
+              {po.lines.map((l) => {
+                const remaining = l.ordered - l.received
+                const state = lines[l.id] ?? { qty: '0', cost: '0', batch: '', loc: '' }
+                const over = Number(state.qty) > remaining
+                const isBatch = l.track === 'BATCH'
+                return (
+                  <tr key={l.id} className="border-b border-[var(--border-2)]">
+                    <td className="px-5 py-2.5">
+                      <div className="text-[12.5px] font-medium">{l.name}</div>
+                      <div className="font-mono text-[10.5px] text-[var(--text-3)]">
+                        {l.code} · {l.uom} ·{' '}
+                        <span style={{ color: isBatch ? 'var(--teal)' : l.track === 'SERIAL' ? 'var(--violet)' : 'var(--text-3)' }}>{l.track}</span>
+                      </div>
+                    </td>
+                    <td className="px-2.5 py-2.5 text-right font-mono text-[12px] text-[var(--text-3)]">{formatNumber(l.ordered)}</td>
+                    <td
+                      className="px-2.5 py-2.5 text-right font-mono text-[12px] font-semibold"
+                      style={{ color: over ? 'var(--red)' : remaining > 0 ? 'var(--amber)' : 'var(--green)' }}
+                    >
+                      {formatNumber(remaining)}
+                      {over ? ' ⚠' : ''}
+                    </td>
+                    <td className="px-2.5 py-2.5 text-center">
+                      <div className="inline-flex items-center gap-1">
+                        <Input
+                          value={state.qty}
+                          onChange={(e) => setField(l.id, 'qty', e.target.value)}
+                          inputMode="numeric"
+                          className="w-[58px] text-right font-mono"
+                          style={{ borderColor: over ? 'var(--red)' : undefined }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setField(l.id, 'qty', String(Math.max(0, remaining)))}
+                          className="text-[10px] font-semibold text-[var(--brand-accent)]"
+                        >
+                          MAX
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-2.5 py-2.5 text-center">
+                      <Input value={state.cost} onChange={(e) => setField(l.id, 'cost', e.target.value)} inputMode="decimal" className="w-[70px] text-right font-mono" />
+                    </td>
+                    <td className="px-2.5 py-2.5 text-center">
+                      <Input
+                        value={state.batch}
+                        onChange={(e) => setField(l.id, 'batch', e.target.value)}
+                        placeholder={isBatch ? 'lot #' : 'n/a'}
+                        disabled={!isBatch}
+                        className="w-[100px] font-mono text-[11.5px]"
+                      />
+                    </td>
+                    <td className="px-5 py-2.5 text-center">
+                      <Input
+                        value={state.loc}
+                        onChange={(e) => setField(l.id, 'loc', e.target.value)}
+                        list="receive-loc-options"
+                        className="w-24 font-mono text-[11.5px]"
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          <datalist id="receive-loc-options">
+            {locations.map((loc) => (
+              <option key={loc.id} value={loc.code} />
+            ))}
+          </datalist>
+        </div>
+
+        <DialogFooter className="flex-none flex-row items-center gap-3 rounded-none">
+          <div className="flex-1 text-[12px] text-[var(--text-2)]">
+            Posting <span className="font-mono font-bold text-foreground">{formatNumber(totalUnits)}</span> units ·{' '}
+            <span className="font-mono font-bold text-foreground">{lineCount}</span> lines · value{' '}
+            <span className="font-mono font-bold text-foreground">{formatCurrency(totalValue)}</span>
+          </div>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={postReceiving.isPending}>
+            <Truck data-icon="inline-start" />
+            Post receiving
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
