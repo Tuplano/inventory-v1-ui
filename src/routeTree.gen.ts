@@ -25,7 +25,6 @@ import { Route as AuthedMovementsRouteImport } from './routes/_authed/movements'
 import { Route as AuthedLocationsRouteImport } from './routes/_authed/locations'
 import { Route as AuthedInventoryRouteImport } from './routes/_authed/inventory'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
-import { Route as AuthedConversionsRouteImport } from './routes/_authed/conversions'
 import { Route as AuthedCompaniesRouteImport } from './routes/_authed/companies'
 import { Route as AuthedCategoriesRouteImport } from './routes/_authed/categories'
 import { Route as AuthedBatchesRouteImport } from './routes/_authed/batches'
@@ -111,11 +110,6 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedConversionsRoute = AuthedConversionsRouteImport.update({
-  id: '/conversions',
-  path: '/conversions',
-  getParentRoute: () => AuthedRoute,
-} as any)
 const AuthedCompaniesRoute = AuthedCompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
@@ -149,7 +143,6 @@ export interface FileRoutesByFullPath {
   '/batches': typeof AuthedBatchesRoute
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
-  '/conversions': typeof AuthedConversionsRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/inventory': typeof AuthedInventoryRoute
   '/locations': typeof AuthedLocationsRoute
@@ -172,7 +165,6 @@ export interface FileRoutesByTo {
   '/batches': typeof AuthedBatchesRoute
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
-  '/conversions': typeof AuthedConversionsRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/inventory': typeof AuthedInventoryRoute
   '/locations': typeof AuthedLocationsRoute
@@ -197,7 +189,6 @@ export interface FileRoutesById {
   '/_authed/batches': typeof AuthedBatchesRoute
   '/_authed/categories': typeof AuthedCategoriesRoute
   '/_authed/companies': typeof AuthedCompaniesRoute
-  '/_authed/conversions': typeof AuthedConversionsRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/inventory': typeof AuthedInventoryRoute
   '/_authed/locations': typeof AuthedLocationsRoute
@@ -222,7 +213,6 @@ export interface FileRouteTypes {
     | '/batches'
     | '/categories'
     | '/companies'
-    | '/conversions'
     | '/dashboard'
     | '/inventory'
     | '/locations'
@@ -245,7 +235,6 @@ export interface FileRouteTypes {
     | '/batches'
     | '/categories'
     | '/companies'
-    | '/conversions'
     | '/dashboard'
     | '/inventory'
     | '/locations'
@@ -269,7 +258,6 @@ export interface FileRouteTypes {
     | '/_authed/batches'
     | '/_authed/categories'
     | '/_authed/companies'
-    | '/_authed/conversions'
     | '/_authed/dashboard'
     | '/_authed/inventory'
     | '/_authed/locations'
@@ -407,13 +395,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/conversions': {
-      id: '/_authed/conversions'
-      path: '/conversions'
-      fullPath: '/conversions'
-      preLoaderRoute: typeof AuthedConversionsRouteImport
-      parentRoute: typeof AuthedRoute
-    }
     '/_authed/companies': {
       id: '/_authed/companies'
       path: '/companies'
@@ -456,7 +437,6 @@ interface AuthedRouteChildren {
   AuthedBatchesRoute: typeof AuthedBatchesRoute
   AuthedCategoriesRoute: typeof AuthedCategoriesRoute
   AuthedCompaniesRoute: typeof AuthedCompaniesRoute
-  AuthedConversionsRoute: typeof AuthedConversionsRoute
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedInventoryRoute: typeof AuthedInventoryRoute
   AuthedLocationsRoute: typeof AuthedLocationsRoute
@@ -478,7 +458,6 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedBatchesRoute: AuthedBatchesRoute,
   AuthedCategoriesRoute: AuthedCategoriesRoute,
   AuthedCompaniesRoute: AuthedCompaniesRoute,
-  AuthedConversionsRoute: AuthedConversionsRoute,
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedInventoryRoute: AuthedInventoryRoute,
   AuthedLocationsRoute: AuthedLocationsRoute,

@@ -20,7 +20,6 @@ export interface CompanyRecord {
   stateProvince: string | null
   postalCode: string | null
   country: string | null
-  isActive: boolean
 }
 
 export function useCompanies() {

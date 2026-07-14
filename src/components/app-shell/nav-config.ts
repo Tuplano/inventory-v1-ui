@@ -42,7 +42,6 @@ export const navGroups: NavGroup[] = [
       { route: 'products', to: '/products', label: 'Products', icon: Box },
       { route: 'categories', to: '/categories', label: 'Categories', icon: Tag },
       { route: 'uom', to: '/uom', label: 'Units of measure', icon: Ruler },
-      { route: 'conversions', to: '/conversions', label: 'UOM conversions', icon: ArrowLeftRight },
       { route: 'suppliers', to: '/suppliers', label: 'Suppliers', icon: Truck },
     ],
   },

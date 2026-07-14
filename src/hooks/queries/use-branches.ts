@@ -8,7 +8,6 @@ export interface BranchRecord {
   name: string
   code: string
   address: string | null
-  isActive: boolean
 }
 
 export function useBranches() {

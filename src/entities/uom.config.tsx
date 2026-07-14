@@ -19,7 +19,8 @@ export interface UomConversionRecord {
   companyId: string
   fromUomId: string
   toUomId: string
-  conversionFactor: number
+  /** Serialized as a string on the wire (Prisma Decimal → JSON). */
+  conversionFactor: string
 }
 
 export interface UomWithConversions extends UomRecord {
