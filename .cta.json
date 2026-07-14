@@ -1,0 +1,24 @@
+{
+  "projectName": "inventory-v1-ui",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "npm",
+  "includeExamples": true,
+  "tailwind": true,
+  "addOnOptions": {
+    "prisma": {
+      "database": "postgres"
+    }
+  },
+  "envVarValues": {},
+  "git": true,
+  "install": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "nitro",
+    "prisma",
+    "tanstack-query"
+  ]
+}
