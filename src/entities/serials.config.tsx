@@ -1,6 +1,25 @@
+import { z } from 'zod'
 import type { EntityTableConfig, SerialStatus } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 import { serialStatusTone } from '@/lib/tone'
+
+const serialStatusValues = ['IN_STOCK', 'ISSUED', 'RETURNED', 'DAMAGED'] as const
+
+export const createSerialSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  serialNumber: z.string().min(1, 'Serial number is required'),
+  currentBranchId: z.string().optional(),
+  currentLocationId: z.string().optional(),
+})
+
+export const updateSerialSchema = z.object({
+  status: z.enum(serialStatusValues).optional(),
+  currentBranchId: z.string().nullable().optional(),
+  currentLocationId: z.string().nullable().optional(),
+})
+
+export type CreateSerialInput = z.infer<typeof createSerialSchema>
+export type UpdateSerialInput = z.infer<typeof updateSerialSchema>
 
 export interface SerialRecord {
   id: string

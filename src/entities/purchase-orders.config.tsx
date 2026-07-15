@@ -1,8 +1,26 @@
+import { z } from 'zod'
 import type { EntityTableConfig } from './types'
 import type { PoStatus } from '@/entities/types'
 import { MonoCell, StockCell, ToneBadge } from '@/components/entity-table/cells'
 import { formatCurrency } from '@/lib/format'
 import { poStatusTone } from '@/lib/tone'
+
+export const createPurchaseOrderLineSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  uomId: z.string().min(1, 'UoM is required'),
+  orderedQty: z.number().positive('Ordered quantity must be positive'),
+  unitCost: z.number().min(0, 'Unit cost cannot be negative'),
+})
+
+export const createPurchaseOrderSchema = z.object({
+  supplierId: z.string().min(1, 'Supplier is required'),
+  poNumber: z.string().min(1, 'PO number is required'),
+  expectedDate: z.string().optional(),
+  notes: z.string().optional(),
+  lines: z.array(createPurchaseOrderLineSchema).min(1, 'At least one line item is required'),
+})
+
+export type CreatePurchaseOrderInput = z.infer<typeof createPurchaseOrderSchema>
 
 export interface PurchaseOrderRow {
   id: string

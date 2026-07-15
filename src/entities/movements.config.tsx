@@ -1,7 +1,20 @@
+import { z } from 'zod'
 import type { EntityTableConfig, MovementType } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 import { formatCurrency } from '@/lib/format'
 import { movementTypeTone } from '@/lib/tone'
+
+export const movementTypes = ['RECEIVING', 'ADJUSTMENT', 'TRANSFER_IN', 'TRANSFER_OUT', 'ISSUE', 'RETURN'] as const
+
+export const createStockMovementSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  type: z.enum(movementTypes),
+  quantity: z.number().positive('Quantity must be greater than zero'),
+  reference: z.string().optional(),
+  notes: z.string().optional(),
+})
+
+export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>
 
 /** Raw wire shape from GET /stock-movements (Decimal fields arrive as strings). */
 export interface StockMovementRecord {

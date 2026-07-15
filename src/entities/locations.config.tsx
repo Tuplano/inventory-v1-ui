@@ -1,5 +1,29 @@
+import { z } from 'zod'
 import type { EntityTableConfig, LocationType, Tone } from './types'
 import { MonoCell, ToneBadge } from '@/components/entity-table/cells'
+
+const locationTypeValues = ['GENERAL', 'RECEIVING', 'STAGING', 'STORAGE', 'DISPATCH'] as const
+
+export const createLocationSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  code: z.string().min(1, 'Code is required'),
+  type: z.enum(locationTypeValues).optional(),
+  aisle: z.string().optional(),
+  rack: z.string().optional(),
+  bin: z.string().optional(),
+})
+
+export const updateLocationSchema = z.object({
+  name: z.string().min(1).optional(),
+  type: z.enum(locationTypeValues).optional(),
+  aisle: z.string().nullable().optional(),
+  rack: z.string().nullable().optional(),
+  bin: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
+})
+
+export type CreateLocationInput = z.infer<typeof createLocationSchema>
+export type UpdateLocationInput = z.infer<typeof updateLocationSchema>
 
 export interface ProductLocationRecord {
   id: string

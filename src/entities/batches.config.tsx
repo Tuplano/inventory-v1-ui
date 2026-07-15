@@ -1,6 +1,27 @@
+import { z } from 'zod'
 import type { EntityTableConfig, Tone } from './types'
 import { MonoCell, StockCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 import { daysUntil } from '@/lib/format'
+
+export const createBatchSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  supplierId: z.string().optional(),
+  batchNumber: z.string().min(1, 'Batch number is required'),
+  lotNumber: z.string().optional(),
+  manufacturingDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  initialQty: z.number().positive('Initial quantity must be positive'),
+})
+
+export const updateBatchSchema = z.object({
+  lotNumber: z.string().nullable().optional(),
+  expiryDate: z.string().nullable().optional(),
+  remainingQty: z.number().min(0, 'Remaining quantity cannot be negative').optional(),
+  isActive: z.boolean().optional(),
+})
+
+export type CreateBatchInput = z.infer<typeof createBatchSchema>
+export type UpdateBatchInput = z.infer<typeof updateBatchSchema>
 
 /** Raw wire shape from GET /batches (Decimal fields arrive as strings). */
 export interface BatchRecord {

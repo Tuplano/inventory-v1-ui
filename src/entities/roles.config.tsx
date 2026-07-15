@@ -1,4 +1,20 @@
+import { z } from 'zod'
 import type { DrawerSection, EntityTableConfig } from './types'
+
+export const createRoleSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  code: z.string().min(1, 'Code is required'),
+  description: z.string().optional(),
+})
+
+export const updateRoleSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+})
+
+export type CreateRoleInput = z.infer<typeof createRoleSchema>
+export type UpdateRoleInput = z.infer<typeof updateRoleSchema>
 
 /**
  * Permission shape as embedded on a role by GET /api/v1/roles — note this one

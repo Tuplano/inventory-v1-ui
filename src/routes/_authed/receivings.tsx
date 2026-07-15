@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { createReceivingsConfig } from '@/entities/receivings.config'
 import { entityTableSearchSchema } from '@/entities/types'
@@ -14,6 +15,17 @@ function ReceivingsPage() {
   const branch = useCurrentBranch()
   const { data: rows = [], isLoading } = useReceivings()
   const config = createReceivingsConfig(branch?.name ?? '')
+  const navigate = useNavigate()
 
-  return <EntityTableView config={config} rows={rows} isLoading={isLoading} />
+  return (
+    <EntityTableView
+      config={config}
+      rows={rows}
+      isLoading={isLoading}
+      onCreate={() => {
+        toast('Select a confirmed purchase order to receive stock against')
+        navigate({ to: '/purchase-orders' })
+      }}
+    />
+  )
 }

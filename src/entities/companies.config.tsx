@@ -1,5 +1,29 @@
+import { z } from 'zod'
 import type { EntityTableConfig } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
+
+export const createCompanySchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  code: z.string().min(1, 'Code is required'),
+  legalName: z.string().optional(),
+  email: z.string().email('Email must be valid').or(z.literal('')).optional(),
+  phone: z.string().optional(),
+  website: z.string().url('Website must be a valid URL').or(z.literal('')).optional(),
+  taxId: z.string().optional(),
+})
+
+export const updateCompanySchema = z.object({
+  name: z.string().min(1).optional(),
+  code: z.string().min(1).optional(),
+  legalName: z.string().optional(),
+  email: z.string().email('Email must be valid').or(z.literal('')).optional(),
+  phone: z.string().optional(),
+  website: z.string().url('Website must be a valid URL').or(z.literal('')).optional(),
+  taxId: z.string().optional(),
+})
+
+export type CreateCompanyInput = z.infer<typeof createCompanySchema>
+export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>
 
 export interface CompanyBranch {
   id: string
