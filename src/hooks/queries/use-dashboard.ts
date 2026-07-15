@@ -161,7 +161,7 @@ export function useDashboard() {
         .slice(0, 5)
         .map((i) => {
           const product = products.find((p) => p.id === i.productId)
-          return { name: product?.name ?? '', code: product?.code ?? '', qty: Number(i.quantity), min: i.minStockLevel != null ? Number(i.minStockLevel) : 0, out: Number(i.quantity) <= 0 }
+          return { name: product?.name ?? '', code: product?.sku ?? '', qty: Number(i.quantity), min: i.minStockLevel != null ? Number(i.minStockLevel) : 0, out: Number(i.quantity) <= 0 }
         })
 
       const expiringBatches: ExpiringBatchRow[] = batches

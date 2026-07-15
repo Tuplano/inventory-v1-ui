@@ -23,7 +23,7 @@ export function useSerials() {
         const location = locations.find((l) => l.id === s.currentLocationId)
         return {
           ...s,
-          code: product?.code ?? '',
+          code: product?.sku ?? '',
           name: product?.name ?? '',
           locationLabel: location?.code ?? s.currentLocationId ?? '—',
         }

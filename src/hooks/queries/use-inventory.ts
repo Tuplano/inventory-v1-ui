@@ -28,7 +28,7 @@ export function useInventory() {
           quantity,
           minStockLevel,
           maxStockLevel,
-          code: product?.code ?? '',
+          code: product?.sku ?? '',
           name: product?.name ?? '',
           base: product?.baseUom.abbreviation ?? '',
           status,

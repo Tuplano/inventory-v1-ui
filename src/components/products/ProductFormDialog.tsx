@@ -19,13 +19,17 @@ const NONE = '__none__'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  code: z.string().min(1, 'Code is required'),
+  sku: z.string().min(1, 'SKU is required'),
+  barcode: z.string(),
+  brand: z.string(),
   description: z.string(),
   categoryId: z.string(),
   baseUomId: z.string().min(1, 'Base unit is required'),
   purchaseUomId: z.string(),
   saleUomId: z.string(),
   trackingType: z.enum(trackingTypes),
+  costPrice: z.string(),
+  sellingPrice: z.string(),
   isActive: z.boolean(),
 })
 
@@ -33,13 +37,17 @@ type FormValues = z.infer<typeof formSchema>
 
 const emptyValues: FormValues = {
   name: '',
-  code: '',
+  sku: '',
+  barcode: '',
+  brand: '',
   description: '',
   categoryId: NONE,
   baseUomId: '',
   purchaseUomId: NONE,
   saleUomId: NONE,
   trackingType: 'NONE',
+  costPrice: '',
+  sellingPrice: '',
   isActive: true,
 }
 
@@ -80,13 +88,17 @@ export function ProductFormDialog({
       product
         ? {
             name: product.name,
-            code: product.code,
+            sku: product.sku,
+            barcode: product.barcode ?? '',
+            brand: product.brand ?? '',
             description: product.description ?? '',
             categoryId: product.categoryId ?? NONE,
             baseUomId: product.baseUomId,
             purchaseUomId: product.purchaseUomId ?? NONE,
             saleUomId: product.saleUomId ?? NONE,
             trackingType: product.trackingType,
+            costPrice: product.costPrice ?? '',
+            sellingPrice: product.sellingPrice ?? '',
             isActive: product.isActive,
           }
         : emptyValues,
@@ -96,13 +108,17 @@ export function ProductFormDialog({
   function onSubmit(values: FormValues) {
     const shared = {
       name: values.name,
-      code: values.code,
+      sku: values.sku,
+      barcode: values.barcode || undefined,
+      brand: values.brand || undefined,
       description: values.description || undefined,
       categoryId: values.categoryId === NONE ? undefined : values.categoryId,
       baseUomId: values.baseUomId,
       purchaseUomId: values.purchaseUomId === NONE ? undefined : values.purchaseUomId,
       saleUomId: values.saleUomId === NONE ? undefined : values.saleUomId,
       trackingType: values.trackingType,
+      costPrice: values.costPrice === '' ? undefined : Number(values.costPrice),
+      sellingPrice: values.sellingPrice === '' ? undefined : Number(values.sellingPrice),
     }
     const onSuccess = () => onOpenChange(false)
     if (isEdit) {
@@ -130,11 +146,26 @@ export function ProductFormDialog({
                 {errors.name && <p className="mt-1 text-xs text-[var(--red)]">{errors.name.message}</p>}
               </div>
               <div>
-                <Label htmlFor="prod-code" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                  Code
+                <Label htmlFor="prod-sku" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  SKU
                 </Label>
-                <Input id="prod-code" className="font-mono" {...register('code')} />
-                {errors.code && <p className="mt-1 text-xs text-[var(--red)]">{errors.code.message}</p>}
+                <Input id="prod-sku" className="font-mono" {...register('sku')} />
+                {errors.sku && <p className="mt-1 text-xs text-[var(--red)]">{errors.sku.message}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="prod-barcode" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  Barcode
+                </Label>
+                <Input id="prod-barcode" className="font-mono" {...register('barcode')} />
+              </div>
+              <div>
+                <Label htmlFor="prod-brand" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  Brand
+                </Label>
+                <Input id="prod-brand" {...register('brand')} />
               </div>
             </div>
 
@@ -143,6 +174,21 @@ export function ProductFormDialog({
                 Description
               </Label>
               <Textarea id="prod-description" {...register('description')} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="prod-cost" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  Cost price
+                </Label>
+                <Input id="prod-cost" type="number" step="any" min="0" className="font-mono" {...register('costPrice')} />
+              </div>
+              <div>
+                <Label htmlFor="prod-sell" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  Selling price
+                </Label>
+                <Input id="prod-sell" type="number" step="any" min="0" className="font-mono" {...register('sellingPrice')} />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

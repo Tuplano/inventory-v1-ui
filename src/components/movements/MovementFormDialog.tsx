@@ -78,7 +78,7 @@ export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOp
                     <SelectContent>
                       {products.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
-                          {p.code} — {p.name}
+                          {p.sku} — {p.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

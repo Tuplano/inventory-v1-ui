@@ -47,7 +47,7 @@ export function useMovements() {
           batchId: m.batchId,
           serialNumberId: m.serialNumberId,
           createdAt: m.createdAt,
-          code: product?.code ?? '',
+          code: product?.sku ?? '',
           name: product?.name ?? '',
           uom: product?.baseUom.abbreviation ?? '',
           fromLabel: from?.code ?? m.fromLocationId ?? '—',

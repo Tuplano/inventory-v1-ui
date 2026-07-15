@@ -148,7 +148,7 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                             <SelectContent>
                               {products.map((p) => (
                                 <SelectItem key={p.id} value={p.id}>
-                                  {p.code} — {p.name}
+                                  {p.sku} — {p.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

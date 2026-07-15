@@ -48,7 +48,7 @@ export function useReceivings() {
           apiClient.get<ProductRecord[]>('/products'),
           apiClient.get<UomRecord[]>('/uom'),
         ])
-      const productCode = (productId: string) => products.find((p) => p.id === productId)?.code ?? productId
+      const productCode = (productId: string) => products.find((p) => p.id === productId)?.sku ?? productId
       const uomAbbr = (uomId: string) => uoms.find((u) => u.id === uomId)?.abbreviation ?? ''
 
       return receivings

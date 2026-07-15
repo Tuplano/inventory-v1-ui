@@ -31,7 +31,7 @@ export function useBatches() {
           remainingQty,
           isActive: b.isActive,
           createdAt: b.createdAt,
-          code: product?.code ?? '',
+          code: product?.sku ?? '',
           name: product?.name ?? '',
           status,
           daysLeft,

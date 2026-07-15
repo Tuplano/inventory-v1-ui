@@ -143,7 +143,7 @@ export function BatchFormDialog({
                         <SelectContent>
                           {products.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.code} — {p.name}
+                              {p.sku} — {p.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

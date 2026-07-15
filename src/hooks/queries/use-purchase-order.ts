@@ -86,7 +86,7 @@ export function usePurchaseOrder(id: string) {
           id: l.id,
           productId: l.productId,
           name: product?.name ?? '',
-          code: product?.code ?? '',
+          code: product?.sku ?? '',
           track: product?.trackingType ?? 'NONE',
           uom: uom?.abbreviation ?? '',
           ordered: orderedQty,
