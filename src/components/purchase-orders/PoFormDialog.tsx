@@ -17,8 +17,8 @@ import { useUoms } from '@/hooks/queries/use-uoms'
 const lineSchema = z.object({
   productId: z.string().min(1, 'Required'),
   uomId: z.string().min(1, 'Required'),
-  orderedQty: z.coerce.number().positive('Must be positive'),
-  unitCost: z.coerce.number().min(0, 'Cannot be negative'),
+  orderedQty: z.number().positive('Must be positive'),
+  unitCost: z.number().min(0, 'Cannot be negative'),
 })
 
 const formSchema = z.object({
@@ -185,7 +185,7 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                         step="any"
                         placeholder="Qty"
                         className="font-mono"
-                        {...register(`lines.${index}.orderedQty`)}
+                        {...register(`lines.${index}.orderedQty`, { valueAsNumber: true })}
                       />
                     </div>
                     <div>
@@ -194,7 +194,7 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                         step="any"
                         placeholder="Cost"
                         className="font-mono"
-                        {...register(`lines.${index}.unitCost`)}
+                        {...register(`lines.${index}.unitCost`, { valueAsNumber: true })}
                       />
                     </div>
                     <Button

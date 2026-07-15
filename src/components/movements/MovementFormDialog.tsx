@@ -114,7 +114,7 @@ export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOp
                 <Label htmlFor="mv-qty" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
                   Quantity
                 </Label>
-                <Input id="mv-qty" type="number" step="any" className="font-mono" {...register('quantity')} />
+                <Input id="mv-qty" type="number" step="any" className="font-mono" {...register('quantity', { valueAsNumber: true })} />
                 {errors.quantity && <p className="mt-1 text-xs text-[var(--red)]">{errors.quantity.message}</p>}
               </div>
             </div>

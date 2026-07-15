@@ -1,6 +1,14 @@
+import { z } from 'zod'
 import type { EntityTableConfig } from './types'
 import { MonoCell, StockCell, ToneBadge } from '@/components/entity-table/cells'
 import { stockTone } from '@/lib/tone'
+
+export const updateInventoryItemSchema = z.object({
+  minStockLevel: z.number().nonnegative('Min stock level must be 0 or greater').nullable().optional(),
+  maxStockLevel: z.number().nonnegative('Max stock level must be 0 or greater').nullable().optional(),
+})
+
+export type UpdateInventoryItemInput = z.infer<typeof updateInventoryItemSchema>
 
 /** Raw wire shape from GET /inventory-items (Decimal fields arrive as strings). */
 export interface InventoryItemRecord {
@@ -32,7 +40,6 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
     key: 'inventory',
     title: 'Inventory items',
     subtitle: `Stock levels at ${branchName}`,
-    primaryActionLabel: 'Adjust stock',
     searchKeys: ['code', 'name'],
     getRowId: (row) => row.id,
     filters: [
