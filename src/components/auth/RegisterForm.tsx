@@ -33,7 +33,7 @@ export function RegisterForm() {
     setFormError(null)
     try {
       await register_(values.name, values.email, values.password)
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/select-workspace' })
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to create account')
     }

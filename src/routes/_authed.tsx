@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth-store'
+import { useScopeStore } from '@/stores/scope-store'
 import { AppShell } from '@/components/app-shell/AppShell'
 
 export const Route = createFileRoute('/_authed')({
@@ -24,6 +25,11 @@ function AuthedLayout() {
     useAuthStore.getState().bootstrap().then(() => {
       if (!useAuthStore.getState().authed) {
         navigate({ to: '/login' })
+        return
+      }
+      const { companyId, branchId } = useScopeStore.getState()
+      if (!companyId || !branchId) {
+        navigate({ to: '/select-workspace' })
       }
     })
   }, [navigate])

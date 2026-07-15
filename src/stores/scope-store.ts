@@ -6,6 +6,7 @@ interface ScopeState {
   branchId: string
   setCompany: (companyId: string) => void
   setBranch: (branchId: string) => void
+  resetScope: () => void
 }
 
 export const useScopeStore = create<ScopeState>()(
@@ -15,6 +16,7 @@ export const useScopeStore = create<ScopeState>()(
       branchId: '',
       setCompany: (companyId) => set({ companyId, branchId: '' }),
       setBranch: (branchId) => set({ branchId }),
+      resetScope: () => set({ companyId: '', branchId: '' }),
     }),
     { name: 'palletyx-scope' },
   ),

@@ -32,7 +32,7 @@ export function LoginForm() {
     setFormError(null)
     try {
       await login(values.email, values.password)
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/select-workspace' })
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to sign in')
     }

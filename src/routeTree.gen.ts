@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SelectWorkspaceRouteImport } from './routes/select-workspace'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
@@ -31,6 +32,11 @@ import { Route as AuthedBatchesRouteImport } from './routes/_authed/batches'
 import { Route as AuthedPurchaseOrdersIndexRouteImport } from './routes/_authed/purchase-orders/index'
 import { Route as AuthedPurchaseOrdersIdRouteImport } from './routes/_authed/purchase-orders/$id'
 
+const SelectWorkspaceRoute = SelectWorkspaceRouteImport.update({
+  id: '/select-workspace',
+  path: '/select-workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -140,6 +146,7 @@ const AuthedPurchaseOrdersIdRoute = AuthedPurchaseOrdersIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/select-workspace': typeof SelectWorkspaceRoute
   '/batches': typeof AuthedBatchesRoute
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/select-workspace': typeof SelectWorkspaceRoute
   '/batches': typeof AuthedBatchesRoute
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
+  '/select-workspace': typeof SelectWorkspaceRoute
   '/_authed/batches': typeof AuthedBatchesRoute
   '/_authed/categories': typeof AuthedCategoriesRoute
   '/_authed/companies': typeof AuthedCompaniesRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/select-workspace'
     | '/batches'
     | '/categories'
     | '/companies'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/select-workspace'
     | '/batches'
     | '/categories'
     | '/companies'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authed'
     | '/login'
+    | '/select-workspace'
     | '/_authed/batches'
     | '/_authed/categories'
     | '/_authed/companies'
@@ -279,10 +291,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SelectWorkspaceRoute: typeof SelectWorkspaceRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/select-workspace': {
+      id: '/select-workspace'
+      path: '/select-workspace'
+      fullPath: '/select-workspace'
+      preLoaderRoute: typeof SelectWorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -482,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
   LoginRoute: LoginRoute,
+  SelectWorkspaceRoute: SelectWorkspaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

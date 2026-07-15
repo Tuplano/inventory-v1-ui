@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useCompanies } from '@/hooks/queries/use-companies'
@@ -14,14 +13,6 @@ export function CompanyBranchSwitcher() {
 
   const company = companies.find((c) => c.id === companyId)
   const branch = branches.find((b) => b.id === branchId)
-
-  useEffect(() => {
-    if (!companyId && companies.length > 0) setCompany(companies[0].id)
-  }, [companyId, companies, setCompany])
-
-  useEffect(() => {
-    if (companyId && !branchId && branches.length > 0) setBranch(branches[0].id)
-  }, [companyId, branchId, branches, setBranch])
 
   return (
     <Popover>

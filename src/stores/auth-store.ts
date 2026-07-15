@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiClient } from '@/lib/api-client'
+import { useScopeStore } from '@/stores/scope-store'
 
 export interface SessionUser {
   id: string
@@ -26,10 +27,12 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       login: async (email, password) => {
         const { data: user } = await apiClient.post<SessionUser>('/auth/login', { email, password })
+        useScopeStore.getState().resetScope()
         set({ authed: true, user })
       },
       register: async (name, email, password) => {
         const { data: user } = await apiClient.post<SessionUser>('/auth/register', { name, email, password })
+        useScopeStore.getState().resetScope()
         set({ authed: true, user })
       },
       logout: async () => {
