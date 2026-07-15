@@ -47,7 +47,11 @@ export interface CompanyRow {
   companyBranches: CompanyBranch[]
 }
 
-export function createCompaniesConfig(): EntityTableConfig<CompanyRow> {
+export function createCompaniesConfig({
+  onAddBranch,
+}: {
+  onAddBranch: (row: CompanyRow) => void
+}): EntityTableConfig<CompanyRow> {
   return {
     key: 'companies',
     title: 'Companies & branches',
@@ -77,7 +81,21 @@ export function createCompaniesConfig(): EntityTableConfig<CompanyRow> {
         },
         {
           label: 'Branches',
-          rows: row.companyBranches.map((b) => ({ label: b.name, value: b.code })),
+          rows: [
+            ...row.companyBranches.map((b) => ({ label: b.name, value: b.code })),
+            {
+              label: '',
+              value: (
+                <button
+                  type="button"
+                  onClick={() => onAddBranch(row)}
+                  className="text-[12px] font-semibold text-[var(--brand-accent-d)] hover:underline"
+                >
+                  + Add branch
+                </button>
+              ),
+            },
+          ],
         },
       ],
     }),

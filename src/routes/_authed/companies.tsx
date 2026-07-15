@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { CompanyFormDialog } from '@/components/companies/CompanyFormDialog'
+import { BranchFormDialog } from '@/components/companies/BranchFormDialog'
 import { createCompaniesConfig, type CompanyRow } from '@/entities/companies.config'
 import { entityTableSearchSchema } from '@/entities/types'
 import { useCompanyRows } from '@/hooks/queries/use-companies'
@@ -14,10 +15,11 @@ export const Route = createFileRoute('/_authed/companies')({
 
 function CompaniesPage() {
   const { data: rows = [], isLoading } = useCompanyRows()
-  const config = createCompaniesConfig()
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<CompanyRow | null>(null)
+  const [branchDialogCompany, setBranchDialogCompany] = useState<CompanyRow | null>(null)
   const deleteCompany = useDeleteCompany()
+  const config = createCompaniesConfig({ onAddBranch: setBranchDialogCompany })
 
   return (
     <>
@@ -37,6 +39,11 @@ function CompaniesPage() {
         isDeleting={deleteCompany.isPending}
       />
       <CompanyFormDialog open={formOpen} onOpenChange={setFormOpen} company={editingRow} />
+      <BranchFormDialog
+        open={!!branchDialogCompany}
+        onOpenChange={(open) => !open && setBranchDialogCompany(null)}
+        company={branchDialogCompany}
+      />
     </>
   )
 }
