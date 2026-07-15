@@ -59,6 +59,10 @@ export function ProductFormDialog({
   const updateProduct = useUpdateProduct()
   const pending = createProduct.isPending || updateProduct.isPending
 
+  const categoryItems = { [NONE]: 'None', ...Object.fromEntries(categories.map((c) => [c.id, c.name])) }
+  const uomItems = Object.fromEntries(uoms.map((u) => [u.id, u.abbreviation]))
+  const optionalUomItems = { [NONE]: 'None', ...uomItems }
+
   const {
     register,
     handleSubmit,
@@ -148,7 +152,7 @@ export function ProductFormDialog({
                   control={control}
                   name="categoryId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} items={categoryItems}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="None" />
                       </SelectTrigger>
@@ -194,7 +198,7 @@ export function ProductFormDialog({
                   control={control}
                   name="baseUomId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} items={uomItems}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
@@ -216,7 +220,7 @@ export function ProductFormDialog({
                   control={control}
                   name="purchaseUomId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} items={optionalUomItems}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="None" />
                       </SelectTrigger>
@@ -238,7 +242,7 @@ export function ProductFormDialog({
                   control={control}
                   name="saleUomId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} items={optionalUomItems}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="None" />
                       </SelectTrigger>

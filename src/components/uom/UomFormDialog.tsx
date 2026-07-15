@@ -153,6 +153,7 @@ function ConversionsSection({ uom }: { uom: UomRecord }) {
 
   const conversions = detail?.fromConversions ?? []
   const otherUoms = allUoms.filter((u) => u.id !== uom.id)
+  const toUomItems = Object.fromEntries(otherUoms.map((u) => [u.id, `${u.abbreviation} — ${u.name}`]))
 
   function handleAdd() {
     const parsed = Number(factor)
@@ -188,7 +189,7 @@ function ConversionsSection({ uom }: { uom: UomRecord }) {
       </div>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <Select value={toUomId} onValueChange={(value) => setToUomId(value ?? '')}>
+          <Select value={toUomId} onValueChange={(value) => setToUomId(value ?? '')} items={toUomItems}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="To unit" />
             </SelectTrigger>
