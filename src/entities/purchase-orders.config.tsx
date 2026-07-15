@@ -38,7 +38,7 @@ export function createPurchaseOrdersConfig(branchName: string): EntityTableConfi
       { key: 'number', header: 'PO #', sortable: true, sortValue: (r) => r.number, render: (r) => <MonoCell value={r.number} color="var(--brand-accent-d)" weight={600} /> },
       { key: 'supplierName', header: 'Supplier', render: (r) => <span className="font-medium">{r.supplierName}</span> },
       { key: 'status', header: 'Status', render: (r) => <ToneBadge tone={poStatusTone(r.status)} label={r.status.replace(/_/g, ' ')} dot /> },
-      { key: 'lineCount', header: 'Lines', align: 'right', render: (r) => <span className="font-mono text-[12px]">{r.lineCount}</span> },
+      { key: 'lineCount', header: 'Lines', render: (r) => <span className="font-mono text-[12px]">{r.lineCount}</span> },
       {
         key: 'progress',
         header: 'Progress',
@@ -51,7 +51,7 @@ export function createPurchaseOrdersConfig(branchName: string): EntityTableConfi
         ),
       },
       { key: 'orderDate', header: 'Ordered', sortable: true, sortValue: (r) => r.orderDate, render: (r) => <MonoCell value={r.orderDate} color="var(--text-2)" /> },
-      { key: 'value', header: 'Value', align: 'right', sortable: true, sortValue: (r) => r.value, render: (r) => <span className="font-mono text-[12px] font-semibold">{formatCurrency(r.value)}</span> },
+      { key: 'value', header: 'Value', sortable: true, sortValue: (r) => r.value, render: (r) => <span className="font-mono text-[12px] font-semibold">{formatCurrency(r.value)}</span> },
     ],
   }
 }

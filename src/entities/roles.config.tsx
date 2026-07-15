@@ -43,14 +43,13 @@ export function createRolesConfig(companyCode: string): EntityTableConfig<RoleRo
       {
         key: 'permissions',
         header: 'Permissions',
-        align: 'right',
         render: (r) => (
           <span className="font-mono text-[12px] text-[var(--brand-accent-d)]">
             {r.permissions.length} / {r.totalPermissionCount}
           </span>
         ),
       },
-      { key: 'userCount', header: 'Users', align: 'right', render: (r) => <span className="font-mono text-[12px]">{r.userCount}</span> },
+      { key: 'userCount', header: 'Users', render: (r) => <span className="font-mono text-[12px]">{r.userCount}</span> },
     ],
     drawer: (row) => {
       const grouped: Record<string, RolePermissionRecord[]> = {}

@@ -43,7 +43,7 @@ export function createSuppliersConfig(companyCode: string): EntityTableConfig<Su
       { key: 'name', header: 'Name', sortable: true, sortValue: (r) => r.name, render: (r) => <SubCell main={r.name} sub={r.email ?? ''} subMono={false} /> },
       { key: 'contactName', header: 'Contact', render: (r) => <span className="text-[var(--text-2)]">{r.contactName ?? '—'}</span> },
       { key: 'phone', header: 'Phone', render: (r) => <MonoCell value={r.phone ?? '—'} color="var(--text-2)" /> },
-      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
+      { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

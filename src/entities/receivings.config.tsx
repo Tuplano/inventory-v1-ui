@@ -41,9 +41,9 @@ export function createReceivingsConfig(branchName: string): EntityTableConfig<Re
       { key: 'supplierName', header: 'Supplier', render: (r) => <span className="font-medium">{r.supplierName}</span> },
       { key: 'ref', header: 'Ref', render: (r) => <MonoCell value={r.ref} color="var(--text-2)" /> },
       { key: 'date', header: 'Date', sortable: true, sortValue: (r) => r.date, render: (r) => <MonoCell value={r.date} color="var(--text-2)" /> },
-      { key: 'lineCount', header: 'Lines', align: 'right', render: (r) => <span className="font-mono text-[12px]">{r.lineCount}</span> },
-      { key: 'units', header: 'Units', align: 'right', render: (r) => <span className="font-mono text-[12px] font-semibold text-[var(--green)]">{r.units.toLocaleString()}</span> },
-      { key: 'value', header: 'Value', align: 'right', render: (r) => <span className="font-mono text-[12px] font-semibold">{formatCurrency(r.value)}</span> },
+      { key: 'lineCount', header: 'Lines', render: (r) => <span className="font-mono text-[12px]">{r.lineCount}</span> },
+      { key: 'units', header: 'Units', render: (r) => <span className="font-mono text-[12px] font-semibold text-[var(--green)]">{r.units.toLocaleString()}</span> },
+      { key: 'value', header: 'Value', render: (r) => <span className="font-mono text-[12px] font-semibold">{formatCurrency(r.value)}</span> },
     ],
     drawer: (row) => ({
       title: row.number,

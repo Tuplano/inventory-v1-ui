@@ -25,8 +25,8 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 pb-4 pt-2">
-        {navGroups.map((group) => (
-          <div key={group.label} className="mt-2.5">
+        {navGroups.map((group, i) => (
+          <div key={group.label} className={cn('mt-2.5', collapsed && i > 0 && 'border-t border-[var(--border-2)] pt-2.5')}>
             {!collapsed && (
               <div className="px-2 pb-1 pt-1.5 text-[10px] font-bold tracking-[0.07em] text-[var(--text-3)] uppercase">
                 {group.label}

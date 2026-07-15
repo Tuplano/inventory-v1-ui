@@ -98,13 +98,12 @@ export function createProductsConfig(companyCode: string): EntityTableConfig<Pro
       {
         key: 'track',
         header: 'Tracking',
-        align: 'center',
         render: (r) => <ToneBadge tone={trackTone(r.trackingType)} label={r.trackingType} />,
       },
-      { key: 'base', header: 'Base', align: 'center', render: (r) => <MonoCell value={r.baseUom.abbreviation} color="var(--text-2)" /> },
-      { key: 'purch', header: 'Purchase', align: 'center', render: (r) => <MonoCell value={r.purchaseUom?.abbreviation ?? '—'} color="var(--text-2)" /> },
-      { key: 'sale', header: 'Sale', align: 'center', render: (r) => <MonoCell value={r.saleUom?.abbreviation ?? '—'} color="var(--text-2)" /> },
-      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
+      { key: 'base', header: 'Base', render: (r) => <MonoCell value={r.baseUom.abbreviation} color="var(--text-2)" /> },
+      { key: 'purch', header: 'Purchase', render: (r) => <MonoCell value={r.purchaseUom?.abbreviation ?? '—'} color="var(--text-2)" /> },
+      { key: 'sale', header: 'Sale', render: (r) => <MonoCell value={r.saleUom?.abbreviation ?? '—'} color="var(--text-2)" /> },
+      { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

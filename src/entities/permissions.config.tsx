@@ -47,7 +47,7 @@ export function createPermissionsConfig(): EntityTableConfig<PermissionRow> {
     ],
     columns: [
       { key: 'code', header: 'Permission code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} color="var(--brand-accent-d)" weight={600} /> },
-      { key: 'module', header: 'Module', align: 'center', render: (r) => <ToneBadge tone={moduleTone[r.module] ?? 'neutral'} label={r.module} /> },
+      { key: 'module', header: 'Module', render: (r) => <ToneBadge tone={moduleTone[r.module] ?? 'neutral'} label={r.module} /> },
       { key: 'description', header: 'Description', render: (r) => <span className="text-[var(--text-2)]">{r.description}</span> },
     ],
     drawer: (row) => ({

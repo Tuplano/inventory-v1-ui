@@ -40,7 +40,7 @@ export function createCategoriesConfig(branchName: string): EntityTableConfig<Ca
       { key: 'code', header: 'Code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} color="var(--brand-accent-d)" weight={600} /> },
       { key: 'name', header: 'Category', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
       { key: 'description', header: 'Description', render: (r) => <span className="text-[var(--text-2)]">{r.description ?? '—'}</span> },
-      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
+      { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

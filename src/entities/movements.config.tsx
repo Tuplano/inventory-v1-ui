@@ -69,14 +69,13 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
       {
         key: 'quantity',
         header: 'Qty',
-        align: 'right',
         render: (r) => (
           <span className="font-mono text-[12px] font-semibold" style={{ color: r.quantity > 0 ? 'var(--green)' : 'var(--red)' }}>
             {(r.quantity > 0 ? '+' : '') + r.quantity.toLocaleString()} {r.uom}
           </span>
         ),
       },
-      { key: 'unitCost', header: 'Unit cost', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.unitCost != null ? formatCurrency(r.unitCost) : '—'}</span> },
+      { key: 'unitCost', header: 'Unit cost', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.unitCost != null ? formatCurrency(r.unitCost) : '—'}</span> },
       { key: 'route', header: 'From → To', render: (r) => <MonoCell value={`${r.fromLabel} → ${r.toLabel}`} color="var(--text-2)" /> },
       { key: 'reference', header: 'Reference', render: (r) => <MonoCell value={r.reference ?? '—'} color="var(--brand-accent-d)" /> },
     ],

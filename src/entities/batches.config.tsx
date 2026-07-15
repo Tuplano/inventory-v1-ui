@@ -91,7 +91,6 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
       {
         key: 'remainingQty',
         header: 'Remaining',
-        align: 'right',
         render: (r) => (
           <StockCell
             value={r.remainingQty.toLocaleString()}
@@ -100,7 +99,7 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
           />
         ),
       },
-      { key: 'status', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={statusMeta[r.status].tone} label={statusLabel(r)} dot /> },
+      { key: 'status', header: 'Status', render: (r) => <ToneBadge tone={statusMeta[r.status].tone} label={statusLabel(r)} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

@@ -37,8 +37,8 @@ export function createSerialsConfig(branchName: string): EntityTableConfig<Seria
     columns: [
       { key: 'serialNumber', header: 'Serial #', sortable: true, sortValue: (r) => r.serialNumber, render: (r) => <MonoCell value={r.serialNumber} weight={600} /> },
       { key: 'name', header: 'Product', render: (r) => <SubCell main={r.name} sub={r.code} /> },
-      { key: 'status', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={serialStatusTone(r.status)} label={r.status.replace('_', ' ')} dot /> },
-      { key: 'locationLabel', header: 'Location', align: 'center', render: (r) => <MonoCell value={r.locationLabel} color="var(--text-2)" /> },
+      { key: 'status', header: 'Status', render: (r) => <ToneBadge tone={serialStatusTone(r.status)} label={r.status.replace('_', ' ')} dot /> },
+      { key: 'locationLabel', header: 'Location', render: (r) => <MonoCell value={r.locationLabel} color="var(--text-2)" /> },
     ],
     drawer: (row) => ({
       title: row.name,

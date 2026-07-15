@@ -26,7 +26,7 @@ export function createSettingsConfig(companyCode: string): EntityTableConfig<Set
     columns: [
       { key: 'key', header: 'Key', sortable: true, sortValue: (r) => r.key, render: (r) => <MonoCell value={r.key} color="var(--brand-accent-d)" weight={600} /> },
       { key: 'value', header: 'Value', render: (r) => <MonoCell value={r.value} weight={500} /> },
-      { key: 'type', header: 'Type', align: 'center', render: (r) => <ToneBadge tone="neutral" label={r.type} /> },
+      { key: 'type', header: 'Type', render: (r) => <ToneBadge tone="neutral" label={r.type} /> },
     ],
     drawer: (row) => ({
       title: row.key,

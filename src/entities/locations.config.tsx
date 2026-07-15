@@ -42,11 +42,11 @@ export function createLocationsConfig(branchName: string): EntityTableConfig<Pro
     columns: [
       { key: 'code', header: 'Code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} weight={600} /> },
       { key: 'name', header: 'Name', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'type', header: 'Type', align: 'center', render: (r) => <ToneBadge tone={typeTone[r.type]} label={r.type} /> },
-      { key: 'aisle', header: 'Aisle', align: 'center', render: (r) => <MonoCell value={r.aisle ?? '—'} color="var(--text-2)" /> },
-      { key: 'rack', header: 'Rack', align: 'center', render: (r) => <MonoCell value={r.rack ?? '—'} color="var(--text-2)" /> },
-      { key: 'bin', header: 'Bin', align: 'center', render: (r) => <MonoCell value={r.bin ?? '—'} color="var(--text-2)" /> },
-      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
+      { key: 'type', header: 'Type', render: (r) => <ToneBadge tone={typeTone[r.type]} label={r.type} /> },
+      { key: 'aisle', header: 'Aisle', render: (r) => <MonoCell value={r.aisle ?? '—'} color="var(--text-2)" /> },
+      { key: 'rack', header: 'Rack', render: (r) => <MonoCell value={r.rack ?? '—'} color="var(--text-2)" /> },
+      { key: 'bin', header: 'Bin', render: (r) => <MonoCell value={r.bin ?? '—'} color="var(--text-2)" /> },
+      { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

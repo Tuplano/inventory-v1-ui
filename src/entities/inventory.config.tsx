@@ -43,12 +43,11 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
     columns: [
       { key: 'code', header: 'Code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} color="var(--brand-accent-d)" weight={600} /> },
       { key: 'name', header: 'Product', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'minStockLevel', header: 'Min', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.minStockLevel != null ? r.minStockLevel.toLocaleString() : '—'}</span> },
-      { key: 'maxStockLevel', header: 'Max', align: 'right', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.maxStockLevel != null ? r.maxStockLevel.toLocaleString() : '—'}</span> },
+      { key: 'minStockLevel', header: 'Min', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.minStockLevel != null ? r.minStockLevel.toLocaleString() : '—'}</span> },
+      { key: 'maxStockLevel', header: 'Max', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.maxStockLevel != null ? r.maxStockLevel.toLocaleString() : '—'}</span> },
       {
         key: 'quantity',
         header: 'On hand',
-        align: 'right',
         sortable: true,
         sortValue: (r) => r.quantity,
         render: (r) => (
@@ -62,7 +61,6 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
       {
         key: 'status',
         header: 'Status',
-        align: 'center',
         render: (r) => (
           <ToneBadge
             tone={r.status === 'out' ? 'red' : r.status === 'low' ? 'amber' : 'green'}

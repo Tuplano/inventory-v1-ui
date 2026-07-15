@@ -61,10 +61,10 @@ export function createUomConfig(companyCode: string): EntityTableConfig<UomRecor
     searchKeys: ['abbreviation', 'name', 'type'],
     getRowId: (row) => row.id,
     columns: [
-      { key: 'abbreviation', header: 'Code', align: 'center', sortable: true, sortValue: (r) => r.abbreviation, render: (r) => <ToneBadge tone="accent" label={r.abbreviation} /> },
+      { key: 'abbreviation', header: 'Code', sortable: true, sortValue: (r) => r.abbreviation, render: (r) => <ToneBadge tone="accent" label={r.abbreviation} /> },
       { key: 'name', header: 'Name', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
-      { key: 'type', header: 'Type', align: 'center', render: (r) => <ToneBadge tone={typeTone(r.type)} label={r.type} /> },
-      { key: 'isActive', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
+      { key: 'type', header: 'Type', render: (r) => <ToneBadge tone={typeTone(r.type)} label={r.type} /> },
+      { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

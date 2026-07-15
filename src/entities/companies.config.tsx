@@ -33,10 +33,10 @@ export function createCompaniesConfig(): EntityTableConfig<CompanyRow> {
     getRowId: (row) => row.id,
     columns: [
       { key: 'name', header: 'Company', sortable: true, sortValue: (r) => r.name, render: (r) => <SubCell main={r.name} sub={r.email} subMono={false} /> },
-      { key: 'code', header: 'Code', align: 'center', render: (r) => <MonoCell value={r.code} weight={600} /> },
-      { key: 'branchCount', header: 'Branches', align: 'right', render: (r) => <span className="font-mono text-[12px]">{r.branchCount}</span> },
+      { key: 'code', header: 'Code', render: (r) => <MonoCell value={r.code} weight={600} /> },
+      { key: 'branchCount', header: 'Branches', render: (r) => <span className="font-mono text-[12px]">{r.branchCount}</span> },
       { key: 'legal', header: 'Legal entity', render: (r) => <span className="text-[var(--text-2)]">{r.legal}</span> },
-      { key: 'active', header: 'Status', align: 'center', render: (r) => <ToneBadge tone={r.active ? 'green' : 'neutral'} label={r.active ? 'Active' : 'Inactive'} dot /> },
+      { key: 'active', header: 'Status', render: (r) => <ToneBadge tone={r.active ? 'green' : 'neutral'} label={r.active ? 'Active' : 'Inactive'} dot /> },
     ],
     drawer: (row) => ({
       title: row.name,

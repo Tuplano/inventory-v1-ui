@@ -34,11 +34,10 @@ export function createUsersConfig(companyName: string, companyCode: string): Ent
     getRowId: (row) => row.id,
     columns: [
       { key: 'name', header: 'User', sortable: true, sortValue: (r) => r.name, render: (r) => <SubCell main={r.name} sub={r.email} subMono={false} /> },
-      { key: 'role', header: 'Global role', align: 'center', render: (r) => <ToneBadge tone={roleTone[r.role]} label={r.role} /> },
+      { key: 'role', header: 'Global role', render: (r) => <ToneBadge tone={roleTone[r.role]} label={r.role} /> },
       {
         key: 'createdAt',
         header: 'Member since',
-        align: 'right',
         render: (r) => <MonoCell value={new Date(r.createdAt).toLocaleDateString()} color="var(--text-3)" />,
       },
     ],
