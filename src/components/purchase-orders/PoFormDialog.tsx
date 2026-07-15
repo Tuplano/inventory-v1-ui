@@ -40,6 +40,10 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   const { data: uoms = [] } = useUoms()
   const createPo = useCreatePo()
 
+  const supplierItems = Object.fromEntries(suppliers.map((s) => [s.id, s.name]))
+  const productItems = Object.fromEntries(products.map((p) => [p.id, `${p.sku} — ${p.name}`]))
+  const uomItems = Object.fromEntries(uoms.map((u) => [u.id, u.abbreviation]))
+
   const {
     register,
     handleSubmit,
@@ -86,7 +90,7 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                   control={control}
                   name="supplierId"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} items={supplierItems}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select supplier" />
                       </SelectTrigger>
@@ -133,6 +137,13 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 </Button>
               </div>
               {errors.lines?.message && <p className="mb-1.5 text-xs text-[var(--red)]">{errors.lines.message}</p>}
+              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-2 px-2.5">
+                <Label className="text-[10.5px] font-semibold text-[var(--text-3)]">Product</Label>
+                <Label className="text-[10.5px] font-semibold text-[var(--text-3)]">UoM</Label>
+                <Label className="text-[10.5px] font-semibold text-[var(--text-3)]">Quantity</Label>
+                <Label className="text-[10.5px] font-semibold text-[var(--text-3)]">Cost</Label>
+                <div />
+              </div>
               <div className="flex flex-col gap-2">
                 {fields.map((field, index) => (
                   <div key={field.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-start gap-2 rounded-md border border-border p-2.5">
@@ -141,7 +152,7 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                         control={control}
                         name={`lines.${index}.productId`}
                         render={({ field: f }) => (
-                          <Select value={f.value} onValueChange={f.onChange}>
+                          <Select value={f.value} onValueChange={f.onChange} items={productItems}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="Product" />
                             </SelectTrigger>
@@ -164,7 +175,7 @@ export function PoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                         control={control}
                         name={`lines.${index}.uomId`}
                         render={({ field: f }) => (
-                          <Select value={f.value} onValueChange={f.onChange}>
+                          <Select value={f.value} onValueChange={f.onChange} items={uomItems}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="UoM" />
                             </SelectTrigger>
