@@ -10,7 +10,7 @@ export function formatDate(dateStr: string): string {
   return dateStr
 }
 
-export function daysUntil(dateStr: string, today = new Date('2026-07-13')): number {
+export function daysUntil(dateStr: string, today = new Date()): number {
   return Math.round((new Date(dateStr).getTime() - today.getTime()) / 86400000)
 }
 

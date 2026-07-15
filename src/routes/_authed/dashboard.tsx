@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useDashboard } from '@/hooks/queries/use-dashboard'
-import { useScopeStore } from '@/stores/scope-store'
-import { mockStore } from '@/mock'
+import { useCurrentCompany } from '@/hooks/queries/use-companies'
+import { useCurrentBranch } from '@/hooks/queries/use-branches'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { StockMovementsChart } from '@/components/dashboard/StockMovementsChart'
 import { PoStatusDonutChart } from '@/components/dashboard/PoStatusDonutChart'
@@ -14,9 +14,8 @@ export const Route = createFileRoute('/_authed/dashboard')({
 })
 
 function DashboardPage() {
-  const { companyId, branchId } = useScopeStore()
-  const company = mockStore.getCompany(companyId)
-  const branch = mockStore.getBranch(branchId)
+  const company = useCurrentCompany()
+  const branch = useCurrentBranch()
   const { data } = useDashboard()
 
   if (!data) return null

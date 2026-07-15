@@ -1,10 +1,26 @@
 import type { EntityTableConfig } from './types'
-import type { Branch, Company } from '@/mock/types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 
-export interface CompanyRow extends Company {
+export interface CompanyBranch {
+  id: string
+  companyId: string
+  name: string
+  code: string
+  address: string
+  active: boolean
+}
+
+export interface CompanyRow {
+  id: string
+  name: string
+  code: string
+  color: string
+  legal: string
+  tax: string
+  email: string
+  active: boolean
   branchCount: number
-  companyBranches: Branch[]
+  companyBranches: CompanyBranch[]
 }
 
 export function createCompaniesConfig(): EntityTableConfig<CompanyRow> {
