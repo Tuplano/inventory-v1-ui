@@ -49,8 +49,10 @@ export interface CompanyRow {
 
 export function createCompaniesConfig({
   onAddBranch,
+  onDeleteBranch,
 }: {
   onAddBranch: (row: CompanyRow) => void
+  onDeleteBranch: (branch: CompanyBranch) => void
 }): EntityTableConfig<CompanyRow> {
   return {
     key: 'companies',
@@ -82,7 +84,21 @@ export function createCompaniesConfig({
         {
           label: 'Branches',
           rows: [
-            ...row.companyBranches.map((b) => ({ label: b.name, value: b.code })),
+            ...row.companyBranches.map((b) => ({
+              label: b.name,
+              value: (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono">{b.code}</span>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteBranch(b)}
+                    className="text-[11px] font-semibold text-[var(--red)] hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ),
+            })),
             {
               label: '',
               value: (
