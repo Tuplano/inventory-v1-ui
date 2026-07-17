@@ -20,14 +20,26 @@ const formSchema = z.object({
   code: z.string().min(1, 'Code is required'),
   type: z.enum(['GENERAL', 'RECEIVING', 'STAGING', 'STORAGE', 'DISPATCH']),
   aisle: z.string(),
-  rack: z.string(),
+  bay: z.string(),
+  level: z.string(),
   bin: z.string(),
+  capacity: z.string(),
   isActive: z.boolean(),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-const emptyValues: FormValues = { name: '', code: '', type: 'GENERAL', aisle: '', rack: '', bin: '', isActive: true }
+const emptyValues: FormValues = {
+  name: '',
+  code: '',
+  type: 'GENERAL',
+  aisle: '',
+  bay: '',
+  level: '',
+  bin: '',
+  capacity: '',
+  isActive: true,
+}
 
 export function LocationFormDialog({
   open,
@@ -63,8 +75,10 @@ export function LocationFormDialog({
             code: location.code,
             type: location.type,
             aisle: location.aisle ?? '',
-            rack: location.rack ?? '',
+            bay: location.bay ?? '',
+            level: location.level ?? '',
             bin: location.bin ?? '',
+            capacity: location.capacity != null ? String(location.capacity) : '',
             isActive: location.isActive,
           }
         : emptyValues,
@@ -73,6 +87,7 @@ export function LocationFormDialog({
 
   function onSubmit(values: FormValues) {
     const onSuccess = () => onOpenChange(false)
+    const capacity = values.capacity ? Number(values.capacity) : undefined
     if (isEdit) {
       updateLocation.mutate(
         {
@@ -81,8 +96,10 @@ export function LocationFormDialog({
             name: values.name,
             type: values.type,
             aisle: values.aisle || null,
-            rack: values.rack || null,
+            bay: values.bay || null,
+            level: values.level || null,
             bin: values.bin || null,
+            capacity: capacity ?? null,
             isActive: values.isActive,
           },
         },
@@ -95,8 +112,10 @@ export function LocationFormDialog({
           code: values.code,
           type: values.type,
           aisle: values.aisle || undefined,
-          rack: values.rack || undefined,
+          bay: values.bay || undefined,
+          level: values.level || undefined,
           bin: values.bin || undefined,
+          capacity,
         },
         { onSuccess },
       )
@@ -151,7 +170,7 @@ export function LocationFormDialog({
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               <div>
                 <Label htmlFor="loc-aisle" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
                   Aisle
@@ -159,10 +178,16 @@ export function LocationFormDialog({
                 <Input id="loc-aisle" className="font-mono" {...register('aisle')} />
               </div>
               <div>
-                <Label htmlFor="loc-rack" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                  Rack
+                <Label htmlFor="loc-bay" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  Bay
                 </Label>
-                <Input id="loc-rack" className="font-mono" {...register('rack')} />
+                <Input id="loc-bay" className="font-mono" {...register('bay')} />
+              </div>
+              <div>
+                <Label htmlFor="loc-level" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                  Level
+                </Label>
+                <Input id="loc-level" className="font-mono" {...register('level')} />
               </div>
               <div>
                 <Label htmlFor="loc-bin" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
@@ -170,6 +195,13 @@ export function LocationFormDialog({
                 </Label>
                 <Input id="loc-bin" className="font-mono" {...register('bin')} />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="loc-capacity" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                Capacity <span className="font-normal text-[var(--text-3)]">(optional)</span>
+              </Label>
+              <Input id="loc-capacity" type="number" min="0" step="any" className="font-mono" {...register('capacity')} />
             </div>
 
             {isEdit && (

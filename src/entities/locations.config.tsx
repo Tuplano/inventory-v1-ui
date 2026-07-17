@@ -9,16 +9,20 @@ export const createLocationSchema = z.object({
   code: z.string().min(1, 'Code is required'),
   type: z.enum(locationTypeValues).optional(),
   aisle: z.string().optional(),
-  rack: z.string().optional(),
+  bay: z.string().optional(),
+  level: z.string().optional(),
   bin: z.string().optional(),
+  capacity: z.number().positive().optional(),
 })
 
 export const updateLocationSchema = z.object({
   name: z.string().min(1).optional(),
   type: z.enum(locationTypeValues).optional(),
   aisle: z.string().nullable().optional(),
-  rack: z.string().nullable().optional(),
+  bay: z.string().nullable().optional(),
+  level: z.string().nullable().optional(),
   bin: z.string().nullable().optional(),
+  capacity: z.number().positive().nullable().optional(),
   isActive: z.boolean().optional(),
 })
 
@@ -33,8 +37,10 @@ export interface ProductLocationRecord {
   code: string
   type: LocationType
   aisle: string | null
-  rack: string | null
+  bay: string | null
+  level: string | null
   bin: string | null
+  capacity: number | null
   isActive: boolean
   createdAt: string
 }
@@ -68,7 +74,8 @@ export function createLocationsConfig(branchName: string): EntityTableConfig<Pro
       { key: 'name', header: 'Name', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
       { key: 'type', header: 'Type', render: (r) => <ToneBadge tone={typeTone[r.type]} label={r.type} /> },
       { key: 'aisle', header: 'Aisle', render: (r) => <MonoCell value={r.aisle ?? '—'} color="var(--text-2)" /> },
-      { key: 'rack', header: 'Rack', render: (r) => <MonoCell value={r.rack ?? '—'} color="var(--text-2)" /> },
+      { key: 'bay', header: 'Bay', render: (r) => <MonoCell value={r.bay ?? '—'} color="var(--text-2)" /> },
+      { key: 'level', header: 'Level', render: (r) => <MonoCell value={r.level ?? '—'} color="var(--text-2)" /> },
       { key: 'bin', header: 'Bin', render: (r) => <MonoCell value={r.bin ?? '—'} color="var(--text-2)" /> },
       { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
@@ -82,8 +89,10 @@ export function createLocationsConfig(branchName: string): EntityTableConfig<Pro
           rows: [
             { label: 'Type', value: row.type },
             { label: 'Aisle', value: row.aisle ?? '—' },
-            { label: 'Rack', value: row.rack ?? '—' },
+            { label: 'Bay', value: row.bay ?? '—' },
+            { label: 'Level', value: row.level ?? '—' },
             { label: 'Bin', value: row.bin ?? '—' },
+            { label: 'Capacity', value: row.capacity != null ? String(row.capacity) : '—' },
           ],
         },
       ],
