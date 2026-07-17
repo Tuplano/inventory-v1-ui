@@ -23,6 +23,7 @@ export function useBatches() {
           companyId: b.companyId,
           productId: b.productId,
           supplierId: b.supplierId,
+          purchaseOrderId: b.purchaseOrderId,
           batchNumber: b.batchNumber,
           lotNumber: b.lotNumber,
           manufacturingDate: b.manufacturingDate,

@@ -5,18 +5,25 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { useLocations } from '@/hooks/queries/use-locations'
+import { useBatches } from '@/hooks/queries/use-batches'
 import { usePostReceiving } from '@/hooks/mutations/use-post-receiving'
 import { useAuthStore } from '@/stores/auth-store'
 import type { PoDetail } from '@/hooks/queries/use-purchase-order'
 
 const DEFAULT_RECEIVING_LOCATION = 'RCV-DOCK-1'
+const NEW_BATCH_OPTION = '__new__'
 
 interface LineState {
   qty: string
   cost: string
+  /** '__new__' means "create a new batch" (batch typed in `batch`); otherwise the id of an existing batch. */
+  batchId: string
   batch: string
+  /** Expiry date (YYYY-MM-DD) for a newly created batch. */
+  expiry: string
   loc: string
 }
 
@@ -32,6 +39,7 @@ export function ReceiveStockModal({
   supplierName: string
 }) {
   const { data: locations = [] } = useLocations()
+  const { data: batches = [] } = useBatches()
   const postReceiving = usePostReceiving()
   const user = useAuthStore((s) => s.user)
 
@@ -46,7 +54,14 @@ export function ReceiveStockModal({
     const initial: Record<string, LineState> = {}
     po.lines.forEach((l) => {
       const remaining = Math.max(0, l.ordered - l.received)
-      initial[l.id] = { qty: String(remaining), cost: l.cost.toFixed(2), batch: '', loc: DEFAULT_RECEIVING_LOCATION }
+      initial[l.id] = {
+        qty: String(remaining),
+        cost: l.cost.toFixed(2),
+        batchId: NEW_BATCH_OPTION,
+        batch: '',
+        expiry: '',
+        loc: DEFAULT_RECEIVING_LOCATION,
+      }
     })
     setLines(initial)
   }, [open, po])
@@ -72,10 +87,10 @@ export function ReceiveStockModal({
 
     const missingBatch = activeLines.find(([lineId, v]) => {
       const line = po.lines.find((l) => l.id === lineId)
-      return line?.track === 'BATCH' && !v.batch.trim()
+      return line?.track === 'BATCH' && v.batchId === NEW_BATCH_OPTION && !v.batch.trim()
     })
     if (missingBatch) {
-      toast.warning('Enter a batch / lot # for batch-tracked lines')
+      toast.warning('Select an existing batch or enter a new batch / lot # for batch-tracked lines')
       return
     }
 
@@ -88,7 +103,9 @@ export function ReceiveStockModal({
           purchaseOrderLineId: lineId,
           receivedQty: Number(v.qty) || 0,
           unitCost: Number(v.cost) || 0,
-          batchNumber: v.batch.trim() || undefined,
+          batchId: v.batchId !== NEW_BATCH_OPTION ? v.batchId : undefined,
+          batchNumber: v.batchId === NEW_BATCH_OPTION ? v.batch.trim() || undefined : undefined,
+          expiryDate: v.batchId === NEW_BATCH_OPTION ? v.expiry || undefined : undefined,
           // Location codes aren't backed by real location records yet, so we
           // don't send toLocationId — posting still succeeds without it.
         })),
@@ -147,9 +164,14 @@ export function ReceiveStockModal({
             <tbody>
               {po.lines.map((l) => {
                 const remaining = l.ordered - l.received
-                const state = lines[l.id] ?? { qty: '0', cost: '0', batch: '', loc: '' }
+                const state = lines[l.id] ?? { qty: '0', cost: '0', batchId: NEW_BATCH_OPTION, batch: '', expiry: '', loc: '' }
                 const over = Number(state.qty) > remaining
                 const isBatch = l.track === 'BATCH'
+                const productBatches = isBatch
+                  ? batches.filter(
+                      (b) => b.productId === l.productId && b.isActive && (b.purchaseOrderId === null || b.purchaseOrderId === po.id),
+                    )
+                  : []
                 return (
                   <tr key={l.id} className="border-b border-[var(--border-2)]">
                     <td className="px-5 py-2.5">
@@ -189,13 +211,42 @@ export function ReceiveStockModal({
                       <Input value={state.cost} onChange={(e) => setField(l.id, 'cost', e.target.value)} inputMode="decimal" className="w-[70px] text-right font-mono" />
                     </td>
                     <td className="px-2.5 py-2.5 text-center">
-                      <Input
-                        value={state.batch}
-                        onChange={(e) => setField(l.id, 'batch', e.target.value)}
-                        placeholder={isBatch ? 'lot #' : 'n/a'}
-                        disabled={!isBatch}
-                        className="w-[100px] font-mono text-[11.5px]"
-                      />
+                      {isBatch ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <NativeSelect
+                            size="sm"
+                            value={state.batchId}
+                            onChange={(e) => setField(l.id, 'batchId', e.target.value)}
+                            className="w-[130px]"
+                          >
+                            <NativeSelectOption value={NEW_BATCH_OPTION}>+ New batch</NativeSelectOption>
+                            {productBatches.map((b) => (
+                              <NativeSelectOption key={b.id} value={b.id}>
+                                {b.batchNumber} · exp {b.expiryDate ? b.expiryDate.slice(0, 10) : '—'} · {formatNumber(b.remainingQty)} left
+                              </NativeSelectOption>
+                            ))}
+                          </NativeSelect>
+                          {state.batchId === NEW_BATCH_OPTION && (
+                            <>
+                              <Input
+                                value={state.batch}
+                                onChange={(e) => setField(l.id, 'batch', e.target.value)}
+                                placeholder="lot #"
+                                className="w-[130px] font-mono text-[11.5px]"
+                              />
+                              <Input
+                                type="date"
+                                value={state.expiry}
+                                onChange={(e) => setField(l.id, 'expiry', e.target.value)}
+                                placeholder="expiry"
+                                className="w-[130px] font-mono text-[11.5px]"
+                              />
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        <Input value="" placeholder="n/a" disabled className="w-[100px] font-mono text-[11.5px]" />
+                      )}
                     </td>
                     <td className="px-5 py-2.5 text-center">
                       <Input

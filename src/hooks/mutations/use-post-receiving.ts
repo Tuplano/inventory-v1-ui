@@ -7,8 +7,12 @@ export interface PostReceivingLineInput {
   purchaseOrderLineId: string
   receivedQty: number
   unitCost?: number
+  /** ID of an existing batch to add this receipt to. Takes precedence over batchNumber. */
+  batchId?: string
   /** Lot/batch number typed by the user for BATCH-tracked products; posted as a new batch. */
   batchNumber?: string
+  /** Date-only string (YYYY-MM-DD) for a newly created batch; converted to a full ISO datetime before posting. */
+  expiryDate?: string
   toLocationId?: string
 }
 
@@ -32,7 +36,14 @@ export function usePostReceiving() {
           purchaseOrderLineId: l.purchaseOrderLineId,
           receivedQty: l.receivedQty,
           unitCost: l.unitCost,
-          newBatch: l.batchNumber ? { batchNumber: l.batchNumber } : undefined,
+          batchId: l.batchId || undefined,
+          newBatch:
+            !l.batchId && l.batchNumber
+              ? {
+                  batchNumber: l.batchNumber,
+                  expiryDate: l.expiryDate ? new Date(l.expiryDate).toISOString() : undefined,
+                }
+              : undefined,
           toLocationId: l.toLocationId || undefined,
         })),
       })

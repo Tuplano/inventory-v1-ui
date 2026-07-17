@@ -29,6 +29,7 @@ export interface BatchRecord {
   companyId: string
   productId: string
   supplierId: string | null
+  purchaseOrderId: string | null
   batchNumber: string
   lotNumber: string | null
   manufacturingDate: string | null
@@ -44,6 +45,7 @@ export interface BatchRow {
   companyId: string
   productId: string
   supplierId: string | null
+  purchaseOrderId: string | null
   batchNumber: string
   lotNumber: string | null
   manufacturingDate: string | null
