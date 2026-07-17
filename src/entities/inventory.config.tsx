@@ -19,6 +19,17 @@ export interface InventoryItemRecord {
   quantity: string
   minStockLevel: string | null
   maxStockLevel: string | null
+  product: {
+    id: string
+    name: string
+    sku: string
+    barcode: string | null
+    baseUom: {
+      id: string
+      name: string
+      abbreviation: string
+    }
+  }
 }
 
 export interface InventoryRow {
@@ -31,6 +42,7 @@ export interface InventoryRow {
   maxStockLevel: number | null
   code: string
   name: string
+  barcode: string | null
   base: string
   status: 'out' | 'low' | 'ok'
 }

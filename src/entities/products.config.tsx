@@ -26,7 +26,6 @@ export interface ProductRecord {
   saleUomId: string | null
   trackingType: TrackingType
   /** Serialized as a string on the wire (Prisma Decimal → JSON). */
-  costPrice: string | null
   sellingPrice: string | null
   isActive: boolean
   baseUom: UomSummary
@@ -49,7 +48,6 @@ export const createProductSchema = z.object({
   purchaseUomId: z.string().optional(),
   saleUomId: z.string().optional(),
   trackingType: z.enum(trackingTypes).optional(),
-  costPrice: z.number().nonnegative().optional(),
   sellingPrice: z.number().nonnegative().optional(),
 })
 
@@ -64,7 +62,6 @@ export const updateProductSchema = z.object({
   purchaseUomId: z.string().nullable().optional(),
   saleUomId: z.string().nullable().optional(),
   trackingType: z.enum(trackingTypes).optional(),
-  costPrice: z.number().nonnegative().nullable().optional(),
   sellingPrice: z.number().nonnegative().nullable().optional(),
   isActive: z.boolean().optional(),
 })
@@ -142,7 +139,6 @@ export function createProductsConfig(companyCode: string): EntityTableConfig<Pro
         {
           label: 'Pricing',
           rows: [
-            { label: 'Cost price', value: row.costPrice != null ? `$${Number(row.costPrice).toFixed(2)}` : '—' },
             { label: 'Selling price', value: row.sellingPrice != null ? `$${Number(row.sellingPrice).toFixed(2)}` : '—' },
           ],
         },

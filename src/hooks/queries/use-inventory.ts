@@ -2,19 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
 import type { InventoryItemRecord, InventoryRow } from '@/entities/inventory.config'
-import type { ProductRecord } from '@/entities/products.config'
 
 export function useInventory() {
   const { companyId, branchId } = useScopeStore()
   return useQuery({
     queryKey: ['inventory', companyId, branchId],
     queryFn: async (): Promise<InventoryRow[]> => {
-      const [{ data: items }, { data: products }] = await Promise.all([
-        apiClient.get<InventoryItemRecord[]>('/inventory-items'),
-        apiClient.get<ProductRecord[]>('/products'),
-      ])
+      const { data: items } = await apiClient.get<InventoryItemRecord[]>('/inventory-items')
       return items.map((i) => {
-        const product = products.find((p) => p.id === i.productId)
         const quantity = Number(i.quantity)
         const minStockLevel = i.minStockLevel != null ? Number(i.minStockLevel) : null
         const maxStockLevel = i.maxStockLevel != null ? Number(i.maxStockLevel) : null
@@ -28,9 +23,10 @@ export function useInventory() {
           quantity,
           minStockLevel,
           maxStockLevel,
-          code: product?.sku ?? '',
-          name: product?.name ?? '',
-          base: product?.baseUom.abbreviation ?? '',
+          code: i.product.sku,
+          name: i.product.name,
+          barcode: i.product.barcode,
+          base: i.product.baseUom.abbreviation,
           status,
         }
       })

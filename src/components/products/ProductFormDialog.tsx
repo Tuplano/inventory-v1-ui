@@ -28,7 +28,6 @@ const formSchema = z.object({
   purchaseUomId: z.string(),
   saleUomId: z.string(),
   trackingType: z.enum(trackingTypes),
-  costPrice: z.string(),
   sellingPrice: z.string(),
   isActive: z.boolean(),
 })
@@ -46,7 +45,6 @@ const emptyValues: FormValues = {
   purchaseUomId: NONE,
   saleUomId: NONE,
   trackingType: 'NONE',
-  costPrice: '',
   sellingPrice: '',
   isActive: true,
 }
@@ -97,7 +95,6 @@ export function ProductFormDialog({
             purchaseUomId: product.purchaseUomId ?? NONE,
             saleUomId: product.saleUomId ?? NONE,
             trackingType: product.trackingType,
-            costPrice: product.costPrice ?? '',
             sellingPrice: product.sellingPrice ?? '',
             isActive: product.isActive,
           }
@@ -117,7 +114,6 @@ export function ProductFormDialog({
       purchaseUomId: values.purchaseUomId === NONE ? undefined : values.purchaseUomId,
       saleUomId: values.saleUomId === NONE ? undefined : values.saleUomId,
       trackingType: values.trackingType,
-      costPrice: values.costPrice === '' ? undefined : Number(values.costPrice),
       sellingPrice: values.sellingPrice === '' ? undefined : Number(values.sellingPrice),
     }
     const onSuccess = () => onOpenChange(false)
@@ -176,19 +172,11 @@ export function ProductFormDialog({
               <Textarea id="prod-description" {...register('description')} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="prod-cost" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                  Cost price
-                </Label>
-                <Input id="prod-cost" type="number" step="any" min="0" className="font-mono" {...register('costPrice')} />
-              </div>
-              <div>
-                <Label htmlFor="prod-sell" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                  Selling price
-                </Label>
-                <Input id="prod-sell" type="number" step="any" min="0" className="font-mono" {...register('sellingPrice')} />
-              </div>
+            <div>
+              <Label htmlFor="prod-sell" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                Selling price
+              </Label>
+              <Input id="prod-sell" type="number" step="any" min="0" className="font-mono" {...register('sellingPrice')} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">

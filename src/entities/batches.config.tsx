@@ -56,6 +56,7 @@ export interface BatchRow {
   createdAt: string
   code: string
   name: string
+  purchaseOrderNumber: string | null
   daysLeft: number | null
   status: 'expired' | 'soon' | 'ok' | 'depleted'
 }
@@ -96,6 +97,13 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
     columns: [
       { key: 'batchNumber', header: 'Batch #', sortable: true, sortValue: (r) => r.batchNumber, render: (r) => <MonoCell value={r.batchNumber} weight={600} /> },
       { key: 'lotNumber', header: 'Lot', render: (r) => <MonoCell value={r.lotNumber ?? '—'} color="var(--text-2)" /> },
+      {
+        key: 'purchaseOrderNumber',
+        header: 'PO #',
+        sortable: true,
+        sortValue: (r) => r.purchaseOrderNumber ?? '',
+        render: (r) => <MonoCell value={r.purchaseOrderNumber ?? '—'} color="var(--text-2)" />,
+      },
       { key: 'name', header: 'Product', render: (r) => <SubCell main={r.name} sub={r.code} /> },
       { key: 'manufacturingDate', header: 'Mfg', render: (r) => <MonoCell value={fmtDate(r.manufacturingDate)} color="var(--text-3)" /> },
       {
@@ -132,6 +140,7 @@ export function createBatchesConfig(branchName: string): EntityTableConfig<Batch
         {
           label: 'Lot',
           rows: [
+            { label: 'Purchase order', value: row.purchaseOrderNumber ?? '—' },
             { label: 'Manufactured', value: fmtDate(row.manufacturingDate) },
             { label: 'Expiry', value: fmtDate(row.expiryDate) },
             {
