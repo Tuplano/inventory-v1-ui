@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useBatches } from '@/hooks/queries/use-batches'
@@ -42,6 +43,9 @@ export function ReceiveStockModal({
   const { data: batches = [] } = useBatches()
   const postReceiving = usePostReceiving()
   const user = useAuthStore((s) => s.user)
+  const hasLocations = locations.length > 0
+  const locationCodes = locations.map((l) => l.code)
+  const locationByCode = new Map(locations.map((l) => [l.code, l]))
 
   const [ref, setRef] = useState('')
   const [date, setDate] = useState('2026-07-13')
@@ -51,6 +55,7 @@ export function ReceiveStockModal({
     if (!open) return
     setRef('')
     setDate('2026-07-13')
+    const defaultLoc = locations.find((l) => l.code === DEFAULT_RECEIVING_LOCATION)?.code ?? ''
     const initial: Record<string, LineState> = {}
     po.lines.forEach((l) => {
       const remaining = Math.max(0, l.ordered - l.received)
@@ -60,7 +65,7 @@ export function ReceiveStockModal({
         batchId: NEW_BATCH_OPTION,
         batch: '',
         expiry: '',
-        loc: DEFAULT_RECEIVING_LOCATION,
+        loc: defaultLoc,
       }
     })
     setLines(initial)
@@ -116,7 +121,7 @@ export function ReceiveStockModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-[880px]">
+      <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-[1040px]">
         <DialogHeader className="flex-none flex-row items-center gap-3 border-b border-[var(--border-2)] p-4 pr-12">
           <div className="flex size-8 flex-none items-center justify-center rounded-lg bg-[var(--brand-accent-weak)] text-[var(--brand-accent)]">
             <Truck className="size-[17px]" strokeWidth={1.8} />
@@ -148,8 +153,8 @@ export function ReceiveStockModal({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="flex-1 overflow-auto">
+          <table className="w-full min-w-[900px] text-sm">
             <thead>
               <tr className="border-b border-[var(--border-2)]">
                 <th className="px-5 py-2 text-left text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Product</th>
@@ -158,7 +163,9 @@ export function ReceiveStockModal({
                 <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Receive</th>
                 <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Unit cost</th>
                 <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Batch / lot #</th>
-                <th className="px-5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">To location</th>
+                {hasLocations && (
+                  <th className="px-5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">To location</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -212,12 +219,12 @@ export function ReceiveStockModal({
                     </td>
                     <td className="px-2.5 py-2.5 text-center">
                       {isBatch ? (
-                        <div className="flex flex-col items-center gap-1">
+                        <div className="mx-auto flex w-[190px] flex-col items-center gap-1">
                           <NativeSelect
                             size="sm"
                             value={state.batchId}
                             onChange={(e) => setField(l.id, 'batchId', e.target.value)}
-                            className="w-[130px]"
+                            className="w-full"
                           >
                             <NativeSelectOption value={NEW_BATCH_OPTION}>+ New batch</NativeSelectOption>
                             {productBatches.map((b) => (
@@ -227,45 +234,58 @@ export function ReceiveStockModal({
                             ))}
                           </NativeSelect>
                           {state.batchId === NEW_BATCH_OPTION && (
-                            <>
+                            <div className="flex w-full gap-1">
                               <Input
                                 value={state.batch}
                                 onChange={(e) => setField(l.id, 'batch', e.target.value)}
                                 placeholder="lot #"
-                                className="w-[130px] font-mono text-[11.5px]"
+                                className="w-0 flex-1 font-mono text-[11.5px]"
                               />
                               <Input
                                 type="date"
                                 value={state.expiry}
                                 onChange={(e) => setField(l.id, 'expiry', e.target.value)}
-                                placeholder="expiry"
-                                className="w-[130px] font-mono text-[11.5px]"
+                                className="w-0 flex-[1.2] font-mono text-[11.5px]"
                               />
-                            </>
+                            </div>
                           )}
                         </div>
                       ) : (
-                        <Input value="" placeholder="n/a" disabled className="w-[100px] font-mono text-[11.5px]" />
+                        <Input value="" placeholder="n/a" disabled className="mx-auto w-[100px] font-mono text-[11.5px]" />
                       )}
                     </td>
-                    <td className="px-5 py-2.5 text-center">
-                      <Input
-                        value={state.loc}
-                        onChange={(e) => setField(l.id, 'loc', e.target.value)}
-                        list="receive-loc-options"
-                        className="w-24 font-mono text-[11.5px]"
-                      />
-                    </td>
+                    {hasLocations && (
+                      <td className="px-5 py-2.5 text-center">
+                        <Combobox
+                          items={locationCodes}
+                          value={state.loc || null}
+                          onValueChange={(value) => setField(l.id, 'loc', (value as string | null) ?? '')}
+                          filter={(code: string, query) => {
+                            const q = query.toLowerCase()
+                            const loc = locationByCode.get(code)
+                            return code.toLowerCase().includes(q) || !!loc?.name.toLowerCase().includes(q)
+                          }}
+                        >
+                          <ComboboxInput placeholder="Search…" className="mx-auto w-36 font-mono text-[11.5px]" />
+                          <ComboboxContent>
+                            <ComboboxEmpty>No matches</ComboboxEmpty>
+                            <ComboboxList>
+                              {(code: string) => (
+                                <ComboboxItem key={code} value={code}>
+                                  <span className="font-mono">{code}</span>
+                                  <span className="ml-1 text-muted-foreground">{locationByCode.get(code)?.name}</span>
+                                </ComboboxItem>
+                              )}
+                            </ComboboxList>
+                          </ComboboxContent>
+                        </Combobox>
+                      </td>
+                    )}
                   </tr>
                 )
               })}
             </tbody>
           </table>
-          <datalist id="receive-loc-options">
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.code} />
-            ))}
-          </datalist>
         </div>
 
         <DialogFooter className="flex-none flex-row items-center gap-3 rounded-none">
