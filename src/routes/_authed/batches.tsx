@@ -36,7 +36,6 @@ function BatchesPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteBatch.mutate(row.id)}
-        isDeleting={deleteBatch.isPending}
       />
       <BatchFormDialog open={formOpen} onOpenChange={setFormOpen} batch={editingRow} />
     </>

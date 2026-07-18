@@ -11,6 +11,7 @@ import { usePurchaseOrder } from '@/hooks/queries/use-purchase-order'
 import { useConfirmPo } from '@/hooks/mutations/use-confirm-po'
 import { useCancelPo } from '@/hooks/mutations/use-cancel-po'
 import { useClosePoLine } from '@/hooks/mutations/use-close-po-line'
+import { confirm } from '@/lib/confirm'
 
 export const Route = createFileRoute('/_authed/purchase-orders/$id')({
   component: PurchaseOrderDetailPage,
@@ -32,8 +33,28 @@ function PurchaseOrderDetailPage() {
     )
   }
 
+  async function handleCancel() {
+    if (!po) return
+    const ok = await confirm({
+      title: `Cancel ${po.number}?`,
+      description: 'This action cannot be undone.',
+      confirmLabel: 'Cancel PO',
+    })
+    if (ok) cancelPo.mutate(po.id)
+  }
+
+  async function handleCloseLine(lineId: string) {
+    if (!po) return
+    const ok = await confirm({
+      title: 'Close this line short?',
+      description: 'The remaining unreceived quantity will be marked as closed. This action cannot be undone.',
+      confirmLabel: 'Close short',
+    })
+    if (ok) closeLine.mutate({ poId: po.id, lineId })
+  }
+
   return (
-    <div className="max-w-[1080px] p-6">
+    <div className="p-6">
       <button
         type="button"
         onClick={() => navigate({ to: '/purchase-orders' })}
@@ -67,7 +88,7 @@ function PurchaseOrderDetailPage() {
             </Button>
           )}
           {po.canCancel && (
-            <Button variant="outline" className="text-[var(--red)]" onClick={() => cancelPo.mutate(po.id)} disabled={cancelPo.isPending}>
+            <Button variant="outline" className="text-[var(--red)]" onClick={handleCancel} disabled={cancelPo.isPending}>
               Cancel PO
             </Button>
           )}
@@ -78,7 +99,7 @@ function PurchaseOrderDetailPage() {
       <PoLineItemsTable
         lines={po.lines}
         grandTotal={po.grandTotal}
-        onCloseLine={(lineId) => closeLine.mutate({ poId: po.id, lineId })}
+        onCloseLine={handleCloseLine}
         isClosing={closeLine.isPending}
       />
       <ReceivingHistoryTable receivings={po.receivings} />

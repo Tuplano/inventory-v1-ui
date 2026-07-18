@@ -5,17 +5,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import { confirm } from '@/lib/confirm'
 import { RecordDrawer } from '@/components/record-drawer/RecordDrawer'
 import type { EntityTableConfig, EntityTableSearch } from '@/entities/types'
 
@@ -28,7 +19,6 @@ export function EntityTableView<TRow>({
   onCreate,
   onEditRow,
   onDeleteRow,
-  isDeleting,
 }: {
   config: EntityTableConfig<TRow>
   rows: TRow[]
@@ -36,12 +26,10 @@ export function EntityTableView<TRow>({
   onCreate?: () => void
   onEditRow?: (row: TRow) => void
   onDeleteRow?: (row: TRow) => void
-  isDeleting?: boolean
 }) {
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
   const [localPage, setLocalPage] = useState(1)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   function setSearch(patch: Partial<EntityTableSearch>) {
     navigate({
@@ -107,10 +95,13 @@ export function EntityTableView<TRow>({
     setSearch({ recordId: undefined })
   }
 
-  function confirmDelete() {
-    if (selectedRow && onDeleteRow) onDeleteRow(selectedRow)
-    setDeleteConfirmOpen(false)
-    closeDrawer()
+  async function handleDeleteClick() {
+    if (!selectedRow || !onDeleteRow) return
+    const ok = await confirm({ title: `Delete ${drawerContent?.title}?`, description: 'This action cannot be undone.' })
+    if (ok) {
+      onDeleteRow(selectedRow)
+      closeDrawer()
+    }
   }
 
   return (
@@ -236,23 +227,8 @@ export function EntityTableView<TRow>({
         onOpenChange={(open) => !open && closeDrawer()}
         content={drawerContent}
         onEdit={onEditRow && selectedRow ? () => onEditRow(selectedRow) : undefined}
-        onDelete={onDeleteRow && selectedRow ? () => setDeleteConfirmOpen(true) : undefined}
+        onDelete={onDeleteRow && selectedRow ? handleDeleteClick : undefined}
       />
-
-      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {drawerContent?.title}?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" disabled={isDeleting} onClick={confirmDelete}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

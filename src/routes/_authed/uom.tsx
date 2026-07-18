@@ -36,7 +36,6 @@ function UomPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteUom.mutate(row.id)}
-        isDeleting={deleteUom.isPending}
       />
       <UomFormDialog open={formOpen} onOpenChange={setFormOpen} uom={editingRow} />
     </>

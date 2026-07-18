@@ -36,7 +36,6 @@ function SerialsPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteSerial.mutate(row.id)}
-        isDeleting={deleteSerial.isPending}
       />
       <SerialFormDialog open={formOpen} onOpenChange={setFormOpen} serial={editingRow} />
     </>

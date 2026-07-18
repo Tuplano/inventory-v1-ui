@@ -36,7 +36,6 @@ function RolesPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteRole.mutate(row.id)}
-        isDeleting={deleteRole.isPending}
       />
       <RoleFormDialog open={formOpen} onOpenChange={setFormOpen} role={editingRow} />
     </>

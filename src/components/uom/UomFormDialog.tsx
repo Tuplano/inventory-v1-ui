@@ -16,6 +16,7 @@ import { useDeleteConversion } from '@/hooks/mutations/use-delete-conversion'
 import { useUom } from '@/hooks/queries/use-uom'
 import { useUoms } from '@/hooks/queries/use-uoms'
 import { uomTypes, type UomRecord } from '@/entities/uom.config'
+import { confirm } from '@/lib/confirm'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -178,7 +179,14 @@ function ConversionsSection({ uom }: { uom: UomRecord }) {
               </span>
               <button
                 type="button"
-                onClick={() => deleteConversion.mutate({ uomId: uom.id, conversionId: c.id })}
+                onClick={async () => {
+                  const label = `1 ${uom.abbreviation} = ${c.conversionFactor} ${target?.abbreviation ?? c.toUomId}`
+                  const ok = await confirm({
+                    title: 'Delete conversion?',
+                    description: `${label} will be removed. This action cannot be undone.`,
+                  })
+                  if (ok) deleteConversion.mutate({ uomId: uom.id, conversionId: c.id })
+                }}
                 className="text-[var(--text-3)] hover:text-[var(--red)]"
               >
                 <Trash2 className="size-3.5" />

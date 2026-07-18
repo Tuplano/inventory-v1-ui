@@ -6,6 +6,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Toaster } from '../components/ui/sonner'
+import { ConfirmDialog } from '../components/ui/confirm-dialog'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -53,6 +54,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[color-mix(in_oklab,var(--brand-accent)_24%,transparent)]">
         {children}
         <Toaster />
+        <ConfirmDialog />
         <TanStackDevtools
           config={{
             position: 'bottom-right',

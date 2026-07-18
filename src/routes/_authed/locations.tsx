@@ -36,7 +36,6 @@ function LocationsPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteLocation.mutate(row.id)}
-        isDeleting={deleteLocation.isPending}
       />
       <LocationFormDialog open={formOpen} onOpenChange={setFormOpen} location={editingRow} />
     </>

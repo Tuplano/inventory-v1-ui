@@ -32,7 +32,6 @@ function InventoryPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteItem.mutate(row.id)}
-        isDeleting={deleteItem.isPending}
       />
       <InventoryFormDialog open={formOpen} onOpenChange={setFormOpen} item={editingRow} />
     </>

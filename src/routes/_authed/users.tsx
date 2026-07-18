@@ -32,7 +32,6 @@ function UsersPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteUser.mutate(row.id)}
-        isDeleting={deleteUser.isPending}
       />
       <UserFormDialog open={formOpen} onOpenChange={setFormOpen} user={editingRow} />
     </>

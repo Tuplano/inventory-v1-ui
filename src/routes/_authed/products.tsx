@@ -36,7 +36,6 @@ function ProductsPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteProduct.mutate(row.id)}
-        isDeleting={deleteProduct.isPending}
       />
       <ProductFormDialog open={formOpen} onOpenChange={setFormOpen} product={editingRow} />
     </>

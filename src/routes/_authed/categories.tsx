@@ -36,7 +36,6 @@ function CategoriesPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteCategory.mutate(row.id)}
-        isDeleting={deleteCategory.isPending}
       />
       <CategoryFormDialog open={formOpen} onOpenChange={setFormOpen} category={editingRow} />
     </>

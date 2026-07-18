@@ -36,7 +36,6 @@ function SuppliersPage() {
           setFormOpen(true)
         }}
         onDeleteRow={(row) => deleteSupplier.mutate(row.id)}
-        isDeleting={deleteSupplier.isPending}
       />
       <SupplierFormDialog open={formOpen} onOpenChange={setFormOpen} supplier={editingRow} />
     </>

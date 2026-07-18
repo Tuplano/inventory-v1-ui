@@ -55,10 +55,10 @@ export function PoLineItemsTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <div className="h-[5px] w-[70px] overflow-hidden rounded-[3px] bg-[var(--surface-3)]">
+                    <div className="h-[5px] flex-1 overflow-hidden rounded-[3px] bg-[var(--surface-3)]">
                       <div className="h-full rounded-[3px]" style={{ width: `${Math.min(100, l.pct)}%`, background: barColor }} />
                     </div>
-                    <span className="font-mono text-[11px] text-[var(--text-3)]">{l.isClosed ? 'closed' : `${l.pct}%`}</span>
+                    <span className="w-11 shrink-0 text-right font-mono text-[11px] text-[var(--text-3)]">{l.isClosed ? 'closed' : `${l.pct}%`}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right font-mono text-[12px]">{formatCurrency(l.cost)}</TableCell>
