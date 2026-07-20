@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ChevronDown, ArrowRightLeft, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ArrowRightLeft, PackageCheck, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -19,6 +19,7 @@ import { LocationFormDialog } from '@/components/locations/LocationFormDialog'
 import { TransferStockModal } from '@/components/locations/TransferStockModal'
 import { useLocation } from '@/hooks/queries/use-location'
 import { useDeleteLocation } from '@/hooks/mutations/use-delete-location'
+import { useAutoPlaceLocation } from '@/hooks/mutations/use-auto-place-location'
 
 export const Route = createFileRoute('/_authed/locations/$id')({
   component: LocationDetailPage,
@@ -29,6 +30,7 @@ function LocationDetailPage() {
   const navigate = useNavigate()
   const { data: location, isLoading } = useLocation(id)
   const deleteLocation = useDeleteLocation()
+  const autoPlace = useAutoPlaceLocation()
   const [editOpen, setEditOpen] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -72,6 +74,16 @@ function LocationDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          {location.type === 'RECEIVING' && (
+            <Button
+              variant="outline"
+              disabled={autoPlace.isPending || location.contents.length === 0}
+              onClick={() => autoPlace.mutate(location.id)}
+            >
+              <PackageCheck data-icon="inline-start" />
+              Auto-place to storage
+            </Button>
+          )}
           <Button onClick={() => setTransferOpen(true)}>
             <ArrowRightLeft data-icon="inline-start" />
             Transfer stock

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import type { EntityTableConfig, MovementType } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
-import { formatCurrency } from '@/lib/format'
 import { movementTypeTone } from '@/lib/tone'
 
 export const movementTypes = ['RECEIVING', 'ADJUSTMENT', 'TRANSFER_IN', 'TRANSFER_OUT', 'ISSUE', 'RETURN'] as const
@@ -24,7 +23,6 @@ export interface StockMovementRecord {
   productId: string
   type: MovementType
   quantity: string
-  unitCost: string | null
   reference: string | null
   notes: string | null
   createdById: string | null
@@ -43,7 +41,6 @@ export interface MovementRow {
   productId: string
   type: MovementType
   quantity: number
-  unitCost: number | null
   reference: string | null
   notes: string | null
   fromLocationId: string | null
@@ -88,7 +85,6 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
           </span>
         ),
       },
-      { key: 'unitCost', header: 'Unit cost', render: (r) => <span className="font-mono text-[12px] text-[var(--text-3)]">{r.unitCost != null ? formatCurrency(r.unitCost) : '—'}</span> },
       { key: 'route', header: 'From → To', render: (r) => <MonoCell value={`${r.fromLabel} → ${r.toLabel}`} color="var(--text-2)" /> },
       { key: 'reference', header: 'Reference', render: (r) => <MonoCell value={r.reference ?? '—'} color="var(--brand-accent-d)" /> },
     ],
@@ -101,7 +97,6 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
           rows: [
             { label: 'Type', value: row.type.replace('_', ' '), tone: movementTypeTone(row.type) },
             { label: 'Quantity', value: `${row.quantity > 0 ? '+' : ''}${row.quantity.toLocaleString()} ${row.uom}` },
-            { label: 'Unit cost', value: row.unitCost != null ? formatCurrency(row.unitCost) : '—' },
             { label: 'Date', value: row.createdAt.slice(0, 10) },
           ],
         },

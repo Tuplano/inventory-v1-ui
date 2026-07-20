@@ -39,7 +39,6 @@ export function useMovements() {
           productId: m.productId,
           type: m.type,
           quantity: Number(m.quantity),
-          unitCost: m.unitCost != null ? Number(m.unitCost) : null,
           reference: m.reference,
           notes: m.notes,
           fromLocationId: m.fromLocationId,
