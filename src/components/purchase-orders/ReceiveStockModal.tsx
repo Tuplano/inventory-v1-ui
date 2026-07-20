@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from '@/components/ui/combobox'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useBatches } from '@/hooks/queries/use-batches'
@@ -14,7 +13,6 @@ import { usePostReceiving } from '@/hooks/mutations/use-post-receiving'
 import { useAuthStore } from '@/stores/auth-store'
 import type { PoDetail } from '@/hooks/queries/use-purchase-order'
 
-const DEFAULT_RECEIVING_LOCATION = 'RCV-DOCK-1'
 const NEW_BATCH_OPTION = '__new__'
 
 interface LineState {
@@ -25,7 +23,7 @@ interface LineState {
   batch: string
   /** Expiry date (YYYY-MM-DD) for a newly created batch. */
   expiry: string
-  loc: string
+  locationId: string
 }
 
 export function ReceiveStockModal({
@@ -44,8 +42,6 @@ export function ReceiveStockModal({
   const postReceiving = usePostReceiving()
   const user = useAuthStore((s) => s.user)
   const hasLocations = locations.length > 0
-  const locationCodes = locations.map((l) => l.code)
-  const locationByCode = new Map(locations.map((l) => [l.code, l]))
 
   const [ref, setRef] = useState('')
   const [date, setDate] = useState('2026-07-13')
@@ -55,7 +51,7 @@ export function ReceiveStockModal({
     if (!open) return
     setRef('')
     setDate('2026-07-13')
-    const defaultLoc = locations.find((l) => l.code === DEFAULT_RECEIVING_LOCATION)?.code ?? ''
+    const defaultLocationId = locations.find((l) => l.type === 'RECEIVING' && l.isActive)?.id ?? locations[0]?.id ?? ''
     const initial: Record<string, LineState> = {}
     po.lines.forEach((l) => {
       const remaining = Math.max(0, l.ordered - l.received)
@@ -65,11 +61,11 @@ export function ReceiveStockModal({
         batchId: NEW_BATCH_OPTION,
         batch: '',
         expiry: '',
-        loc: defaultLoc,
+        locationId: defaultLocationId,
       }
     })
     setLines(initial)
-  }, [open, po])
+  }, [open, po, locations])
 
   function setField(lineId: string, field: keyof LineState, raw: string) {
     let value = raw
@@ -111,8 +107,7 @@ export function ReceiveStockModal({
           batchId: v.batchId !== NEW_BATCH_OPTION ? v.batchId : undefined,
           batchNumber: v.batchId === NEW_BATCH_OPTION ? v.batch.trim() || undefined : undefined,
           expiryDate: v.batchId === NEW_BATCH_OPTION ? v.expiry || undefined : undefined,
-          // Location codes aren't backed by real location records yet, so we
-          // don't send toLocationId — posting still succeeds without it.
+          toLocationId: v.locationId || undefined,
         })),
       },
       { onSuccess: () => onOpenChange(false) },
@@ -171,7 +166,7 @@ export function ReceiveStockModal({
             <tbody>
               {po.lines.map((l) => {
                 const remaining = l.ordered - l.received
-                const state = lines[l.id] ?? { qty: '0', cost: '0', batchId: NEW_BATCH_OPTION, batch: '', expiry: '', loc: '' }
+                const state = lines[l.id] ?? { qty: '0', cost: '0', batchId: NEW_BATCH_OPTION, batch: '', expiry: '', locationId: '' }
                 const over = Number(state.qty) > remaining
                 const isBatch = l.track === 'BATCH'
                 const productBatches = isBatch
@@ -256,29 +251,19 @@ export function ReceiveStockModal({
                     </td>
                     {hasLocations && (
                       <td className="px-5 py-2.5 text-center">
-                        <Combobox
-                          items={locationCodes}
-                          value={state.loc || null}
-                          onValueChange={(value) => setField(l.id, 'loc', (value as string | null) ?? '')}
-                          filter={(code: string, query) => {
-                            const q = query.toLowerCase()
-                            const loc = locationByCode.get(code)
-                            return code.toLowerCase().includes(q) || !!loc?.name.toLowerCase().includes(q)
-                          }}
+                        <NativeSelect
+                          size="sm"
+                          value={state.locationId}
+                          onChange={(e) => setField(l.id, 'locationId', e.target.value)}
+                          className="w-[130px]"
                         >
-                          <ComboboxInput placeholder="Search…" className="mx-auto w-36 font-mono text-[11.5px]" />
-                          <ComboboxContent>
-                            <ComboboxEmpty>No matches</ComboboxEmpty>
-                            <ComboboxList>
-                              {(code: string) => (
-                                <ComboboxItem key={code} value={code}>
-                                  <span className="font-mono">{code}</span>
-                                  <span className="ml-1 text-muted-foreground">{locationByCode.get(code)?.name}</span>
-                                </ComboboxItem>
-                              )}
-                            </ComboboxList>
-                          </ComboboxContent>
-                        </Combobox>
+                          <NativeSelectOption value="">No location</NativeSelectOption>
+                          {locations.map((loc) => (
+                            <NativeSelectOption key={loc.id} value={loc.id}>
+                              {loc.code}
+                            </NativeSelectOption>
+                          ))}
+                        </NativeSelect>
                       </td>
                     )}
                   </tr>

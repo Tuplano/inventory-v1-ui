@@ -23,14 +23,15 @@ import { Route as AuthedReceivingsRouteImport } from './routes/_authed/receiving
 import { Route as AuthedProductsRouteImport } from './routes/_authed/products'
 import { Route as AuthedPermissionsRouteImport } from './routes/_authed/permissions'
 import { Route as AuthedMovementsRouteImport } from './routes/_authed/movements'
-import { Route as AuthedLocationsRouteImport } from './routes/_authed/locations'
 import { Route as AuthedInventoryRouteImport } from './routes/_authed/inventory'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedCompaniesRouteImport } from './routes/_authed/companies'
 import { Route as AuthedCategoriesRouteImport } from './routes/_authed/categories'
 import { Route as AuthedBatchesRouteImport } from './routes/_authed/batches'
 import { Route as AuthedPurchaseOrdersIndexRouteImport } from './routes/_authed/purchase-orders/index'
+import { Route as AuthedLocationsIndexRouteImport } from './routes/_authed/locations/index'
 import { Route as AuthedPurchaseOrdersIdRouteImport } from './routes/_authed/purchase-orders/$id'
+import { Route as AuthedLocationsIdRouteImport } from './routes/_authed/locations/$id'
 
 const SelectWorkspaceRoute = SelectWorkspaceRouteImport.update({
   id: '/select-workspace',
@@ -101,11 +102,6 @@ const AuthedMovementsRoute = AuthedMovementsRouteImport.update({
   path: '/movements',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedLocationsRoute = AuthedLocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
-  getParentRoute: () => AuthedRoute,
-} as any)
 const AuthedInventoryRoute = AuthedInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -137,9 +133,19 @@ const AuthedPurchaseOrdersIndexRoute =
     path: '/purchase-orders/',
     getParentRoute: () => AuthedRoute,
   } as any)
+const AuthedLocationsIndexRoute = AuthedLocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPurchaseOrdersIdRoute = AuthedPurchaseOrdersIdRouteImport.update({
   id: '/purchase-orders/$id',
   path: '/purchase-orders/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedLocationsIdRoute = AuthedLocationsIdRouteImport.update({
+  id: '/locations/$id',
+  path: '/locations/$id',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -152,7 +158,6 @@ export interface FileRoutesByFullPath {
   '/companies': typeof AuthedCompaniesRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/inventory': typeof AuthedInventoryRoute
-  '/locations': typeof AuthedLocationsRoute
   '/movements': typeof AuthedMovementsRoute
   '/permissions': typeof AuthedPermissionsRoute
   '/products': typeof AuthedProductsRoute
@@ -163,7 +168,9 @@ export interface FileRoutesByFullPath {
   '/suppliers': typeof AuthedSuppliersRoute
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
+  '/locations/$id': typeof AuthedLocationsIdRoute
   '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/locations/': typeof AuthedLocationsIndexRoute
   '/purchase-orders/': typeof AuthedPurchaseOrdersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -175,7 +182,6 @@ export interface FileRoutesByTo {
   '/companies': typeof AuthedCompaniesRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/inventory': typeof AuthedInventoryRoute
-  '/locations': typeof AuthedLocationsRoute
   '/movements': typeof AuthedMovementsRoute
   '/permissions': typeof AuthedPermissionsRoute
   '/products': typeof AuthedProductsRoute
@@ -186,7 +192,9 @@ export interface FileRoutesByTo {
   '/suppliers': typeof AuthedSuppliersRoute
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
+  '/locations/$id': typeof AuthedLocationsIdRoute
   '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/locations': typeof AuthedLocationsIndexRoute
   '/purchase-orders': typeof AuthedPurchaseOrdersIndexRoute
 }
 export interface FileRoutesById {
@@ -200,7 +208,6 @@ export interface FileRoutesById {
   '/_authed/companies': typeof AuthedCompaniesRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/inventory': typeof AuthedInventoryRoute
-  '/_authed/locations': typeof AuthedLocationsRoute
   '/_authed/movements': typeof AuthedMovementsRoute
   '/_authed/permissions': typeof AuthedPermissionsRoute
   '/_authed/products': typeof AuthedProductsRoute
@@ -211,7 +218,9 @@ export interface FileRoutesById {
   '/_authed/suppliers': typeof AuthedSuppliersRoute
   '/_authed/uom': typeof AuthedUomRoute
   '/_authed/users': typeof AuthedUsersRoute
+  '/_authed/locations/$id': typeof AuthedLocationsIdRoute
   '/_authed/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/_authed/locations/': typeof AuthedLocationsIndexRoute
   '/_authed/purchase-orders/': typeof AuthedPurchaseOrdersIndexRoute
 }
 export interface FileRouteTypes {
@@ -225,7 +234,6 @@ export interface FileRouteTypes {
     | '/companies'
     | '/dashboard'
     | '/inventory'
-    | '/locations'
     | '/movements'
     | '/permissions'
     | '/products'
@@ -236,7 +244,9 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/uom'
     | '/users'
+    | '/locations/$id'
     | '/purchase-orders/$id'
+    | '/locations/'
     | '/purchase-orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -248,7 +258,6 @@ export interface FileRouteTypes {
     | '/companies'
     | '/dashboard'
     | '/inventory'
-    | '/locations'
     | '/movements'
     | '/permissions'
     | '/products'
@@ -259,7 +268,9 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/uom'
     | '/users'
+    | '/locations/$id'
     | '/purchase-orders/$id'
+    | '/locations'
     | '/purchase-orders'
   id:
     | '__root__'
@@ -272,7 +283,6 @@ export interface FileRouteTypes {
     | '/_authed/companies'
     | '/_authed/dashboard'
     | '/_authed/inventory'
-    | '/_authed/locations'
     | '/_authed/movements'
     | '/_authed/permissions'
     | '/_authed/products'
@@ -283,7 +293,9 @@ export interface FileRouteTypes {
     | '/_authed/suppliers'
     | '/_authed/uom'
     | '/_authed/users'
+    | '/_authed/locations/$id'
     | '/_authed/purchase-orders/$id'
+    | '/_authed/locations/'
     | '/_authed/purchase-orders/'
   fileRoutesById: FileRoutesById
 }
@@ -394,13 +406,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedMovementsRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/locations': {
-      id: '/_authed/locations'
-      path: '/locations'
-      fullPath: '/locations'
-      preLoaderRoute: typeof AuthedLocationsRouteImport
-      parentRoute: typeof AuthedRoute
-    }
     '/_authed/inventory': {
       id: '/_authed/inventory'
       path: '/inventory'
@@ -443,11 +448,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedPurchaseOrdersIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/locations/': {
+      id: '/_authed/locations/'
+      path: '/locations'
+      fullPath: '/locations/'
+      preLoaderRoute: typeof AuthedLocationsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/purchase-orders/$id': {
       id: '/_authed/purchase-orders/$id'
       path: '/purchase-orders/$id'
       fullPath: '/purchase-orders/$id'
       preLoaderRoute: typeof AuthedPurchaseOrdersIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/locations/$id': {
+      id: '/_authed/locations/$id'
+      path: '/locations/$id'
+      fullPath: '/locations/$id'
+      preLoaderRoute: typeof AuthedLocationsIdRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
@@ -459,7 +478,6 @@ interface AuthedRouteChildren {
   AuthedCompaniesRoute: typeof AuthedCompaniesRoute
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedInventoryRoute: typeof AuthedInventoryRoute
-  AuthedLocationsRoute: typeof AuthedLocationsRoute
   AuthedMovementsRoute: typeof AuthedMovementsRoute
   AuthedPermissionsRoute: typeof AuthedPermissionsRoute
   AuthedProductsRoute: typeof AuthedProductsRoute
@@ -470,7 +488,9 @@ interface AuthedRouteChildren {
   AuthedSuppliersRoute: typeof AuthedSuppliersRoute
   AuthedUomRoute: typeof AuthedUomRoute
   AuthedUsersRoute: typeof AuthedUsersRoute
+  AuthedLocationsIdRoute: typeof AuthedLocationsIdRoute
   AuthedPurchaseOrdersIdRoute: typeof AuthedPurchaseOrdersIdRoute
+  AuthedLocationsIndexRoute: typeof AuthedLocationsIndexRoute
   AuthedPurchaseOrdersIndexRoute: typeof AuthedPurchaseOrdersIndexRoute
 }
 
@@ -480,7 +500,6 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCompaniesRoute: AuthedCompaniesRoute,
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedInventoryRoute: AuthedInventoryRoute,
-  AuthedLocationsRoute: AuthedLocationsRoute,
   AuthedMovementsRoute: AuthedMovementsRoute,
   AuthedPermissionsRoute: AuthedPermissionsRoute,
   AuthedProductsRoute: AuthedProductsRoute,
@@ -491,7 +510,9 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedSuppliersRoute: AuthedSuppliersRoute,
   AuthedUomRoute: AuthedUomRoute,
   AuthedUsersRoute: AuthedUsersRoute,
+  AuthedLocationsIdRoute: AuthedLocationsIdRoute,
   AuthedPurchaseOrdersIdRoute: AuthedPurchaseOrdersIdRoute,
+  AuthedLocationsIndexRoute: AuthedLocationsIndexRoute,
   AuthedPurchaseOrdersIndexRoute: AuthedPurchaseOrdersIndexRoute,
 }
 
@@ -507,12 +528,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

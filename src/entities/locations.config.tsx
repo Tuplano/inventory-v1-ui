@@ -41,6 +41,7 @@ export interface ProductLocationRecord {
   level: string | null
   bin: string | null
   capacity: number | null
+  currentQty: number
   isActive: boolean
   createdAt: string
 }
@@ -73,29 +74,34 @@ export function createLocationsConfig(branchName: string): EntityTableConfig<Pro
       { key: 'code', header: 'Code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} weight={600} /> },
       { key: 'name', header: 'Name', sortable: true, sortValue: (r) => r.name, render: (r) => <span className="font-medium">{r.name}</span> },
       { key: 'type', header: 'Type', render: (r) => <ToneBadge tone={typeTone[r.type]} label={r.type} /> },
-      { key: 'aisle', header: 'Aisle', render: (r) => <MonoCell value={r.aisle ?? '—'} color="var(--text-2)" /> },
-      { key: 'bay', header: 'Bay', render: (r) => <MonoCell value={r.bay ?? '—'} color="var(--text-2)" /> },
-      { key: 'level', header: 'Level', render: (r) => <MonoCell value={r.level ?? '—'} color="var(--text-2)" /> },
-      { key: 'bin', header: 'Bin', render: (r) => <MonoCell value={r.bin ?? '—'} color="var(--text-2)" /> },
+      {
+        key: 'position',
+        header: 'Position',
+        render: (r) => (
+          <MonoCell value={[r.aisle, r.bay, r.level, r.bin].filter(Boolean).join(' · ') || '—'} color="var(--text-2)" />
+        ),
+      },
+      { key: 'fill', header: 'Fill', render: (r) => <LocationFillCell capacity={r.capacity} currentQty={r.currentQty} /> },
       { key: 'isActive', header: 'Status', render: (r) => <ToneBadge tone={r.isActive ? 'green' : 'neutral'} label={r.isActive ? 'Active' : 'Inactive'} dot /> },
     ],
-    drawer: (row) => ({
-      title: row.name,
-      subtitle: row.code,
-      badge: { label: row.isActive ? 'Active' : 'Inactive', tone: row.isActive ? 'green' : 'neutral' },
-      sections: [
-        {
-          label: 'Placement',
-          rows: [
-            { label: 'Type', value: row.type },
-            { label: 'Aisle', value: row.aisle ?? '—' },
-            { label: 'Bay', value: row.bay ?? '—' },
-            { label: 'Level', value: row.level ?? '—' },
-            { label: 'Bin', value: row.bin ?? '—' },
-            { label: 'Capacity', value: row.capacity != null ? String(row.capacity) : '—' },
-          ],
-        },
-      ],
-    }),
+    getRowHref: (row) => `/locations/${row.id}`,
   }
+}
+
+function LocationFillCell({ capacity, currentQty }: { capacity: number | null; currentQty: number }) {
+  if (capacity == null) {
+    return <span className="font-mono text-[11px] text-[var(--text-3)]">Unlimited</span>
+  }
+  const pct = capacity > 0 ? Math.min(100, Math.round((currentQty / capacity) * 100)) : 100
+  const barColor = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--amber)' : 'var(--green)'
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-[5px] w-[60px] overflow-hidden rounded-[3px] bg-[var(--surface-3)]">
+        <div className="h-full rounded-[3px]" style={{ width: `${pct}%`, background: barColor }} />
+      </div>
+      <span className="font-mono text-[11px] text-[var(--text-3)]">
+        {currentQty}/{capacity}
+      </span>
+    </div>
+  )
 }
