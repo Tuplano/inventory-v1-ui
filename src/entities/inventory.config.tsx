@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { EntityTableConfig } from './types'
 import { MonoCell, StockCell, ToneBadge } from '@/components/entity-table/cells'
+import { InventoryLocationsPanel } from '@/components/inventory/InventoryLocationsPanel'
 import { stockTone } from '@/lib/tone'
 
 export const updateInventoryItemSchema = z.object({
@@ -89,6 +90,7 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
         ),
       },
     ],
+    drawerExtra: InventoryLocationsPanel,
     drawer: (row) => ({
       title: row.name,
       subtitle: row.code,

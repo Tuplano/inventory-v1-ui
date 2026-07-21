@@ -226,6 +226,7 @@ export function EntityTableView<TRow>({
         open={!!drawerContent}
         onOpenChange={(open) => !open && closeDrawer()}
         content={drawerContent}
+        extra={selectedRow && config.drawerExtra ? <config.drawerExtra row={selectedRow} /> : null}
         onEdit={onEditRow && selectedRow ? () => onEditRow(selectedRow) : undefined}
         onDelete={onDeleteRow && selectedRow ? handleDeleteClick : undefined}
       />

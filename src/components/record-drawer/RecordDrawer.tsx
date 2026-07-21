@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -8,12 +9,14 @@ export function RecordDrawer({
   open,
   onOpenChange,
   content,
+  extra,
   onEdit,
   onDelete,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   content: DrawerContent | null
+  extra?: ReactNode
   onEdit?: () => void
   onDelete?: () => void
 }) {
@@ -53,6 +56,7 @@ export function RecordDrawer({
                   ))}
                 </div>
               ))}
+              {extra}
             </div>
 
             <SheetFooter className="flex-row border-t border-[var(--border-2)] p-3.5">

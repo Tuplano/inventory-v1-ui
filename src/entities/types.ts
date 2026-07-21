@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 export type Tone = 'green' | 'amber' | 'red' | 'violet' | 'teal' | 'accent' | 'neutral'
@@ -63,6 +63,8 @@ export interface EntityTableConfig<TRow> {
   primaryActionLabel?: string
   getRowId: (row: TRow) => string
   drawer?: (row: TRow) => DrawerContent
+  /** Optional component rendered below the drawer's static sections, for data that needs its own fetch (e.g. bin locations). */
+  drawerExtra?: ComponentType<{ row: TRow }>
   getRowHref?: (row: TRow) => string
   pageSize?: number
 }

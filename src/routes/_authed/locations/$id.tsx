@@ -51,7 +51,7 @@ function LocationDetailPage() {
     location.fillPct == null ? 'var(--text-3)' : location.fillPct >= 100 ? 'var(--red)' : location.fillPct >= 80 ? 'var(--amber)' : 'var(--green)'
 
   return (
-    <div className="max-w-[1080px] p-6">
+    <div className="p-6">
       <button
         type="button"
         onClick={() => navigate({ to: '/locations' })}
