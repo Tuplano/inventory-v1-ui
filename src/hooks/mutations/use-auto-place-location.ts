@@ -3,25 +3,29 @@ import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
 
 export interface AutoPlacePlacedLine {
-  receivingLineId: string
-  receivingId: string
-  receivingNumber: string
+  receivingLineId: string | null
+  receivingId: string | null
+  receivingNumber: string | null
   productId: string
   productName: string
   productSku: string
   toLocationId: string
   toLocationName: string
+  toLocationCode: string
+  toLocationPosition: string | null
   quantityPlaced: number
+  serialNumbers?: string[]
 }
 
 export interface AutoPlaceUnplacedLine {
-  receivingLineId: string
-  receivingId: string
-  receivingNumber: string
+  receivingLineId: string | null
+  receivingId: string | null
+  receivingNumber: string | null
   productId: string
   productName: string
   productSku: string
   quantityRemaining: number
+  serialNumbers?: string[]
 }
 
 export interface AutoPlaceResult {

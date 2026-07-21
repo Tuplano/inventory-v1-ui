@@ -24,6 +24,7 @@ import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { useProducts } from '@/hooks/queries/use-products'
 import { useDeleteLocation } from '@/hooks/mutations/use-delete-location'
 import { useAutoPlaceLocation } from '@/hooks/mutations/use-auto-place-location'
+import { downloadAutoPlaceReceipt } from '@/lib/pdf/auto-place-receipt'
 
 export const Route = createFileRoute('/_authed/locations/$id')({
   component: LocationDetailPage,
@@ -88,7 +89,15 @@ function LocationDetailPage() {
             <Button
               variant="outline"
               disabled={autoPlace.isPending || location.contents.length === 0}
-              onClick={() => autoPlace.mutate(location.id)}
+              onClick={() =>
+                autoPlace.mutate(location.id, {
+                  onSuccess: (result) => {
+                    if (result.placed.length > 0 || result.unplaced.length > 0) {
+                      downloadAutoPlaceReceipt(location.name, result)
+                    }
+                  },
+                })
+              }
             >
               <PackageCheck data-icon="inline-start" />
               Auto-place to storage
