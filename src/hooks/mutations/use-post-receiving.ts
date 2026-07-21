@@ -14,7 +14,8 @@ export interface PostReceivingLineInput {
   /** Date-only string (YYYY-MM-DD) for a newly created batch; converted to a full ISO datetime before posting. */
   expiryDate?: string
   toLocationId?: string
-  /** Required for SERIAL-tracked lines; count must exactly match receivedQty. */
+  /** Optional for SERIAL-tracked lines — if provided, count must exactly match receivedQty;
+   * left blank, the quantity is received as an anonymous lot and can be serialized later. */
   serialNumbers?: string[]
 }
 

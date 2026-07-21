@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ChevronDown, ArrowRightLeft, Inbox, PackageCheck, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ArrowRightLeft, Fingerprint, Inbox, PackageCheck, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -18,8 +18,10 @@ import {
 import { LocationFormDialog } from '@/components/locations/LocationFormDialog'
 import { TransferStockModal } from '@/components/locations/TransferStockModal'
 import { PlaceStockModal } from '@/components/locations/PlaceStockModal'
+import { AssignSerialsModal } from '@/components/locations/AssignSerialsModal'
 import { useLocation } from '@/hooks/queries/use-location'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
+import { useProducts } from '@/hooks/queries/use-products'
 import { useDeleteLocation } from '@/hooks/mutations/use-delete-location'
 import { useAutoPlaceLocation } from '@/hooks/mutations/use-auto-place-location'
 
@@ -32,12 +34,16 @@ function LocationDetailPage() {
   const navigate = useNavigate()
   const { data: location, isLoading } = useLocation(id)
   const { data: unplacedStock = [] } = useUnplacedStock()
+  const { data: products = [] } = useProducts()
   const deleteLocation = useDeleteLocation()
   const autoPlace = useAutoPlaceLocation()
   const [editOpen, setEditOpen] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [placeOpen, setPlaceOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [assignTarget, setAssignTarget] = useState<{ productId: string; productName: string; availableQty: number } | null>(null)
+
+  const trackingByProduct = new Map(products.map((p) => [p.id, p.trackingType]))
 
   if (isLoading) return null
   if (!location) {
@@ -138,21 +144,40 @@ function LocationDetailPage() {
               <TableHead className="text-[11px] font-semibold uppercase text-[var(--text-3)]">Product</TableHead>
               <TableHead className="text-right text-[11px] font-semibold uppercase text-[var(--text-3)]">Quantity</TableHead>
               <TableHead className="text-[11px] font-semibold uppercase text-[var(--text-3)]">Receiving</TableHead>
+              <TableHead className="text-[11px] font-semibold uppercase text-[var(--text-3)]" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {location.contents.map((c) => (
-              <TableRow key={c.receivingLineId ?? `serial-${c.productId}`} className="border-b-[var(--border-2)]">
-                <TableCell>
-                  <div className="font-medium">{c.productName}</div>
-                  <div className="font-mono text-[10.5px] text-[var(--text-3)]">{c.productSku}</div>
-                </TableCell>
-                <TableCell className="text-right font-mono text-[12px] font-semibold">{c.quantity.toLocaleString()}</TableCell>
-                <TableCell className="font-mono text-[12px] text-[var(--text-2)]">
-                  {c.serialNumbers ? `${c.serialNumbers.length} serial(s)` : c.receivingNumber}
-                </TableCell>
-              </TableRow>
-            ))}
+            {location.contents.map((c) => {
+              // Unserialized lot for a SERIAL-tracked product — can be turned into real serial numbers.
+              const canAssignSerials = !c.serialNumbers && c.receivingLineId != null && trackingByProduct.get(c.productId) === 'SERIAL'
+              return (
+                <TableRow key={c.receivingLineId ?? `serial-${c.productId}`} className="border-b-[var(--border-2)]">
+                  <TableCell>
+                    <div className="font-medium">{c.productName}</div>
+                    <div className="font-mono text-[10.5px] text-[var(--text-3)]">{c.productSku}</div>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-[12px] font-semibold">{c.quantity.toLocaleString()}</TableCell>
+                  <TableCell className="font-mono text-[12px] text-[var(--text-2)]">
+                    {c.serialNumbers ? `${c.serialNumbers.length} serial(s)` : c.receivingNumber}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {canAssignSerials && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAssignTarget({ productId: c.productId, productName: c.productName, availableQty: c.quantity })
+                        }
+                        className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-[var(--brand-accent)] hover:underline"
+                      >
+                        <Fingerprint className="size-3" />
+                        Assign serials
+                      </button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
         {location.contents.length === 0 && (
@@ -173,6 +198,17 @@ function LocationDetailPage() {
         onOpenChange={setPlaceOpen}
         toLocationId={location.id}
         toLocationName={location.name}
+      />
+      <AssignSerialsModal
+        open={assignTarget != null}
+        onOpenChange={(next) => {
+          if (!next) setAssignTarget(null)
+        }}
+        productId={assignTarget?.productId ?? ''}
+        productName={assignTarget?.productName ?? ''}
+        locationId={location.id}
+        locationLabel={location.name}
+        availableQty={assignTarget?.availableQty ?? 0}
       />
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

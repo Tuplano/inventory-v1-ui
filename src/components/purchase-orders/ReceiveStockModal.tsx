@@ -107,14 +107,18 @@ export function ReceiveStockModal({
       return
     }
 
+    // Serials are optional for SERIAL-tracked lines — leave blank to receive the quantity as an
+    // anonymous lot and assign serial numbers later. But a partial count (neither 0 nor the full
+    // quantity) can't be posted, since receiving only accepts an exact match or none at all.
     const serialMismatch = activeLines.find(([lineId, v]) => {
       const line = po.lines.find((l) => l.id === lineId)
       if (line?.track !== 'SERIAL') return false
-      return parseSerials(v.serials).length !== (Number(v.qty) || 0)
+      const count = parseSerials(v.serials).length
+      return count > 0 && count !== (Number(v.qty) || 0)
     })
     if (serialMismatch) {
       const line = po.lines.find((l) => l.id === serialMismatch[0])
-      toast.warning(`Enter exactly ${Number(serialMismatch[1].qty) || 0} serial number(s) for ${line?.name}`)
+      toast.warning(`Enter exactly ${Number(serialMismatch[1].qty) || 0} serial number(s) for ${line?.name}, or leave blank to assign them later`)
       return
     }
 
@@ -289,15 +293,22 @@ export function ReceiveStockModal({
                           <Textarea
                             value={state.serials}
                             onChange={(e) => setField(l.id, 'serials', e.target.value)}
-                            placeholder="One serial per line"
+                            placeholder="One serial per line — optional, assign later if left blank"
                             rows={2}
                             className="w-full resize-none font-mono text-[11px]"
                           />
                           <div
                             className="w-full text-left text-[10px] font-semibold"
-                            style={{ color: serialCount === serialNeeded && serialNeeded > 0 ? 'var(--green)' : 'var(--amber)' }}
+                            style={{
+                              color:
+                                serialCount === 0
+                                  ? 'var(--text-3)'
+                                  : serialCount === serialNeeded
+                                    ? 'var(--green)'
+                                    : 'var(--amber)',
+                            }}
                           >
-                            {serialCount}/{serialNeeded} entered
+                            {serialCount === 0 ? 'Assign serials later' : `${serialCount}/${serialNeeded} entered`}
                           </div>
                         </div>
                       ) : (

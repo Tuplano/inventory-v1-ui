@@ -38,6 +38,7 @@ export function useInventory() {
           barcode: i.product.barcode,
           base: i.product.baseUom.abbreviation,
           status,
+          trackingType: i.product.trackingType,
           floatingQty: floatingByProduct.get(i.productId) ?? 0,
         }
       })

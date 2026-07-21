@@ -25,6 +25,7 @@ export interface InventoryItemRecord {
     name: string
     sku: string
     barcode: string | null
+    trackingType: 'NONE' | 'BATCH' | 'SERIAL'
     baseUom: {
       id: string
       name: string
@@ -46,6 +47,7 @@ export interface InventoryRow {
   barcode: string | null
   base: string
   status: 'out' | 'low' | 'ok'
+  trackingType: 'NONE' | 'BATCH' | 'SERIAL'
   /** Received but never assigned to a bin location (see /product-locations/unplaced). */
   floatingQty: number
 }
