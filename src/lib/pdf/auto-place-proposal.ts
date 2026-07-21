@@ -1,29 +1,32 @@
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
-import type { AutoPlaceResult } from '@/hooks/mutations/use-auto-place-location'
+import type { ProposeAutoPlaceResult } from '@/hooks/mutations/use-propose-auto-place'
 
-// Put-away receipt for warehouse staff to physically arrange stock — every serial number is
-// listed in full (no truncation) since staff need to match units to bins by hand.
-export function downloadAutoPlaceReceipt(locationName: string, result: AutoPlaceResult) {
+// Put-away worksheet for warehouse staff — a suggestion, not a record. Nothing here has been
+// written to the system yet; every serial number is listed in full (no truncation) since staff
+// need to match units to bins by hand, and actual placement still has to be recorded separately
+// (via Transfer stock) once the units are physically in their bins.
+export function downloadAutoPlaceProposal(locationName: string, result: ProposeAutoPlaceResult) {
   const doc = new jsPDF({ orientation: 'landscape' })
   const now = new Date()
 
   doc.setFontSize(14)
-  doc.text('Auto-place receipt', 14, 16)
+  doc.text('Auto-place proposal', 14, 16)
   doc.setFontSize(10)
   doc.setTextColor(120)
   doc.text(`From ${locationName} · ${now.toLocaleString()}`, 14, 22)
+  doc.text('Suggested destinations only — not yet recorded. Confirm each move with Transfer stock after placing.', 14, 27)
 
-  let cursorY = 28
+  let cursorY = 33
 
-  if (result.placed.length > 0) {
+  if (result.proposed.length > 0) {
     autoTable(doc, {
       startY: cursorY,
-      head: [['Product name', 'SKU', 'Qty', 'Storage name', 'Storage position', 'Receiving # / Serials']],
-      body: result.placed.map((l) => [
+      head: [['Product name', 'SKU', 'Qty', 'Suggested storage', 'Storage position', 'Receiving # / Serials']],
+      body: result.proposed.map((l) => [
         l.productName,
         l.productSku,
-        l.quantityPlaced.toLocaleString(),
+        l.quantityProposed.toLocaleString(),
         l.toLocationName,
         l.toLocationPosition ?? '—',
         formatTraceColumn(l.receivingNumber, l.serialNumbers),
@@ -45,7 +48,7 @@ export function downloadAutoPlaceReceipt(locationName: string, result: AutoPlace
   if (result.unplaced.length > 0) {
     doc.setFontSize(11)
     doc.setTextColor(180, 60, 20)
-    doc.text('Could not be placed (no bin had room)', 14, cursorY)
+    doc.text('No bin had room for these — needs a manual decision', 14, cursorY)
     cursorY += 4
 
     autoTable(doc, {
@@ -63,7 +66,7 @@ export function downloadAutoPlaceReceipt(locationName: string, result: AutoPlace
   }
 
   const slug = locationName.toLowerCase().trim().replace(/\s+/g, '-')
-  doc.save(`auto-place-${slug}-${now.toISOString().slice(0, 10)}.pdf`)
+  doc.save(`auto-place-proposal-${slug}-${now.toISOString().slice(0, 10)}.pdf`)
 }
 
 function getFinalY(doc: jsPDF, fallback: number): number {

@@ -23,8 +23,8 @@ import { useLocation } from '@/hooks/queries/use-location'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { useProducts } from '@/hooks/queries/use-products'
 import { useDeleteLocation } from '@/hooks/mutations/use-delete-location'
-import { useAutoPlaceLocation } from '@/hooks/mutations/use-auto-place-location'
-import { downloadAutoPlaceReceipt } from '@/lib/pdf/auto-place-receipt'
+import { useProposeAutoPlace } from '@/hooks/mutations/use-propose-auto-place'
+import { downloadAutoPlaceProposal } from '@/lib/pdf/auto-place-proposal'
 
 export const Route = createFileRoute('/_authed/locations/$id')({
   component: LocationDetailPage,
@@ -37,7 +37,7 @@ function LocationDetailPage() {
   const { data: unplacedStock = [] } = useUnplacedStock()
   const { data: products = [] } = useProducts()
   const deleteLocation = useDeleteLocation()
-  const autoPlace = useAutoPlaceLocation()
+  const proposeAutoPlace = useProposeAutoPlace()
   const [editOpen, setEditOpen] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [placeOpen, setPlaceOpen] = useState(false)
@@ -88,19 +88,19 @@ function LocationDetailPage() {
           {location.type === 'RECEIVING' && (
             <Button
               variant="outline"
-              disabled={autoPlace.isPending || location.contents.length === 0}
+              disabled={proposeAutoPlace.isPending || location.contents.length === 0}
               onClick={() =>
-                autoPlace.mutate(location.id, {
+                proposeAutoPlace.mutate(location.id, {
                   onSuccess: (result) => {
-                    if (result.placed.length > 0 || result.unplaced.length > 0) {
-                      downloadAutoPlaceReceipt(location.name, result)
+                    if (result.proposed.length > 0 || result.unplaced.length > 0) {
+                      downloadAutoPlaceProposal(location.name, result)
                     }
                   },
                 })
               }
             >
               <PackageCheck data-icon="inline-start" />
-              Auto-place to storage
+              Propose storage placement
             </Button>
           )}
           {unplacedStock.length > 0 && (
