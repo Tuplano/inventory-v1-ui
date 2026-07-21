@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useBatches } from '@/hooks/queries/use-batches'
@@ -24,6 +25,16 @@ interface LineState {
   /** Expiry date (YYYY-MM-DD) for a newly created batch. */
   expiry: string
   locationId: string
+  /** Raw textarea contents for SERIAL-tracked lines — one serial number per line. */
+  serials: string
+}
+
+/** Splits a serials textarea's raw text into trimmed, non-blank entries (one per line or comma). */
+function parseSerials(raw: string): string[] {
+  return raw
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
 }
 
 export function ReceiveStockModal({
@@ -62,6 +73,7 @@ export function ReceiveStockModal({
         batch: '',
         expiry: '',
         locationId: defaultLocationId,
+        serials: '',
       }
     })
     setLines(initial)
@@ -95,6 +107,29 @@ export function ReceiveStockModal({
       return
     }
 
+    const serialMismatch = activeLines.find(([lineId, v]) => {
+      const line = po.lines.find((l) => l.id === lineId)
+      if (line?.track !== 'SERIAL') return false
+      return parseSerials(v.serials).length !== (Number(v.qty) || 0)
+    })
+    if (serialMismatch) {
+      const line = po.lines.find((l) => l.id === serialMismatch[0])
+      toast.warning(`Enter exactly ${Number(serialMismatch[1].qty) || 0} serial number(s) for ${line?.name}`)
+      return
+    }
+
+    const duplicateSerials = activeLines.find(([lineId, v]) => {
+      const line = po.lines.find((l) => l.id === lineId)
+      if (line?.track !== 'SERIAL') return false
+      const serials = parseSerials(v.serials)
+      return new Set(serials).size !== serials.length
+    })
+    if (duplicateSerials) {
+      const line = po.lines.find((l) => l.id === duplicateSerials[0])
+      toast.warning(`Duplicate serial numbers entered for ${line?.name}`)
+      return
+    }
+
     postReceiving.mutate(
       {
         purchaseOrderId: po.id,
@@ -108,6 +143,7 @@ export function ReceiveStockModal({
           batchNumber: v.batchId === NEW_BATCH_OPTION ? v.batch.trim() || undefined : undefined,
           expiryDate: v.batchId === NEW_BATCH_OPTION ? v.expiry || undefined : undefined,
           toLocationId: v.locationId || undefined,
+          serialNumbers: parseSerials(v.serials),
         })),
       },
       { onSuccess: () => onOpenChange(false) },
@@ -157,7 +193,7 @@ export function ReceiveStockModal({
                 <th className="px-2.5 py-2 text-right text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Rem.</th>
                 <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Receive</th>
                 <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Unit cost</th>
-                <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Batch / lot #</th>
+                <th className="px-2.5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">Batch / Serials</th>
                 {hasLocations && (
                   <th className="px-5 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">To location</th>
                 )}
@@ -166,9 +202,12 @@ export function ReceiveStockModal({
             <tbody>
               {po.lines.map((l) => {
                 const remaining = l.ordered - l.received
-                const state = lines[l.id] ?? { qty: '0', cost: '0', batchId: NEW_BATCH_OPTION, batch: '', expiry: '', locationId: '' }
+                const state = lines[l.id] ?? { qty: '0', cost: '0', batchId: NEW_BATCH_OPTION, batch: '', expiry: '', locationId: '', serials: '' }
                 const over = Number(state.qty) > remaining
                 const isBatch = l.track === 'BATCH'
+                const isSerial = l.track === 'SERIAL'
+                const serialCount = isSerial ? parseSerials(state.serials).length : 0
+                const serialNeeded = Number(state.qty) || 0
                 const productBatches = isBatch
                   ? batches.filter(
                       (b) => b.productId === l.productId && b.isActive && (b.purchaseOrderId === null || b.purchaseOrderId === po.id),
@@ -244,6 +283,22 @@ export function ReceiveStockModal({
                               />
                             </div>
                           )}
+                        </div>
+                      ) : isSerial ? (
+                        <div className="mx-auto flex w-[190px] flex-col items-center gap-1">
+                          <Textarea
+                            value={state.serials}
+                            onChange={(e) => setField(l.id, 'serials', e.target.value)}
+                            placeholder="One serial per line"
+                            rows={2}
+                            className="w-full resize-none font-mono text-[11px]"
+                          />
+                          <div
+                            className="w-full text-left text-[10px] font-semibold"
+                            style={{ color: serialCount === serialNeeded && serialNeeded > 0 ? 'var(--green)' : 'var(--amber)' }}
+                          >
+                            {serialCount}/{serialNeeded} entered
+                          </div>
                         </div>
                       ) : (
                         <Input value="" placeholder="n/a" disabled className="mx-auto w-[100px] font-mono text-[11.5px]" />

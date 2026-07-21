@@ -6,7 +6,10 @@ export interface TransferStockInput {
   productId: string
   fromLocationId: string
   toLocationId: string
-  quantity: number
+  /** For lot-tracked (BATCH/NONE) products. Mutually exclusive with serialNumbers. */
+  quantity?: number
+  /** For SERIAL-tracked products — the exact units to move. Mutually exclusive with quantity. */
+  serialNumbers?: string[]
 }
 
 export interface TransferStockResult {
@@ -14,6 +17,8 @@ export interface TransferStockResult {
   fromLocationId: string
   toLocationId: string
   quantity: number
+  /** Present only when the transfer was serial-tracked. */
+  serialNumbers?: string[]
   lines: { receivingLineId: string; receivingId: string; quantityMoved: number }[]
 }
 
@@ -29,7 +34,11 @@ export function useTransferStock() {
       queryClient.invalidateQueries({ queryKey: ['location', result.fromLocationId] })
       queryClient.invalidateQueries({ queryKey: ['location', result.toLocationId] })
       queryClient.invalidateQueries({ queryKey: ['movements'] })
-      toast.success(`Transferred ${result.quantity.toLocaleString()} units`)
+      toast.success(
+        result.serialNumbers
+          ? `Transferred ${result.serialNumbers.length.toLocaleString()} unit(s): ${result.serialNumbers.join(', ')}`
+          : `Transferred ${result.quantity.toLocaleString()} units`,
+      )
     },
     onError: (error) => toast.error(error.message),
   })

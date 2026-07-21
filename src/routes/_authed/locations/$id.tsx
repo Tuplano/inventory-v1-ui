@@ -132,13 +132,15 @@ function LocationDetailPage() {
           </TableHeader>
           <TableBody>
             {location.contents.map((c) => (
-              <TableRow key={c.receivingLineId} className="border-b-[var(--border-2)]">
+              <TableRow key={c.receivingLineId ?? `serial-${c.productId}`} className="border-b-[var(--border-2)]">
                 <TableCell>
                   <div className="font-medium">{c.productName}</div>
                   <div className="font-mono text-[10.5px] text-[var(--text-3)]">{c.productSku}</div>
                 </TableCell>
                 <TableCell className="text-right font-mono text-[12px] font-semibold">{c.quantity.toLocaleString()}</TableCell>
-                <TableCell className="font-mono text-[12px] text-[var(--text-2)]">{c.receivingNumber}</TableCell>
+                <TableCell className="font-mono text-[12px] text-[var(--text-2)]">
+                  {c.serialNumbers ? `${c.serialNumbers.length} serial(s)` : c.receivingNumber}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -7,10 +7,13 @@ export interface LocationContentLine {
   productName: string
   productSku: string
   quantity: number
-  receivingId: string
-  receivingNumber: string
-  receivingLineId: string
+  /** Null for serial-tracked lines — see `serialNumbers` instead of a single receiving lot. */
+  receivingId: string | null
+  receivingNumber: string | null
+  receivingLineId: string | null
   batchId: string | null
+  /** Non-null only for serial-tracked products; the exact units currently at this location. */
+  serialNumbers: string[] | null
   createdAt: string
 }
 
@@ -36,7 +39,9 @@ export function useLocation(id: string) {
         fillPct: location.capacity != null && location.capacity > 0
           ? Math.min(100, Math.round((location.currentQty / location.capacity) * 100))
           : null,
-        contents,
+        // `quantity` is a Prisma Decimal for lot-derived lines (serializes as a wire string) but a
+        // plain number for serial-derived lines — normalize both to a real number here.
+        contents: contents.map((c) => ({ ...c, quantity: Number(c.quantity) })),
       }
     },
     enabled: !!id,

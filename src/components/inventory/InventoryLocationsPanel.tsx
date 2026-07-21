@@ -21,7 +21,7 @@ export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
           const path = [loc.aisle, loc.bay, loc.level, loc.bin].filter(Boolean).join(' · ')
           return (
             <button
-              key={loc.receivingLineId + loc.locationId}
+              key={`${loc.receivingLineId ?? 'serial'}-${loc.locationId}`}
               type="button"
               onClick={() => navigate({ to: '/locations/$id', params: { id: loc.locationId } })}
               className="flex w-full items-start justify-between gap-3 border-b border-[var(--border-2)] py-1.5 text-left hover:bg-[var(--surface-2)]"
@@ -32,6 +32,9 @@ export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
                   {loc.locationCode}
                   {path && ` · ${path}`}
                 </div>
+                {loc.serialNumbers && (
+                  <div className="mt-0.5 font-mono text-[10px] text-[var(--text-3)]">{loc.serialNumbers.join(', ')}</div>
+                )}
               </div>
               <div className="text-right font-mono text-[12.5px] font-medium">{loc.quantity.toLocaleString()}</div>
             </button>

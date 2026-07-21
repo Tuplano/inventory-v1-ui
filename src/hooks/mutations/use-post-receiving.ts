@@ -14,6 +14,8 @@ export interface PostReceivingLineInput {
   /** Date-only string (YYYY-MM-DD) for a newly created batch; converted to a full ISO datetime before posting. */
   expiryDate?: string
   toLocationId?: string
+  /** Required for SERIAL-tracked lines; count must exactly match receivedQty. */
+  serialNumbers?: string[]
 }
 
 export interface PostReceivingInput {
@@ -45,6 +47,7 @@ export function usePostReceiving() {
                 }
               : undefined,
           toLocationId: l.toLocationId || undefined,
+          serialNumbers: l.serialNumbers && l.serialNumbers.length > 0 ? l.serialNumbers : undefined,
         })),
       })
       return data

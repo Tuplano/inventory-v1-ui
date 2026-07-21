@@ -26,9 +26,12 @@ export function TransferStockModal({
   const { data: locations = [] } = useLocations()
   const transferStock = useTransferStock()
 
-  const availableByProduct = contents.reduce<Record<string, { name: string; sku: string; qty: number }>>((acc, c) => {
-    const entry = acc[c.productId] ?? { name: c.productName, sku: c.productSku, qty: 0 }
+  const availableByProduct = contents.reduce<
+    Record<string, { name: string; sku: string; qty: number; serialNumbers: string[] | null }>
+  >((acc, c) => {
+    const entry = acc[c.productId] ?? { name: c.productName, sku: c.productSku, qty: 0, serialNumbers: null }
     entry.qty += c.quantity
+    if (c.serialNumbers) entry.serialNumbers = [...(entry.serialNumbers ?? []), ...c.serialNumbers]
     acc[c.productId] = entry
     return acc
   }, {})
@@ -37,19 +40,33 @@ export function TransferStockModal({
   const [productId, setProductId] = useState('')
   const [toLocationId, setToLocationId] = useState('')
   const [quantity, setQuantity] = useState('')
+  const [selectedSerials, setSelectedSerials] = useState<string[]>([])
 
   useEffect(() => {
     if (!open) return
     setProductId(contents[0]?.productId ?? '')
     setToLocationId('')
     setQuantity('')
+    setSelectedSerials([])
   }, [open, contents])
 
   const destinations = locations.filter((l) => l.id !== fromLocationId && l.isActive)
-  const available = availableByProduct[productId]?.qty ?? 0
+  const selectedProduct = availableByProduct[productId]
+  const available = selectedProduct?.qty ?? 0
+  const isSerial = !!selectedProduct?.serialNumbers
+  const serialOptions = selectedProduct?.serialNumbers ?? []
+
+  function toggleSerial(sn: string) {
+    setSelectedSerials((prev) => (prev.includes(sn) ? prev.filter((s) => s !== sn) : [...prev, sn]))
+  }
+
+  function handleProductChange(nextProductId: string) {
+    setProductId(nextProductId)
+    setSelectedSerials([])
+    setQuantity('')
+  }
 
   function handleSubmit() {
-    const qty = Number(quantity)
     if (!productId) {
       toast.warning('Select a product to transfer')
       return
@@ -58,6 +75,20 @@ export function TransferStockModal({
       toast.warning('Select a destination location')
       return
     }
+
+    if (isSerial) {
+      if (selectedSerials.length === 0) {
+        toast.warning('Select at least one serial number to transfer')
+        return
+      }
+      transferStock.mutate(
+        { productId, fromLocationId, toLocationId, serialNumbers: selectedSerials },
+        { onSuccess: () => onOpenChange(false) },
+      )
+      return
+    }
+
+    const qty = Number(quantity)
     if (!qty || qty <= 0) {
       toast.warning('Enter a quantity greater than zero')
       return
@@ -87,7 +118,7 @@ export function TransferStockModal({
             {products.length === 0 ? (
               <div className="text-xs text-[var(--text-3)]">Nothing at this location to transfer.</div>
             ) : (
-              <NativeSelect className="w-full" value={productId} onChange={(e) => setProductId(e.target.value)}>
+              <NativeSelect className="w-full" value={productId} onChange={(e) => handleProductChange(e.target.value)}>
                 {products.map((p) => (
                   <NativeSelectOption key={p.productId} value={p.productId}>
                     {p.name} ({p.sku}) · {p.qty.toLocaleString()} available
@@ -109,27 +140,56 @@ export function TransferStockModal({
             </NativeSelect>
           </div>
 
-          <div>
-            <Label htmlFor="xfer-qty" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-              Quantity
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="xfer-qty"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, ''))}
-                inputMode="decimal"
-                className="w-[120px] font-mono"
-              />
-              <button
-                type="button"
-                onClick={() => setQuantity(String(available))}
-                className="text-[10px] font-semibold text-[var(--brand-accent)]"
-              >
-                MAX ({available.toLocaleString()})
-              </button>
+          {isSerial ? (
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <Label className="text-[11.5px] font-semibold text-[var(--text-2)]">Serial numbers</Label>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSerials(selectedSerials.length === serialOptions.length ? [] : [...serialOptions])}
+                  className="text-[10px] font-semibold text-[var(--brand-accent)]"
+                >
+                  {selectedSerials.length === serialOptions.length ? 'Clear all' : 'Select all'}
+                </button>
+              </div>
+              <div className="max-h-[180px] overflow-auto rounded-lg border border-[var(--border-2)]">
+                {serialOptions.map((sn) => (
+                  <label
+                    key={sn}
+                    className="flex cursor-pointer items-center gap-2 border-b border-[var(--border-2)] px-2.5 py-1.5 text-[12px] font-mono last:border-b-0 hover:bg-[var(--surface-2)]"
+                  >
+                    <input type="checkbox" checked={selectedSerials.includes(sn)} onChange={() => toggleSerial(sn)} />
+                    {sn}
+                  </label>
+                ))}
+              </div>
+              <div className="mt-1 text-[10.5px] text-[var(--text-3)]">
+                {selectedSerials.length} of {serialOptions.length} selected
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <Label htmlFor="xfer-qty" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                Quantity
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="xfer-qty"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value.replace(/[^0-9.]/g, ''))}
+                  inputMode="decimal"
+                  className="w-[120px] font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setQuantity(String(available))}
+                  className="text-[10px] font-semibold text-[var(--brand-accent)]"
+                >
+                  MAX ({available.toLocaleString()})
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
