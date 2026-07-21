@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
+import { Inbox } from 'lucide-react'
 import { useInventoryItemLocations } from '@/hooks/queries/use-inventory-item-locations'
 import type { InventoryRow } from '@/entities/inventory.config'
 
@@ -9,6 +10,22 @@ export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
   return (
     <div className="mb-5">
       <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.04em] text-[var(--text-3)]">Locations</div>
+
+      {row.floatingQty > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/locations' })}
+          className="mb-2 flex w-full items-center gap-2 rounded-lg border border-[var(--amber)]/30 bg-[var(--amber)]/8 px-2.5 py-2 text-left hover:bg-[var(--amber)]/14"
+        >
+          <Inbox className="size-3.5 shrink-0 text-[var(--amber)]" />
+          <span className="text-[11.5px] text-[var(--text-2)]">
+            <span className="font-semibold">
+              {row.floatingQty.toLocaleString()} {row.base}
+            </span>{' '}
+            received but not yet placed — open a location to assign it
+          </span>
+        </button>
+      )}
 
       {isLoading && <div className="py-2 text-xs text-[var(--text-3)]">Loading…</div>}
 

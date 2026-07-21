@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ChevronDown, ArrowRightLeft, PackageCheck, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ArrowRightLeft, Inbox, PackageCheck, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -17,7 +17,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { LocationFormDialog } from '@/components/locations/LocationFormDialog'
 import { TransferStockModal } from '@/components/locations/TransferStockModal'
+import { PlaceStockModal } from '@/components/locations/PlaceStockModal'
 import { useLocation } from '@/hooks/queries/use-location'
+import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { useDeleteLocation } from '@/hooks/mutations/use-delete-location'
 import { useAutoPlaceLocation } from '@/hooks/mutations/use-auto-place-location'
 
@@ -29,10 +31,12 @@ function LocationDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
   const { data: location, isLoading } = useLocation(id)
+  const { data: unplacedStock = [] } = useUnplacedStock()
   const deleteLocation = useDeleteLocation()
   const autoPlace = useAutoPlaceLocation()
   const [editOpen, setEditOpen] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
+  const [placeOpen, setPlaceOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   if (isLoading) return null
@@ -82,6 +86,12 @@ function LocationDetailPage() {
             >
               <PackageCheck data-icon="inline-start" />
               Auto-place to storage
+            </Button>
+          )}
+          {unplacedStock.length > 0 && (
+            <Button variant="outline" onClick={() => setPlaceOpen(true)}>
+              <Inbox data-icon="inline-start" />
+              Place received stock
             </Button>
           )}
           <Button onClick={() => setTransferOpen(true)}>
@@ -157,6 +167,12 @@ function LocationDetailPage() {
         fromLocationId={location.id}
         fromLocationName={location.name}
         contents={location.contents}
+      />
+      <PlaceStockModal
+        open={placeOpen}
+        onOpenChange={setPlaceOpen}
+        toLocationId={location.id}
+        toLocationName={location.name}
       />
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

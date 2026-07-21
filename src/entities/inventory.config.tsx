@@ -46,6 +46,8 @@ export interface InventoryRow {
   barcode: string | null
   base: string
   status: 'out' | 'low' | 'ok'
+  /** Received but never assigned to a bin location (see /product-locations/unplaced). */
+  floatingQty: number
 }
 
 export function createInventoryConfig(branchName: string): EntityTableConfig<InventoryRow> {
@@ -59,6 +61,7 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
       { key: 'all', label: 'All' },
       { key: 'low', label: 'Low stock', predicate: (r) => r.status !== 'ok' },
       { key: 'ok', label: 'Healthy', predicate: (r) => r.status === 'ok' },
+      { key: 'unplaced', label: 'Needs placement', predicate: (r) => r.floatingQty > 0 },
     ],
     columns: [
       { key: 'code', header: 'Code', sortable: true, sortValue: (r) => r.code, render: (r) => <MonoCell value={r.code} color="var(--brand-accent-d)" weight={600} /> },
@@ -88,6 +91,18 @@ export function createInventoryConfig(branchName: string): EntityTableConfig<Inv
             dot
           />
         ),
+      },
+      {
+        key: 'floatingQty',
+        header: 'Placement',
+        sortable: true,
+        sortValue: (r) => r.floatingQty,
+        render: (r) =>
+          r.floatingQty > 0 ? (
+            <ToneBadge tone="amber" label={`${r.floatingQty.toLocaleString()} unplaced`} dot />
+          ) : (
+            <span className="font-mono text-[11px] text-[var(--text-3)]">—</span>
+          ),
       },
     ],
     drawerExtra: InventoryLocationsPanel,
