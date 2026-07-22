@@ -28,6 +28,7 @@ import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedCompaniesRouteImport } from './routes/_authed/companies'
 import { Route as AuthedCategoriesRouteImport } from './routes/_authed/categories'
 import { Route as AuthedBatchesRouteImport } from './routes/_authed/batches'
+import { Route as AuthedAdjustmentsRouteImport } from './routes/_authed/adjustments'
 import { Route as AuthedPurchaseOrdersIndexRouteImport } from './routes/_authed/purchase-orders/index'
 import { Route as AuthedLocationsIndexRouteImport } from './routes/_authed/locations/index'
 import { Route as AuthedPurchaseOrdersIdRouteImport } from './routes/_authed/purchase-orders/$id'
@@ -127,6 +128,11 @@ const AuthedBatchesRoute = AuthedBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAdjustmentsRoute = AuthedAdjustmentsRouteImport.update({
+  id: '/adjustments',
+  path: '/adjustments',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPurchaseOrdersIndexRoute =
   AuthedPurchaseOrdersIndexRouteImport.update({
     id: '/purchase-orders/',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/select-workspace': typeof SelectWorkspaceRoute
+  '/adjustments': typeof AuthedAdjustmentsRoute
   '/batches': typeof AuthedBatchesRoute
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/select-workspace': typeof SelectWorkspaceRoute
+  '/adjustments': typeof AuthedAdjustmentsRoute
   '/batches': typeof AuthedBatchesRoute
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/select-workspace': typeof SelectWorkspaceRoute
+  '/_authed/adjustments': typeof AuthedAdjustmentsRoute
   '/_authed/batches': typeof AuthedBatchesRoute
   '/_authed/categories': typeof AuthedCategoriesRoute
   '/_authed/companies': typeof AuthedCompaniesRoute
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/select-workspace'
+    | '/adjustments'
     | '/batches'
     | '/categories'
     | '/companies'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/select-workspace'
+    | '/adjustments'
     | '/batches'
     | '/categories'
     | '/companies'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/login'
     | '/select-workspace'
+    | '/_authed/adjustments'
     | '/_authed/batches'
     | '/_authed/categories'
     | '/_authed/companies'
@@ -441,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedBatchesRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/adjustments': {
+      id: '/_authed/adjustments'
+      path: '/adjustments'
+      fullPath: '/adjustments'
+      preLoaderRoute: typeof AuthedAdjustmentsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/purchase-orders/': {
       id: '/_authed/purchase-orders/'
       path: '/purchase-orders'
@@ -473,6 +492,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedRouteChildren {
+  AuthedAdjustmentsRoute: typeof AuthedAdjustmentsRoute
   AuthedBatchesRoute: typeof AuthedBatchesRoute
   AuthedCategoriesRoute: typeof AuthedCategoriesRoute
   AuthedCompaniesRoute: typeof AuthedCompaniesRoute
@@ -495,6 +515,7 @@ interface AuthedRouteChildren {
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAdjustmentsRoute: AuthedAdjustmentsRoute,
   AuthedBatchesRoute: AuthedBatchesRoute,
   AuthedCategoriesRoute: AuthedCategoriesRoute,
   AuthedCompaniesRoute: AuthedCompaniesRoute,

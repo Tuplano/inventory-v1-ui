@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ChevronDown, ArrowRightLeft, Fingerprint, Inbox, PackageCheck, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, ArrowRightLeft, ClipboardCheck, Fingerprint, Inbox, PackageCheck, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -18,6 +18,7 @@ import {
 import { LocationFormDialog } from '@/components/locations/LocationFormDialog'
 import { TransferStockModal } from '@/components/locations/TransferStockModal'
 import { PlaceStockModal } from '@/components/locations/PlaceStockModal'
+import { AdjustStockModal } from '@/components/locations/AdjustStockModal'
 import { AssignSerialsModal } from '@/components/locations/AssignSerialsModal'
 import { useLocation } from '@/hooks/queries/use-location'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
@@ -41,6 +42,7 @@ function LocationDetailPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [transferOpen, setTransferOpen] = useState(false)
   const [placeOpen, setPlaceOpen] = useState(false)
+  const [adjustOpen, setAdjustOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [assignTarget, setAssignTarget] = useState<{ productId: string; productName: string; availableQty: number } | null>(null)
 
@@ -112,6 +114,10 @@ function LocationDetailPage() {
           <Button onClick={() => setTransferOpen(true)}>
             <ArrowRightLeft data-icon="inline-start" />
             Transfer stock
+          </Button>
+          <Button variant="outline" onClick={() => setAdjustOpen(true)}>
+            <ClipboardCheck data-icon="inline-start" />
+            Adjust stock
           </Button>
           <Button variant="outline" onClick={() => setEditOpen(true)}>
             <Pencil data-icon="inline-start" />
@@ -208,6 +214,7 @@ function LocationDetailPage() {
         toLocationId={location.id}
         toLocationName={location.name}
       />
+      <AdjustStockModal open={adjustOpen} onOpenChange={setAdjustOpen} defaultLocationId={location.id} />
       <AssignSerialsModal
         open={assignTarget != null}
         onOpenChange={(next) => {

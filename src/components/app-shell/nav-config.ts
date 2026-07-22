@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   Box,
+  ClipboardCheck,
   Hash,
   Home,
   Landmark,
@@ -50,6 +51,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { route: 'inventory', to: '/inventory', label: 'Inventory items', icon: LayoutGrid, badge: 'lowStock' },
       { route: 'movements', to: '/movements', label: 'Stock movements', icon: ArrowLeftRight },
+      { route: 'adjustments', to: '/adjustments', label: 'Adjustments', icon: ClipboardCheck },
       { route: 'locations', to: '/locations', label: 'Locations', icon: MapPin },
       { route: 'batches', to: '/batches', label: 'Batches', icon: Layers },
       { route: 'serials', to: '/serials', label: 'Serial numbers', icon: Hash },

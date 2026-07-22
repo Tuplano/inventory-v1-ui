@@ -24,7 +24,6 @@ const formSchema = z.object({
   manufacturingDate: z.string(),
   expiryDate: z.string(),
   initialQty: z.number().positive('Initial quantity must be positive'),
-  remainingQty: z.number().min(0, 'Remaining quantity cannot be negative'),
   isActive: z.boolean(),
 })
 
@@ -38,7 +37,6 @@ const emptyValues: FormValues = {
   manufacturingDate: '',
   expiryDate: '',
   initialQty: 0,
-  remainingQty: 0,
   isActive: true,
 }
 
@@ -81,7 +79,6 @@ export function BatchFormDialog({
             manufacturingDate: batch.manufacturingDate ? batch.manufacturingDate.slice(0, 10) : '',
             expiryDate: batch.expiryDate ? batch.expiryDate.slice(0, 10) : '',
             initialQty: batch.initialQty,
-            remainingQty: batch.remainingQty,
             isActive: batch.isActive,
           }
         : emptyValues,
@@ -97,7 +94,6 @@ export function BatchFormDialog({
           input: {
             lotNumber: values.lotNumber || null,
             expiryDate: values.expiryDate || null,
-            remainingQty: values.remainingQty,
             isActive: values.isActive,
           },
         },
@@ -215,13 +211,13 @@ export function BatchFormDialog({
                 </Label>
                 <Input id="batch-expiry" type="date" className="font-mono" {...register('expiryDate')} />
               </div>
-              {isEdit && (
+              {isEdit && batch && (
                 <div>
-                  <Label htmlFor="batch-remaining" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                    Remaining quantity
-                  </Label>
-                  <Input id="batch-remaining" type="number" step="any" className="font-mono" {...register('remainingQty', { valueAsNumber: true })} />
-                  {errors.remainingQty && <p className="mt-1 text-xs text-[var(--red)]">{errors.remainingQty.message}</p>}
+                  <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Remaining quantity</Label>
+                  <div className="flex h-9 items-center rounded-md border border-[var(--border-2)] bg-[var(--surface-2)] px-3 font-mono text-[13px] text-[var(--text-2)]">
+                    {batch.remainingQty.toLocaleString()}
+                  </div>
+                  <div className="mt-1 text-[10.5px] text-[var(--text-3)]">Use Adjust stock on a location to change this</div>
                 </div>
               )}
             </div>

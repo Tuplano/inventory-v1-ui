@@ -16,7 +16,6 @@ export const createBatchSchema = z.object({
 export const updateBatchSchema = z.object({
   lotNumber: z.string().nullable().optional(),
   expiryDate: z.string().nullable().optional(),
-  remainingQty: z.number().min(0, 'Remaining quantity cannot be negative').optional(),
   isActive: z.boolean().optional(),
 })
 
