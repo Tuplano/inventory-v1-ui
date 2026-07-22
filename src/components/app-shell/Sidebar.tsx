@@ -3,12 +3,21 @@ import { PanelLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/stores/ui-store'
 import { useLowStockCount } from '@/hooks/queries/use-inventory'
-import { navGroups } from './nav-config'
+import { useMyPermissions } from '@/hooks/queries/use-my-permissions'
+import { navGroups, type NavItem } from './nav-config'
 
 export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
   const lowStockCount = useLowStockCount()
+  const { data: grantedPermissions } = useMyPermissions()
+
+  const canSee = (item: NavItem) =>
+    !item.permissions || item.permissions.some((p) => grantedPermissions?.has(p))
+
+  const visibleGroups = navGroups
+    .map((group) => ({ ...group, items: group.items.filter(canSee) }))
+    .filter((group) => group.items.length > 0)
 
   return (
     <aside
@@ -25,7 +34,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 pb-4 pt-2">
-        {navGroups.map((group, i) => (
+        {visibleGroups.map((group, i) => (
           <div key={group.label} className={cn('mt-2.5', collapsed && i > 0 && 'border-t border-[var(--border-2)] pt-2.5')}>
             {!collapsed && (
               <div className="px-2 pb-1 pt-1.5 text-[10px] font-bold tracking-[0.07em] text-[var(--text-3)] uppercase">

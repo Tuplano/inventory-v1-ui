@@ -13,6 +13,7 @@ import { Route as SelectWorkspaceRouteImport } from './routes/select-workspace'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
 import { Route as AuthedUomRouteImport } from './routes/_authed/uom'
 import { Route as AuthedSuppliersRouteImport } from './routes/_authed/suppliers'
@@ -51,6 +52,11 @@ const AuthedRoute = AuthedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedUsersRoute = AuthedUsersRouteImport.update({
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/suppliers': typeof AuthedSuppliersRoute
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/locations/$id': typeof AuthedLocationsIdRoute
   '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
   '/locations/': typeof AuthedLocationsIndexRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/suppliers': typeof AuthedSuppliersRoute
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/locations/$id': typeof AuthedLocationsIdRoute
   '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
   '/locations': typeof AuthedLocationsIndexRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/_authed/suppliers': typeof AuthedSuppliersRoute
   '/_authed/uom': typeof AuthedUomRoute
   '/_authed/users': typeof AuthedUsersRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/_authed/locations/$id': typeof AuthedLocationsIdRoute
   '/_authed/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
   '/_authed/locations/': typeof AuthedLocationsIndexRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/uom'
     | '/users'
+    | '/invite/$token'
     | '/locations/$id'
     | '/purchase-orders/$id'
     | '/locations/'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/uom'
     | '/users'
+    | '/invite/$token'
     | '/locations/$id'
     | '/purchase-orders/$id'
     | '/locations'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/_authed/suppliers'
     | '/_authed/uom'
     | '/_authed/users'
+    | '/invite/$token'
     | '/_authed/locations/$id'
     | '/_authed/purchase-orders/$id'
     | '/_authed/locations/'
@@ -316,6 +328,7 @@ export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SelectWorkspaceRoute: typeof SelectWorkspaceRoute
+  InviteTokenRoute: typeof InviteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -346,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/users': {
@@ -545,6 +565,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
   LoginRoute: LoginRoute,
   SelectWorkspaceRoute: SelectWorkspaceRoute,
+  InviteTokenRoute: InviteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

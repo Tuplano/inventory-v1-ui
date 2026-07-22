@@ -1,11 +1,6 @@
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
 import { LoginForm } from './LoginForm'
-import { RegisterForm } from './RegisterForm'
 
 export function LoginCard() {
-  const [tab, setTab] = useState<'signin' | 'register'>('signin')
-
   return (
     <div
       className="flex min-h-screen items-center justify-center p-6"
@@ -23,30 +18,7 @@ export function LoginCard() {
         </div>
         <div className="mb-5.5 text-[12.5px] text-[var(--text-3)]">Inventory &amp; warehouse operations</div>
 
-        <div className="mb-4.5 flex gap-1 rounded-lg bg-[var(--surface-3)] p-[3px]">
-          <button
-            type="button"
-            onClick={() => setTab('signin')}
-            className={cn(
-              'flex-1 rounded-md py-1.5 text-[12.5px] font-semibold transition-colors',
-              tab === 'signin' ? 'bg-card text-foreground' : 'text-[var(--text-3)]',
-            )}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('register')}
-            className={cn(
-              'flex-1 rounded-md py-1.5 text-[12.5px] font-semibold transition-colors',
-              tab === 'register' ? 'bg-card text-foreground' : 'text-[var(--text-3)]',
-            )}
-          >
-            Register
-          </button>
-        </div>
-
-        {tab === 'signin' ? <LoginForm /> : <RegisterForm />}
+        <LoginForm />
       </div>
     </div>
   )

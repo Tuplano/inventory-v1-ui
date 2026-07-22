@@ -14,7 +14,7 @@ interface AuthState {
   authed: boolean
   user: SessionUser | null
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string) => Promise<void>
+  acceptInvite: (token: string, name: string, password: string) => Promise<void>
   logout: () => Promise<void>
   bootstrap: () => Promise<void>
   clearSession: () => void
@@ -30,8 +30,8 @@ export const useAuthStore = create<AuthState>()(
         useScopeStore.getState().resetScope()
         set({ authed: true, user })
       },
-      register: async (name, email, password) => {
-        const { data: user } = await apiClient.post<SessionUser>('/auth/register', { name, email, password })
+      acceptInvite: async (token, name, password) => {
+        const { data: user } = await apiClient.post<SessionUser>(`/invites/token/${token}/accept`, { name, password })
         useScopeStore.getState().resetScope()
         set({ authed: true, user })
       },

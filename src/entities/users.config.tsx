@@ -30,6 +30,7 @@ export function createUsersConfig(companyName: string, companyCode: string): Ent
     key: 'users',
     title: 'Users & access',
     subtitle: 'Company membership',
+    primaryActionLabel: 'Invite user',
     searchKeys: ['name', 'email', 'role'],
     getRowId: (row) => row.id,
     columns: [
