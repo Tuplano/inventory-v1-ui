@@ -11,6 +11,9 @@ import { useCreateSerial } from '@/hooks/mutations/use-create-serial'
 import { useUpdateSerial } from '@/hooks/mutations/use-update-serial'
 import { useProducts } from '@/hooks/queries/use-products'
 import { useLocations } from '@/hooks/queries/use-locations'
+import { useSerials } from '@/hooks/queries/use-serials'
+import { useInventory } from '@/hooks/queries/use-inventory'
+import { useScopeStore } from '@/stores/scope-store'
 import type { SerialRow } from '@/entities/serials.config'
 
 const NONE = '__none__'
@@ -39,6 +42,9 @@ export function SerialFormDialog({
   const isEdit = !!serial
   const { data: products = [] } = useProducts()
   const { data: locations = [] } = useLocations()
+  const { data: serials = [] } = useSerials()
+  const { data: inventory = [] } = useInventory()
+  const branchId = useScopeStore((s) => s.branchId)
   const createSerial = useCreateSerial()
   const updateSerial = useUpdateSerial()
   const pending = createSerial.isPending || updateSerial.isPending
@@ -50,11 +56,20 @@ export function SerialFormDialog({
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: emptyValues,
   })
+
+  // A serial is only meant to identify a unit that's already recorded in this branch's
+  // quantity — cap manual creation at what's not yet serialized, same idea as "Assign serials".
+  const selectedProductId = watch('productId')
+  const recordedQty = inventory.find((i) => i.productId === selectedProductId)?.quantity ?? 0
+  const existingSerialCount = serials.filter((s) => s.productId === selectedProductId && s.currentBranchId === branchId).length
+  const remainingToSerialize = recordedQty - existingSerialCount
+  const atCapacity = !isEdit && !!selectedProductId && remainingToSerialize <= 0
 
   useEffect(() => {
     if (!open) return
@@ -88,6 +103,7 @@ export function SerialFormDialog({
         {
           productId: values.productId,
           serialNumber: values.serialNumber,
+          currentBranchId: branchId || undefined,
           currentLocationId: values.currentLocationId === NONE ? undefined : values.currentLocationId,
         },
         { onSuccess },
@@ -127,12 +143,21 @@ export function SerialFormDialog({
                     )}
                   />
                   {errors.productId && <p className="mt-1 text-xs text-[var(--red)]">{errors.productId.message}</p>}
+                  {selectedProductId && (
+                    <div
+                      className="mt-1 text-[10.5px] font-semibold"
+                      style={{ color: atCapacity ? 'var(--red)' : 'var(--text-3)' }}
+                    >
+                      {existingSerialCount} of {recordedQty.toLocaleString()} unit(s) serialized at this branch
+                      {atCapacity && ' · fully serialized, increase quantity via a stock adjustment first'}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="serial-number" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
                     Serial number
                   </Label>
-                  <Input id="serial-number" className="font-mono" {...register('serialNumber')} />
+                  <Input id="serial-number" className="font-mono" disabled={atCapacity} {...register('serialNumber')} />
                   {errors.serialNumber && <p className="mt-1 text-xs text-[var(--red)]">{errors.serialNumber.message}</p>}
                 </div>
               </>
@@ -190,7 +215,7 @@ export function SerialFormDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || atCapacity}>
               {isEdit ? 'Save changes' : 'Create serial'}
             </Button>
           </DialogFooter>

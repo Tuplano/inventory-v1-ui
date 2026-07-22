@@ -73,6 +73,7 @@ export function AdjustStockModal({
   const [quantity, setQuantity] = useState('')
   const [selectedSerials, setSelectedSerials] = useState<string[]>([])
   const [newSerialsRaw, setNewSerialsRaw] = useState('')
+  const [foundQuantity, setFoundQuantity] = useState('')
   const [remarks, setRemarks] = useState('')
 
   const filteredLocations = useMemo(() => {
@@ -91,6 +92,7 @@ export function AdjustStockModal({
     setQuantity('')
     setSelectedSerials([])
     setNewSerialsRaw('')
+    setFoundQuantity('')
     setRemarks('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultLocationId])
@@ -110,6 +112,7 @@ export function AdjustStockModal({
     setQuantity('')
     setSelectedSerials([])
     setNewSerialsRaw('')
+    setFoundQuantity('')
   }
 
   const selectedGroup = decreaseGroups.find((g) => g.key === groupKey)
@@ -194,6 +197,12 @@ export function AdjustStockModal({
     }
 
     if (increaseTracking === 'SERIAL') {
+      const foundQty = Number(foundQuantity)
+      if (!foundQty || foundQty <= 0) {
+        toast.warning('Enter how many units were found')
+        return
+      }
+
       const serials = parseSerials(newSerialsRaw)
       if (serials.length === 0) {
         toast.warning('Enter at least one serial number')
@@ -203,6 +212,11 @@ export function AdjustStockModal({
         toast.warning('Duplicate serial numbers entered')
         return
       }
+      if (serials.length !== foundQty) {
+        toast.warning(`Entered ${serials.length} serial(s), but quantity found is ${foundQty} — they must match`)
+        return
+      }
+
       adjustStock.mutate(
         { productId: increaseProductId, locationId, direction, serialNumbers: serials, remarks: trimmedRemarks },
         { onSuccess: () => onOpenChange(false) },
@@ -354,6 +368,7 @@ export function AdjustStockModal({
                         setIncreaseBatchId('')
                         setQuantity('')
                         setNewSerialsRaw('')
+                        setFoundQuantity('')
                       }}
                     >
                       <NativeSelectOption value="">Select a product</NativeSelectOption>
@@ -420,16 +435,45 @@ export function AdjustStockModal({
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">New serial numbers</Label>
-                    <Textarea
-                      value={newSerialsRaw}
-                      onChange={(e) => setNewSerialsRaw(e.target.value)}
-                      placeholder="One serial per line"
-                      rows={5}
-                      className="w-full resize-none font-mono text-[12px]"
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <Label htmlFor="adj-found-qty" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                        Quantity found
+                      </Label>
+                      <Input
+                        id="adj-found-qty"
+                        value={foundQuantity}
+                        onChange={(e) => setFoundQuantity(e.target.value.replace(/[^0-9]/g, ''))}
+                        inputMode="numeric"
+                        className="w-[120px] font-mono"
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">New serial numbers</Label>
+                      <Textarea
+                        value={newSerialsRaw}
+                        onChange={(e) => setNewSerialsRaw(e.target.value)}
+                        placeholder="One serial per line"
+                        rows={5}
+                        className="w-full resize-none font-mono text-[12px]"
+                      />
+                      {(() => {
+                        const serials = parseSerials(newSerialsRaw)
+                        const foundQty = Number(foundQuantity) || 0
+                        const hasDuplicates = new Set(serials).size !== serials.length
+                        const matches = foundQty > 0 && serials.length === foundQty && !hasDuplicates
+                        return (
+                          <div
+                            className="mt-1 text-[10.5px] font-semibold"
+                            style={{ color: serials.length === 0 ? 'var(--text-3)' : matches ? 'var(--green)' : 'var(--red)' }}
+                          >
+                            {serials.length} of {foundQty || '?'} serial(s) entered
+                            {hasDuplicates ? ' · duplicates found' : ''}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  </>
                 )
               ) : (
                 <div>
