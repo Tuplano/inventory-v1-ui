@@ -12,6 +12,7 @@ import { useCreateBatch } from '@/hooks/mutations/use-create-batch'
 import { useUpdateBatch } from '@/hooks/mutations/use-update-batch'
 import { useProducts } from '@/hooks/queries/use-products'
 import { useSuppliers } from '@/hooks/queries/use-suppliers'
+import { useBatchCapacity } from '@/hooks/queries/use-batch-capacity'
 import type { BatchRow } from '@/entities/batches.config'
 
 const NONE = '__none__'
@@ -56,16 +57,27 @@ export function BatchFormDialog({
   const updateBatch = useUpdateBatch()
   const pending = createBatch.isPending || updateBatch.isPending
 
+  const batchProducts = products.filter((p) => p.trackingType === 'BATCH')
+
   const {
     register,
     handleSubmit,
     control,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: emptyValues,
   })
+
+  // A batch is meant to earmark a slice of stock that's already recorded, not fabricate new
+  // quantity — cap manual creation at what isn't yet claimed by another batch of this product.
+  // Company-wide because Batch has no branchId (see batch.service.ts computeBatchCapacity).
+  const selectedProductId = watch('productId')
+  const { data: capacity } = useBatchCapacity(!isEdit ? selectedProductId : '')
+  const room = capacity?.room ?? null
+  const atCapacity = !isEdit && !!selectedProductId && room !== null && room <= 0
 
   useEffect(() => {
     if (!open) return
@@ -137,7 +149,7 @@ export function BatchFormDialog({
                           <SelectValue placeholder="Select product" />
                         </SelectTrigger>
                         <SelectContent>
-                          {products.map((p) => (
+                          {batchProducts.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
                               {p.sku} — {p.name}
                             </SelectItem>
@@ -147,6 +159,9 @@ export function BatchFormDialog({
                     )}
                   />
                   {errors.productId && <p className="mt-1 text-xs text-[var(--red)]">{errors.productId.message}</p>}
+                  {batchProducts.length === 0 && (
+                    <div className="mt-1 text-[10.5px] text-[var(--text-3)]">No products are configured for batch tracking yet.</div>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -183,8 +198,23 @@ export function BatchFormDialog({
                   <Label htmlFor="batch-initial-qty" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
                     Initial quantity
                   </Label>
-                  <Input id="batch-initial-qty" type="number" step="any" className="font-mono" {...register('initialQty', { valueAsNumber: true })} />
+                  <Input
+                    id="batch-initial-qty"
+                    type="number"
+                    step="any"
+                    className="font-mono"
+                    disabled={atCapacity}
+                    {...register('initialQty', { valueAsNumber: true })}
+                  />
                   {errors.initialQty && <p className="mt-1 text-xs text-[var(--red)]">{errors.initialQty.message}</p>}
+                  {selectedProductId && capacity && (
+                    <div className="mt-1 text-[10.5px] font-semibold" style={{ color: atCapacity ? 'var(--red)' : 'var(--text-3)' }}>
+                      {capacity.batchedQty.toLocaleString()} of {capacity.recordedQty.toLocaleString()} unit(s) already batched
+                      {atCapacity
+                        ? ' · fully batched, increase quantity via a stock adjustment first'
+                        : ` · ${capacity.room.toLocaleString()} available for a new batch`}
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -240,7 +270,7 @@ export function BatchFormDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || atCapacity}>
               {isEdit ? 'Save changes' : 'Create batch'}
             </Button>
           </DialogFooter>
