@@ -21,7 +21,7 @@ function DashboardPage() {
   if (!data) return null
 
   return (
-    <div className="max-w-[1280px] p-6">
+    <div className="p-6">
       <div className="mb-4.5">
         <div className="text-[19px] font-bold tracking-tight">Operations overview</div>
         <div className="mt-0.5 text-[12.5px] text-[var(--text-3)]">
