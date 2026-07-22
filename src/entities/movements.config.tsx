@@ -26,6 +26,7 @@ export interface StockMovementRecord {
   reference: string | null
   remarks: string | null
   createdById: string | null
+  createdBy: { id: string; name: string } | null
   purchaseOrderLineId: string | null
   fromLocationId: string | null
   toLocationId: string | null
@@ -54,6 +55,15 @@ export interface MovementRow {
   fromLabel: string
   toLabel: string
   batchLabel: string
+  createdByName: string
+}
+
+// `quantity` is always stored positive in the DB — direction comes from `type` (and, for
+// ADJUSTMENT, which of fromLocationId/toLocationId is set), never from the sign of the number.
+export function isOutgoingMovement(row: MovementRow): boolean {
+  if (row.type === 'ISSUE' || row.type === 'TRANSFER_OUT') return true
+  if (row.type === 'ADJUSTMENT') return !!row.fromLocationId
+  return false
 }
 
 export function createMovementsConfig(branchName: string): EntityTableConfig<MovementRow> {
@@ -80,12 +90,13 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
         key: 'quantity',
         header: 'Qty',
         render: (r) => (
-          <span className="font-mono text-[12px] font-semibold" style={{ color: r.quantity > 0 ? 'var(--green)' : 'var(--red)' }}>
-            {(r.quantity > 0 ? '+' : '') + r.quantity.toLocaleString()} {r.uom}
+          <span className="font-mono text-[12px] font-semibold" style={{ color: isOutgoingMovement(r) ? 'var(--red)' : 'var(--green)' }}>
+            {(isOutgoingMovement(r) ? '-' : '+') + r.quantity.toLocaleString()} {r.uom}
           </span>
         ),
       },
       { key: 'route', header: 'From → To', render: (r) => <MonoCell value={`${r.fromLabel} → ${r.toLabel}`} color="var(--text-2)" /> },
+      { key: 'createdByName', header: 'By', render: (r) => <MonoCell value={r.createdByName || '—'} color="var(--text-2)" /> },
       { key: 'reference', header: 'Reference', render: (r) => <MonoCell value={r.reference ?? '—'} color="var(--brand-accent-d)" /> },
       { key: 'remarks', header: 'Remarks', render: (r) => <MonoCell value={r.remarks ?? '—'} color="var(--text-2)" /> },
     ],
@@ -97,7 +108,8 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
           label: 'Movement',
           rows: [
             { label: 'Type', value: row.type.replace('_', ' '), tone: movementTypeTone(row.type) },
-            { label: 'Quantity', value: `${row.quantity > 0 ? '+' : ''}${row.quantity.toLocaleString()} ${row.uom}` },
+            { label: 'Quantity', value: `${isOutgoingMovement(row) ? '-' : '+'}${row.quantity.toLocaleString()} ${row.uom}` },
+            { label: 'By', value: row.createdByName || '—' },
             { label: 'Date', value: row.createdAt.slice(0, 10) },
           ],
         },

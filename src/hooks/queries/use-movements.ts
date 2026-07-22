@@ -52,6 +52,7 @@ export function useMovements() {
           fromLabel: from?.code ?? m.fromLocationId ?? '—',
           toLabel: to?.code ?? m.toLocationId ?? '—',
           batchLabel: batch?.batchNumber ?? '',
+          createdByName: m.createdBy?.name ?? '',
         }
       })
     },

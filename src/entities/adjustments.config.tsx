@@ -55,6 +55,7 @@ export function createAdjustmentsConfig(branchName: string): EntityTableConfig<M
         render: (r) => <MonoCell value={r.toLocationId ? r.toLabel : r.fromLocationId ? r.fromLabel : '—'} color="var(--text-2)" />,
       },
       { key: 'batchLabel', header: 'Batch', render: (r) => <MonoCell value={r.batchLabel || '—'} color="var(--text-2)" /> },
+      { key: 'createdByName', header: 'By', render: (r) => <MonoCell value={r.createdByName || '—'} color="var(--text-2)" /> },
       { key: 'remarks', header: 'Reason', render: (r) => <MonoCell value={r.remarks ?? '—'} color="var(--text-2)" /> },
     ],
     drawer: (row) => {
@@ -70,6 +71,7 @@ export function createAdjustmentsConfig(branchName: string): EntityTableConfig<M
               { label: 'Quantity', value: `${direction === 'DECREASE' ? '-' : '+'}${row.quantity.toLocaleString()} ${row.uom}` },
               { label: 'Bin', value: row.toLocationId ? row.toLabel : row.fromLocationId ? row.fromLabel : '—' },
               { label: 'Batch', value: row.batchLabel || '—' },
+              { label: 'By', value: row.createdByName || '—' },
               { label: 'Date', value: row.createdAt.slice(0, 10) },
             ],
           },

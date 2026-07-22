@@ -11,11 +11,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useProducts } from '@/hooks/queries/use-products'
 import { useBatches } from '@/hooks/queries/use-batches'
 import { useLocations } from '@/hooks/queries/use-locations'
-import { useLocation } from '@/hooks/queries/use-location'
+import { useLocation, type LocationContentLine } from '@/hooks/queries/use-location'
 import { useAdjustStock } from '@/hooks/mutations/use-adjust-stock'
 import { cn } from '@/lib/utils'
 
 type Direction = 'DECREASE' | 'INCREASE'
+
+// Stable reference so `contents` doesn't become a new array (and re-trigger effects keyed on it)
+// on every render while locationDetail is still loading/undefined.
+const EMPTY_CONTENTS: LocationContentLine[] = []
 
 /** Splits a serials textarea's raw text into trimmed, non-blank entries (one per line or comma). */
 function parseSerials(raw: string): string[] {
@@ -42,7 +46,7 @@ export function AdjustStockModal({
 
   const [locationId, setLocationId] = useState('')
   const { data: locationDetail } = useLocation(locationId)
-  const contents = locationDetail?.contents ?? []
+  const contents = locationDetail?.contents ?? EMPTY_CONTENTS
   const locationName = locationDetail?.name ?? locations.find((l) => l.id === locationId)?.name ?? ''
 
   const trackingByProduct = useMemo(() => new Map(products.map((p) => [p.id, p.trackingType])), [products])
