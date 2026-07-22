@@ -10,8 +10,8 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useInviteDetails } from '@/hooks/queries/use-invite-details'
 
 const schema = z.object({
-  name: z.string().min(1, 'Full name is required'),
-  password: z.string().min(8, 'At least 8 characters'),
+  name: z.string().optional(),
+  password: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -30,10 +30,22 @@ export function AcceptInviteCard({ token }: { token: string }) {
     defaultValues: { name: '', password: '' },
   })
 
+  const existingAccount = !!invite?.existingAccount
+
   async function onSubmit(values: FormValues) {
     setFormError(null)
+    if (!existingAccount) {
+      if (!values.name?.trim()) {
+        setFormError('Full name is required')
+        return
+      }
+      if (!values.password || values.password.length < 8) {
+        setFormError('Password must be at least 8 characters')
+        return
+      }
+    }
     try {
-      await acceptInvite(token, values.name, values.password)
+      await acceptInvite(token, values.name?.trim() || undefined, values.password || undefined)
       navigate({ to: '/select-workspace' })
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Unable to accept this invite')
@@ -66,6 +78,13 @@ export function AcceptInviteCard({ token }: { token: string }) {
             <div className="mb-5.5 text-[12.5px] text-[var(--text-3)]">
               You've been invited to join <strong className="text-foreground">{invite.companyName}</strong> as{' '}
               <strong className="text-foreground">{invite.roleName}</strong> ({invite.branchLabel})
+              {existingAccount && (
+                <>
+                  {' '}
+                  You already have an account for this email — accept below to add this company to it, no new
+                  password needed.
+                </>
+              )}
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
@@ -73,23 +92,27 @@ export function AcceptInviteCard({ token }: { token: string }) {
                 <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Email</Label>
                 <Input value={invite.email} disabled className="font-mono" />
               </div>
-              <div>
-                <Label htmlFor="invite-name" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                  Full name
-                </Label>
-                <Input id="invite-name" {...register('name')} />
-                {errors.name && <p className="mt-1 text-xs text-[var(--red)]">{errors.name.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="invite-password" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                  Password
-                </Label>
-                <Input id="invite-password" type="password" {...register('password')} />
-                {errors.password && <p className="mt-1 text-xs text-[var(--red)]">{errors.password.message}</p>}
-              </div>
+              {!existingAccount && (
+                <>
+                  <div>
+                    <Label htmlFor="invite-name" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                      Full name
+                    </Label>
+                    <Input id="invite-name" {...register('name')} />
+                    {errors.name && <p className="mt-1 text-xs text-[var(--red)]">{errors.name.message}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="invite-password" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                      Password
+                    </Label>
+                    <Input id="invite-password" type="password" {...register('password')} />
+                    {errors.password && <p className="mt-1 text-xs text-[var(--red)]">{errors.password.message}</p>}
+                  </div>
+                </>
+              )}
               {formError && <p className="text-xs text-[var(--red)]">{formError}</p>}
               <Button type="submit" disabled={isSubmitting} className="mt-1.5 w-full">
-                Accept invite &amp; sign in
+                {existingAccount ? 'Accept invite' : 'Accept invite & sign in'}
               </Button>
             </form>
           </>

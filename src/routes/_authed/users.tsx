@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Trash2 } from 'lucide-react'
+import { Mail, Trash2 } from 'lucide-react'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { UserFormDialog } from '@/components/users/UserFormDialog'
 import { InviteUserModal } from '@/components/users/InviteUserModal'
@@ -13,6 +13,7 @@ import { useCurrentCompany } from '@/hooks/queries/use-companies'
 import { useDeleteUser } from '@/hooks/mutations/use-delete-user'
 import { useInvites } from '@/hooks/queries/use-invites'
 import { useRevokeInvite } from '@/hooks/mutations/use-revoke-invite'
+import { useResendInvite } from '@/hooks/mutations/use-resend-invite'
 
 export const Route = createFileRoute('/_authed/users')({
   validateSearch: (search) => entityTableSearchSchema.parse(search),
@@ -24,6 +25,7 @@ function UsersPage() {
   const { data: rows = [], isLoading } = useUsers()
   const { data: invites = [] } = useInvites()
   const revokeInvite = useRevokeInvite()
+  const resendInvite = useResendInvite()
   const config = createUsersConfig(company?.name ?? '', company?.code ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -60,16 +62,27 @@ function UsersPage() {
                       {invite.expiresAt.slice(0, 10)}
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-[var(--red)]"
-                    onClick={() => revokeInvite.mutate(invite.id)}
-                    disabled={revokeInvite.isPending}
-                  >
-                    <Trash2 data-icon="inline-start" />
-                    Revoke
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => resendInvite.mutate(invite.id)}
+                      disabled={resendInvite.isPending}
+                    >
+                      <Mail data-icon="inline-start" />
+                      Resend
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[var(--red)]"
+                      onClick={() => revokeInvite.mutate(invite.id)}
+                      disabled={revokeInvite.isPending}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Revoke
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

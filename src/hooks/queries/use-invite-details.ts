@@ -6,6 +6,7 @@ export interface InviteDetails {
   companyName: string
   branchLabel: string
   roleName: string
+  existingAccount: boolean
 }
 
 export function useInviteDetails(token: string) {

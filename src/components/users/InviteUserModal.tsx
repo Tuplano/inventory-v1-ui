@@ -69,7 +69,7 @@ export function InviteUserModal({ open, onOpenChange }: { open: boolean; onOpenC
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Invite user</DialogTitle>
         </DialogHeader>
@@ -122,9 +122,9 @@ export function InviteUserModal({ open, onOpenChange }: { open: boolean; onOpenC
               Invite created for <span className="font-semibold">{result.invite.email}</span>. Share the link below, or
               send it by email.
             </div>
-            <div className="flex items-center gap-2 rounded-md border border-[var(--border-2)] bg-[var(--surface-2)] px-3 py-2">
-              <span className="flex-1 truncate font-mono text-[11.5px] text-[var(--text-2)]">{inviteLink}</span>
-              <button type="button" onClick={handleCopy} className="shrink-0 text-[var(--brand-accent)]">
+            <div className="flex items-start gap-2 rounded-md border border-[var(--border-2)] bg-[var(--surface-2)] px-3 py-2">
+              <span className="min-w-0 flex-1 break-all font-mono text-[11.5px] text-[var(--text-2)]">{inviteLink}</span>
+              <button type="button" onClick={handleCopy} className="mt-0.5 shrink-0 text-[var(--brand-accent)]">
                 <Copy className="size-4" />
               </button>
             </div>
@@ -134,10 +134,6 @@ export function InviteUserModal({ open, onOpenChange }: { open: boolean; onOpenC
                 Couldn't email it automatically ({result.emailError}) — copy the link instead, or retry below.
               </div>
             )}
-            <Button type="button" variant="outline" onClick={handleSendEmail} disabled={sendInviteEmail.isPending}>
-              <Mail data-icon="inline-start" />
-              Send email
-            </Button>
           </div>
         )}
 
@@ -153,7 +149,13 @@ export function InviteUserModal({ open, onOpenChange }: { open: boolean; onOpenC
               </Button>
             </>
           ) : (
-            <Button onClick={() => onOpenChange(false)}>Done</Button>
+            <>
+              <Button type="button" variant="outline" onClick={handleSendEmail} disabled={sendInviteEmail.isPending}>
+                <Mail data-icon="inline-start" />
+                {result.emailSent ? 'Resend email' : 'Send email'}
+              </Button>
+              <Button onClick={() => onOpenChange(false)}>Done</Button>
+            </>
           )}
         </DialogFooter>
       </DialogContent>

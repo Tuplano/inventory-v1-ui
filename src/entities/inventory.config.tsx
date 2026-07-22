@@ -32,6 +32,8 @@ export interface InventoryItemRecord {
       abbreviation: string
     }
   }
+  /** Received but never assigned to a bin location, merged in by GET /inventory-items. */
+  floatingQty: number
 }
 
 export interface InventoryRow {

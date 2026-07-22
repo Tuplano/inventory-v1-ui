@@ -1,23 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
+import { useMyPermissions } from '@/hooks/queries/use-my-permissions'
 import type { InventoryItemRecord, InventoryRow } from '@/entities/inventory.config'
-import type { LocationContentLine } from './use-location'
 
 export function useInventory() {
   const { companyId, branchId } = useScopeStore()
+  const { data: grantedPermissions } = useMyPermissions()
   return useQuery({
     queryKey: ['inventory', companyId, branchId],
     queryFn: async (): Promise<InventoryRow[]> => {
-      const [{ data: items }, { data: unplaced }] = await Promise.all([
-        apiClient.get<InventoryItemRecord[]>('/inventory-items'),
-        apiClient.get<LocationContentLine[]>('/product-locations/unplaced'),
-      ])
-
-      const floatingByProduct = new Map<string, number>()
-      for (const line of unplaced) {
-        floatingByProduct.set(line.productId, (floatingByProduct.get(line.productId) ?? 0) + Number(line.quantity))
-      }
+      const { data: items } = await apiClient.get<InventoryItemRecord[]>('/inventory-items')
 
       return items.map((i) => {
         const quantity = Number(i.quantity)
@@ -39,11 +32,11 @@ export function useInventory() {
           base: i.product.baseUom.abbreviation,
           status,
           trackingType: i.product.trackingType,
-          floatingQty: floatingByProduct.get(i.productId) ?? 0,
+          floatingQty: i.floatingQty,
         }
       })
     },
-    enabled: !!companyId && !!branchId,
+    enabled: !!companyId && !!branchId && !!grantedPermissions?.has('inventory.view'),
   })
 }
 

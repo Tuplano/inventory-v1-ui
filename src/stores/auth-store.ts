@@ -14,7 +14,7 @@ interface AuthState {
   authed: boolean
   user: SessionUser | null
   login: (email: string, password: string) => Promise<void>
-  acceptInvite: (token: string, name: string, password: string) => Promise<void>
+  acceptInvite: (token: string, name?: string, password?: string) => Promise<void>
   logout: () => Promise<void>
   bootstrap: () => Promise<void>
   clearSession: () => void
