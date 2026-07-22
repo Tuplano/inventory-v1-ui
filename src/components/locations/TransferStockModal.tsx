@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useTransferStock } from '@/hooks/mutations/use-transfer-stock'
@@ -41,6 +42,7 @@ export function TransferStockModal({
   const [toLocationId, setToLocationId] = useState('')
   const [quantity, setQuantity] = useState('')
   const [selectedSerials, setSelectedSerials] = useState<string[]>([])
+  const [remarks, setRemarks] = useState('')
 
   useEffect(() => {
     if (!open) return
@@ -48,6 +50,7 @@ export function TransferStockModal({
     setToLocationId('')
     setQuantity('')
     setSelectedSerials([])
+    setRemarks('')
   }, [open, contents])
 
   const destinations = locations.filter((l) => l.id !== fromLocationId && l.isActive)
@@ -82,7 +85,7 @@ export function TransferStockModal({
         return
       }
       transferStock.mutate(
-        { productId, fromLocationId, toLocationId, serialNumbers: selectedSerials },
+        { productId, fromLocationId, toLocationId, serialNumbers: selectedSerials, remarks: remarks.trim() || undefined },
         { onSuccess: () => onOpenChange(false) },
       )
       return
@@ -99,7 +102,7 @@ export function TransferStockModal({
     }
 
     transferStock.mutate(
-      { productId, fromLocationId, toLocationId, quantity: qty },
+      { productId, fromLocationId, toLocationId, quantity: qty, remarks: remarks.trim() || undefined },
       { onSuccess: () => onOpenChange(false) },
     )
   }
@@ -190,6 +193,18 @@ export function TransferStockModal({
               </div>
             </div>
           )}
+
+          <div>
+            <Label htmlFor="xfer-remarks" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+              Remarks
+            </Label>
+            <Textarea
+              id="xfer-remarks"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder="Optional note for this transfer"
+            />
+          </div>
         </div>
 
         <DialogFooter>

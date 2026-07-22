@@ -40,7 +40,7 @@ export function useMovements() {
           type: m.type,
           quantity: Number(m.quantity),
           reference: m.reference,
-          notes: m.notes,
+          remarks: m.remarks,
           fromLocationId: m.fromLocationId,
           toLocationId: m.toLocationId,
           batchId: m.batchId,

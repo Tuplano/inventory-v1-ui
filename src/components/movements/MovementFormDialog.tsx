@@ -17,12 +17,12 @@ const formSchema = z.object({
   type: z.enum(movementTypes),
   quantity: z.number().positive('Quantity must be greater than zero'),
   reference: z.string(),
-  notes: z.string(),
+  remarks: z.string(),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-const emptyValues: FormValues = { productId: '', type: 'ADJUSTMENT', quantity: 1, reference: '', notes: '' }
+const emptyValues: FormValues = { productId: '', type: 'ADJUSTMENT', quantity: 1, reference: '', remarks: '' }
 
 export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { data: products = [] } = useProducts()
@@ -50,7 +50,7 @@ export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOp
         type: values.type,
         quantity: values.quantity,
         reference: values.reference || undefined,
-        notes: values.notes || undefined,
+        remarks: values.remarks || undefined,
       },
       { onSuccess: () => onOpenChange(false) },
     )
@@ -127,10 +127,10 @@ export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOp
             </div>
 
             <div>
-              <Label htmlFor="mv-notes" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
-                Notes
+              <Label htmlFor="mv-remarks" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                Remarks
               </Label>
-              <Textarea id="mv-notes" {...register('notes')} />
+              <Textarea id="mv-remarks" {...register('remarks')} />
             </div>
           </div>
 

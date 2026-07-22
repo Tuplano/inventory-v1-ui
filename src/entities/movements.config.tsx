@@ -10,7 +10,7 @@ export const createStockMovementSchema = z.object({
   type: z.enum(movementTypes),
   quantity: z.number().positive('Quantity must be greater than zero'),
   reference: z.string().optional(),
-  notes: z.string().optional(),
+  remarks: z.string().optional(),
 })
 
 export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>
@@ -24,7 +24,7 @@ export interface StockMovementRecord {
   type: MovementType
   quantity: string
   reference: string | null
-  notes: string | null
+  remarks: string | null
   createdById: string | null
   purchaseOrderLineId: string | null
   fromLocationId: string | null
@@ -42,7 +42,7 @@ export interface MovementRow {
   type: MovementType
   quantity: number
   reference: string | null
-  notes: string | null
+  remarks: string | null
   fromLocationId: string | null
   toLocationId: string | null
   batchId: string | null
@@ -87,6 +87,7 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
       },
       { key: 'route', header: 'From → To', render: (r) => <MonoCell value={`${r.fromLabel} → ${r.toLabel}`} color="var(--text-2)" /> },
       { key: 'reference', header: 'Reference', render: (r) => <MonoCell value={r.reference ?? '—'} color="var(--brand-accent-d)" /> },
+      { key: 'remarks', header: 'Remarks', render: (r) => <MonoCell value={r.remarks ?? '—'} color="var(--text-2)" /> },
     ],
     drawer: (row) => ({
       title: row.name,
@@ -107,6 +108,7 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
             { label: 'To', value: row.toLabel },
             { label: 'Batch', value: row.batchLabel || '—' },
             { label: 'Reference', value: row.reference ?? '—' },
+            { label: 'Remarks', value: row.remarks ?? '—' },
           ],
         },
       ],

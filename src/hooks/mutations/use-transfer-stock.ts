@@ -10,6 +10,7 @@ export interface TransferStockInput {
   quantity?: number
   /** For SERIAL-tracked products — the exact units to move. Mutually exclusive with quantity. */
   serialNumbers?: string[]
+  remarks?: string
 }
 
 export interface TransferStockResult {
