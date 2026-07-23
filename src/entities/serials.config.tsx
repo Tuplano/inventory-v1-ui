@@ -48,10 +48,10 @@ export function createSerialsConfig(branchName: string): EntityTableConfig<Seria
     getRowId: (row) => row.id,
     filters: [
       { key: 'all', label: 'All' },
-      { key: 'IN_STOCK', label: 'In stock', predicate: (r) => r.status === 'IN_STOCK' },
-      { key: 'ISSUED', label: 'Issued', predicate: (r) => r.status === 'ISSUED' },
-      { key: 'RETURNED', label: 'Returned', predicate: (r) => r.status === 'RETURNED' },
-      { key: 'DAMAGED', label: 'Damaged', predicate: (r) => r.status === 'DAMAGED' },
+      { key: 'IN_STOCK', label: 'In stock', queryParam: { key: 'status', value: 'IN_STOCK' } },
+      { key: 'ISSUED', label: 'Issued', queryParam: { key: 'status', value: 'ISSUED' } },
+      { key: 'RETURNED', label: 'Returned', queryParam: { key: 'status', value: 'RETURNED' } },
+      { key: 'DAMAGED', label: 'Damaged', queryParam: { key: 'status', value: 'DAMAGED' } },
     ],
     columns: [
       { key: 'serialNumber', header: 'Serial #', sortable: true, sortValue: (r) => r.serialNumber, render: (r) => <MonoCell value={r.serialNumber} weight={600} /> },

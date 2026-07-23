@@ -12,6 +12,13 @@ import type { EntityTableConfig, EntityTableSearch } from '@/entities/types'
 
 const PAGE_SIZE_DEFAULT = 25
 
+export interface ServerPaginationControls {
+  hasPrev: boolean
+  hasNext: boolean
+  onPrev: () => void
+  onNext: () => void
+}
+
 export function EntityTableView<TRow>({
   config,
   rows,
@@ -19,6 +26,7 @@ export function EntityTableView<TRow>({
   onCreate,
   onEditRow,
   onDeleteRow,
+  serverPagination,
 }: {
   config: EntityTableConfig<TRow>
   rows: TRow[]
@@ -26,6 +34,8 @@ export function EntityTableView<TRow>({
   onCreate?: () => void
   onEditRow?: (row: TRow) => void
   onDeleteRow?: (row: TRow) => void
+  /** When set, `rows` is already the current server-fetched page — filtering/sorting/local paging are skipped and Prev/Next drive the fetch instead. */
+  serverPagination?: ServerPaginationControls
 }) {
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
@@ -43,6 +53,7 @@ export function EntityTableView<TRow>({
   const pageSize = config.pageSize ?? PAGE_SIZE_DEFAULT
 
   const filtered = useMemo(() => {
+    if (serverPagination) return rows
     let result = rows
     if (config.filters && activeFilter !== 'all') {
       const chip = config.filters.find((f) => f.key === activeFilter)
@@ -55,9 +66,10 @@ export function EntityTableView<TRow>({
       )
     }
     return result
-  }, [rows, activeFilter, search.q, config])
+  }, [rows, activeFilter, search.q, config, serverPagination])
 
   const sorted = useMemo(() => {
+    if (serverPagination) return filtered
     if (!search.sort) return filtered
     const col = config.columns.find((c) => c.key === search.sort)
     if (!col?.sortValue) return filtered
@@ -68,11 +80,11 @@ export function EntityTableView<TRow>({
       if (x === y) return 0
       return x > y ? dir : -dir
     })
-  }, [filtered, search.sort, search.dir, config.columns])
+  }, [filtered, search.sort, search.dir, config.columns, serverPagination])
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize))
   const page = Math.min(localPage, totalPages)
-  const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize)
+  const pageRows = serverPagination ? sorted : sorted.slice((page - 1) * pageSize, page * pageSize)
 
   const selectedRow = search.recordId ? rows.find((r) => config.getRowId(r) === search.recordId) : undefined
   const drawerContent = selectedRow && config.drawer ? config.drawer(selectedRow) : null
@@ -129,7 +141,7 @@ export function EntityTableView<TRow>({
                 type="button"
                 onClick={() => {
                   setSearch({ filter: chip.key })
-                  setLocalPage(1)
+                  if (!serverPagination) setLocalPage(1)
                 }}
                 className={cn(
                   'rounded-full border px-2.5 py-1 text-xs font-medium',
@@ -149,21 +161,29 @@ export function EntityTableView<TRow>({
         <Table>
           <TableHeader>
             <TableRow className="bg-[var(--surface-2)] hover:bg-[var(--surface-2)]">
-              {config.columns.map((col) => (
-                <TableHead
-                  key={col.key}
-                  onClick={() => col.sortable && onSort(col.key)}
-                  className={cn(
-                    'text-[11px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]',
-                    col.sortable && 'cursor-pointer select-none hover:text-[var(--text-2)]',
-                    col.align === 'right' && 'text-right',
-                    col.align === 'center' && 'text-center',
-                  )}
-                >
-                  {col.header}
-                  {search.sort === col.key && <span className="ml-0.5 text-[var(--brand-accent)]">{search.dir === 'desc' ? ' ↓' : ' ↑'}</span>}
-                </TableHead>
-              ))}
+              {config.columns.map((col) => {
+                // Server-paginated tables fetch in a fixed order — column-click re-sorting would
+                // silently do nothing (or worse, look active without reordering anything), so it's
+                // disabled here rather than left as a dead control.
+                const sortable = col.sortable && !serverPagination
+                return (
+                  <TableHead
+                    key={col.key}
+                    onClick={() => sortable && onSort(col.key)}
+                    className={cn(
+                      'text-[11px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]',
+                      sortable && 'cursor-pointer select-none hover:text-[var(--text-2)]',
+                      col.align === 'right' && 'text-right',
+                      col.align === 'center' && 'text-center',
+                    )}
+                  >
+                    {col.header}
+                    {sortable && search.sort === col.key && (
+                      <span className="ml-0.5 text-[var(--brand-accent)]">{search.dir === 'desc' ? ' ↓' : ' ↑'}</span>
+                    )}
+                  </TableHead>
+                )
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -195,25 +215,25 @@ export function EntityTableView<TRow>({
         )}
 
         <div className="flex items-center justify-between border-t border-[var(--border-2)] bg-[var(--surface-2)] px-3.5 py-2 text-[11.5px] text-[var(--text-3)]">
-          <div>
-            {pageRows.length} of {rows.length} records
-          </div>
+          <div>{serverPagination ? `${pageRows.length} records on this page` : `${pageRows.length} of ${rows.length} records`}</div>
           <div className="flex items-center gap-1">
             <button
               type="button"
-              disabled={page <= 1}
-              onClick={() => setLocalPage((p) => Math.max(1, p - 1))}
+              disabled={serverPagination ? !serverPagination.hasPrev : page <= 1}
+              onClick={() => (serverPagination ? serverPagination.onPrev() : setLocalPage((p) => Math.max(1, p - 1)))}
               className="rounded-md border border-border bg-card px-2.5 py-1 disabled:opacity-50"
             >
               Prev
             </button>
-            <span className="rounded-md border border-border bg-card px-2.5 py-1 font-semibold text-[var(--brand-accent)]">
-              {page}
-            </span>
+            {!serverPagination && (
+              <span className="rounded-md border border-border bg-card px-2.5 py-1 font-semibold text-[var(--brand-accent)]">
+                {page}
+              </span>
+            )}
             <button
               type="button"
-              disabled={page >= totalPages}
-              onClick={() => setLocalPage((p) => Math.min(totalPages, p + 1))}
+              disabled={serverPagination ? !serverPagination.hasNext : page >= totalPages}
+              onClick={() => (serverPagination ? serverPagination.onNext() : setLocalPage((p) => Math.min(totalPages, p + 1)))}
               className="rounded-md border border-border bg-card px-2.5 py-1 disabled:opacity-50"
             >
               Next

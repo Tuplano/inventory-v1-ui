@@ -26,8 +26,8 @@ export function createAdjustmentsConfig(branchName: string): EntityTableConfig<M
     getRowId: (row) => row.id,
     filters: [
       { key: 'all', label: 'All' },
-      { key: 'INCREASE', label: 'Increase', predicate: (r) => adjustmentDirection(r) === 'INCREASE' },
-      { key: 'DECREASE', label: 'Decrease', predicate: (r) => adjustmentDirection(r) === 'DECREASE' },
+      { key: 'INCREASE', label: 'Increase', queryParam: { key: 'direction', value: 'INCREASE' } },
+      { key: 'DECREASE', label: 'Decrease', queryParam: { key: 'direction', value: 'DECREASE' } },
     ],
     columns: [
       { key: 'createdAt', header: 'Date', sortable: true, sortValue: (r) => r.createdAt, render: (r) => <MonoCell value={r.createdAt.slice(0, 10)} color="var(--text-2)" /> },

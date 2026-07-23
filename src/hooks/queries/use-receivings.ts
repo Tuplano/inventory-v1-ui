@@ -35,14 +35,32 @@ export interface ReceivingRecord {
   lines: ReceivingLineRecord[]
 }
 
-export function useReceivings() {
+interface ReceivingsPage {
+  items: ReceivingRecord[]
+  nextCursor: string | null
+}
+
+export interface UseReceivingsParams {
+  q?: string
+  cursor?: string
+  limit?: number
+}
+
+export interface ReceivingsResult {
+  rows: ReceivingRow[]
+  nextCursor: string | null
+}
+
+export function useReceivings(params: UseReceivingsParams = {}) {
   const { companyId, branchId } = useScopeStore()
+  const { q, cursor, limit = 25 } = params
+
   return useQuery({
-    queryKey: ['receivings', branchId],
-    queryFn: async (): Promise<ReceivingRow[]> => {
-      const [{ data: receivings }, { data: purchaseOrders }, { data: suppliers }, { data: products }, { data: uoms }] =
+    queryKey: ['receivings', companyId, branchId, q, cursor, limit],
+    queryFn: async (): Promise<ReceivingsResult> => {
+      const [{ data: page }, { data: purchaseOrders }, { data: suppliers }, { data: products }, { data: uoms }] =
         await Promise.all([
-          apiClient.get<ReceivingRecord[]>('/receivings'),
+          apiClient.get<ReceivingsPage>('/receivings', { params: { branchId, q: q || undefined, cursor, limit } }),
           apiClient.get<PurchaseOrderRecord[]>('/purchase-orders'),
           apiClient.get<SupplierRecord[]>('/suppliers'),
           apiClient.get<ProductRecord[]>('/products'),
@@ -51,34 +69,35 @@ export function useReceivings() {
       const productCode = (productId: string) => products.find((p) => p.id === productId)?.sku ?? productId
       const uomAbbr = (uomId: string) => uoms.find((u) => u.id === uomId)?.abbreviation ?? ''
 
-      return receivings
-        .filter((r) => r.branchId === branchId)
-        .map((r) => {
-          const po = purchaseOrders.find((p) => p.id === r.purchaseOrderId)
-          return {
-            id: r.id,
-            number: r.receivingNumber,
-            poId: r.purchaseOrderId,
-            poNumber: po?.poNumber ?? '',
-            supplierName: suppliers.find((s) => s.id === po?.supplierId)?.name ?? '',
-            ref: r.referenceNumber ?? '—',
-            date: r.receivedDate.slice(0, 10),
-            by: r.createdById ?? '—',
-            lineCount: r.lines.length,
-            units: r.lines.reduce((a, l) => a + Number(l.receivedQty), 0),
-            value: r.lines.reduce((a, l) => a + Number(l.receivedQty) * Number(l.unitCost), 0),
-            lines: r.lines.map((l) => ({
-              id: l.id,
-              purchaseOrderLineId: l.purchaseOrderLineId,
-              productId: l.productId,
-              qty: Number(l.receivedQty),
-              uom: uomAbbr(l.uomId),
-              toLoc: l.toLocationId ?? '—',
-            })),
-            productCode,
-          }
-        })
+      const rows = page.items.map((r) => {
+        const po = purchaseOrders.find((p) => p.id === r.purchaseOrderId)
+        return {
+          id: r.id,
+          number: r.receivingNumber,
+          poId: r.purchaseOrderId,
+          poNumber: po?.poNumber ?? '',
+          supplierName: suppliers.find((s) => s.id === po?.supplierId)?.name ?? '',
+          ref: r.referenceNumber ?? '—',
+          date: r.receivedDate.slice(0, 10),
+          by: r.createdById ?? '—',
+          lineCount: r.lines.length,
+          units: r.lines.reduce((a, l) => a + Number(l.receivedQty), 0),
+          value: r.lines.reduce((a, l) => a + Number(l.receivedQty) * Number(l.unitCost), 0),
+          lines: r.lines.map((l) => ({
+            id: l.id,
+            purchaseOrderLineId: l.purchaseOrderLineId,
+            productId: l.productId,
+            qty: Number(l.receivedQty),
+            uom: uomAbbr(l.uomId),
+            toLoc: l.toLocationId ?? '—',
+          })),
+          productCode,
+        }
+      })
+
+      return { rows, nextCursor: page.nextCursor }
     },
-    enabled: !!companyId,
+    enabled: !!companyId && !!branchId,
+    placeholderData: (prev) => prev,
   })
 }

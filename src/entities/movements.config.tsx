@@ -76,11 +76,11 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
     getRowId: (row) => row.id,
     filters: [
       { key: 'all', label: 'All' },
-      { key: 'RECEIVING', label: 'Receiving', predicate: (r) => r.type === 'RECEIVING' },
-      { key: 'ISSUE', label: 'Issue', predicate: (r) => r.type === 'ISSUE' },
-      { key: 'ADJUSTMENT', label: 'Adjustment', predicate: (r) => r.type === 'ADJUSTMENT' },
-      { key: 'TRANSFER', label: 'Transfer', predicate: (r) => r.type.startsWith('TRANSFER') },
-      { key: 'RETURN', label: 'Return', predicate: (r) => r.type === 'RETURN' },
+      { key: 'RECEIVING', label: 'Receiving', queryParam: { key: 'type', value: 'RECEIVING' } },
+      { key: 'ISSUE', label: 'Issue', queryParam: { key: 'type', value: 'ISSUE' } },
+      { key: 'ADJUSTMENT', label: 'Adjustment', queryParam: { key: 'type', value: 'ADJUSTMENT' } },
+      { key: 'TRANSFER', label: 'Transfer', queryParam: { key: 'type', value: 'TRANSFER_IN,TRANSFER_OUT' } },
+      { key: 'RETURN', label: 'Return', queryParam: { key: 'type', value: 'RETURN' } },
     ],
     columns: [
       { key: 'createdAt', header: 'Date', sortable: true, sortValue: (r) => r.createdAt, render: (r) => <MonoCell value={r.createdAt.slice(0, 10)} color="var(--text-2)" /> },

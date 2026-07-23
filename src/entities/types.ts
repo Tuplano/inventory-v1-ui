@@ -15,6 +15,9 @@ export const entityTableSearchSchema = z.object({
   dir: z.enum(['asc', 'desc']).optional(),
   filter: z.string().optional(),
   page: z.number().optional(),
+  // Current page's cursor for server-paginated tables (movements, adjustments, receivings,
+  // serials). Unlike `page`, this is actually read — see useCursorPager.
+  cursor: z.string().optional(),
   recordId: z.string().optional(),
 })
 export type EntityTableSearch = z.infer<typeof entityTableSearchSchema>
@@ -31,7 +34,10 @@ export interface EntityColumn<TRow> {
 export interface EntityFilterChip<TRow> {
   key: string
   label: string
+  /** Client-side filter, used by tables that load their full dataset (most entities). */
   predicate?: (row: TRow) => boolean
+  /** Server-side filter, used by tables in serverPagination mode (movements, adjustments, serials) — sent as a query param instead of filtering in-memory. */
+  queryParam?: { key: string; value: string }
 }
 
 export interface DrawerSectionRow {

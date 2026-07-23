@@ -42,7 +42,6 @@ export function SerialFormDialog({
   const isEdit = !!serial
   const { data: products = [] } = useProducts()
   const { data: locations = [] } = useLocations()
-  const { data: serials = [] } = useSerials()
   const { data: inventory = [] } = useInventory()
   const branchId = useScopeStore((s) => s.branchId)
   const createSerial = useCreateSerial()
@@ -65,9 +64,12 @@ export function SerialFormDialog({
 
   // A serial is only meant to identify a unit that's already recorded in this branch's
   // quantity — cap manual creation at what's not yet serialized, same idea as "Assign serials".
+  // Scoped to just this product+branch (rather than fetching every serial in the company) since
+  // that's all the capacity check needs.
   const selectedProductId = watch('productId')
+  const { data: existingSerials } = useSerials({ productId: selectedProductId || undefined, branchId, limit: 100 })
   const recordedQty = inventory.find((i) => i.productId === selectedProductId)?.quantity ?? 0
-  const existingSerialCount = serials.filter((s) => s.productId === selectedProductId && s.currentBranchId === branchId).length
+  const existingSerialCount = existingSerials?.rows.length ?? 0
   const remainingToSerialize = recordedQty - existingSerialCount
   const atCapacity = !isEdit && !!selectedProductId && remainingToSerialize <= 0
 
