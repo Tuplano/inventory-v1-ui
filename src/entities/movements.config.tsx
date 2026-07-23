@@ -5,9 +5,14 @@ import { movementTypeTone } from '@/lib/tone'
 
 export const movementTypes = ['RECEIVING', 'ADJUSTMENT', 'TRANSFER_IN', 'TRANSFER_OUT', 'ISSUE', 'RETURN'] as const
 
+// ADJUSTMENT is excluded from what this form can create — it has a location/batch/serial-aware
+// replacement (the Adjustments page + AdjustStockModal, backed by POST /product-locations/adjustments).
+// The API rejects ADJUSTMENT on this endpoint too; see stock-movement.validation.ts.
+export const creatableMovementTypes = ['RECEIVING', 'TRANSFER_IN', 'TRANSFER_OUT', 'ISSUE', 'RETURN'] as const
+
 export const createStockMovementSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
-  type: z.enum(movementTypes),
+  type: z.enum(creatableMovementTypes),
   quantity: z.number().positive('Quantity must be greater than zero'),
   reference: z.string().optional(),
   remarks: z.string().optional(),

@@ -10,11 +10,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCreateMovement } from '@/hooks/mutations/use-create-movement'
 import { useProducts } from '@/hooks/queries/use-products'
-import { movementTypes } from '@/entities/movements.config'
+import { creatableMovementTypes } from '@/entities/movements.config'
 
 const formSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
-  type: z.enum(movementTypes),
+  type: z.enum(creatableMovementTypes),
   quantity: z.number().positive('Quantity must be greater than zero'),
   reference: z.string(),
   remarks: z.string(),
@@ -22,7 +22,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-const emptyValues: FormValues = { productId: '', type: 'ADJUSTMENT', quantity: 1, reference: '', remarks: '' }
+const emptyValues: FormValues = { productId: '', type: 'RECEIVING', quantity: 1, reference: '', remarks: '' }
 
 export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { data: products = [] } = useProducts()
@@ -100,7 +100,7 @@ export function MovementFormDialog({ open, onOpenChange }: { open: boolean; onOp
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {movementTypes.map((t) => (
+                        {creatableMovementTypes.map((t) => (
                           <SelectItem key={t} value={t}>
                             {t.replace('_', ' ')}
                           </SelectItem>
