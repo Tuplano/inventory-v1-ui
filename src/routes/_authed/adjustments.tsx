@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { AdjustStockModal } from '@/components/locations/AdjustStockModal'
 import { createAdjustmentsConfig } from '@/entities/adjustments.config'
@@ -8,8 +9,11 @@ import { useMovements } from '@/hooks/queries/use-movements'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
 import { useCursorPager } from '@/hooks/use-cursor-pager'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/adjustments')({
+  beforeLoad: (opts) => requirePermission(opts, 'adjustments'),
   validateSearch: (search) => entityTableSearchSchema.parse(search),
   component: AdjustmentsPage,
 })
@@ -36,6 +40,8 @@ function AdjustmentsPage() {
   }, [search.filter, debouncedQ])
 
   const { data, isLoading } = useMovements({ type: ['ADJUSTMENT'], direction, q: debouncedQ, cursor: pager.cursor })
+  const ability = useAbility()
+  const canCreate = canAny(ability, ['stock-movements.create'])
 
   return (
     <>
@@ -43,6 +49,7 @@ function AdjustmentsPage() {
         config={config}
         rows={data?.rows ?? []}
         isLoading={isLoading}
+        canCreate={canCreate}
         onCreate={() => setFormOpen(true)}
         serverPagination={{
           hasPrev: pager.hasPrev,

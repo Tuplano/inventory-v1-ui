@@ -27,6 +27,7 @@ export function EntityTableView<TRow>({
   onEditRow,
   onDeleteRow,
   serverPagination,
+  canCreate = true,
 }: {
   config: EntityTableConfig<TRow>
   rows: TRow[]
@@ -36,6 +37,8 @@ export function EntityTableView<TRow>({
   onDeleteRow?: (row: TRow) => void
   /** When set, `rows` is already the current server-fetched page — filtering/sorting/local paging are skipped and Prev/Next drive the fetch instead. */
   serverPagination?: ServerPaginationControls
+  /** Set to false to hide the primary "New X" action for users without the create/manage permission. */
+  canCreate?: boolean
 }) {
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
@@ -123,7 +126,7 @@ export function EntityTableView<TRow>({
           <div className="text-[18px] font-bold tracking-tight">{config.title}</div>
           {config.subtitle && <div className="mt-0.5 text-[12.5px] text-[var(--text-3)]">{config.subtitle}</div>}
         </div>
-        {config.primaryActionLabel && (
+        {config.primaryActionLabel && canCreate && (
           <Button onClick={onCreate ?? (() => toast(`${config.primaryActionLabel} — form opens here`))}>
             <Plus data-icon="inline-start" />
             {config.primaryActionLabel}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { Inbox } from 'lucide-react'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { LocationFormDialog } from '@/components/locations/LocationFormDialog'
@@ -9,8 +10,11 @@ import { entityTableSearchSchema } from '@/entities/types'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/locations/')({
+  beforeLoad: (opts) => requirePermission(opts, 'locations'),
   validateSearch: (search) => entityTableSearchSchema.parse(search),
   component: LocationsPage,
 })
@@ -21,6 +25,8 @@ function LocationsPage() {
   const { data: unplacedStock = [] } = useUnplacedStock()
   const config = createLocationsConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
+  const ability = useAbility()
+  const canManage = canAny(ability, ['product-locations.manage'])
 
   const unplacedProductCount = new Set(unplacedStock.map((c) => c.productId)).size
   const unplacedUnitCount = unplacedStock.reduce((sum, c) => sum + c.quantity, 0)
@@ -42,7 +48,13 @@ function LocationsPage() {
           </div>
         </Card>
       )}
-      <EntityTableView config={config} rows={rows} isLoading={isLoading} onCreate={() => setFormOpen(true)} />
+      <EntityTableView
+        config={config}
+        rows={rows}
+        isLoading={isLoading}
+        canCreate={canManage}
+        onCreate={() => setFormOpen(true)}
+      />
       <LocationFormDialog open={formOpen} onOpenChange={setFormOpen} location={null} />
     </>
   )

@@ -50,9 +50,11 @@ export interface CompanyRow {
 export function createCompaniesConfig({
   onAddBranch,
   onDeleteBranch,
+  canManageBranches,
 }: {
   onAddBranch: (row: CompanyRow) => void
   onDeleteBranch: (branch: CompanyBranch) => void
+  canManageBranches: boolean
 }): EntityTableConfig<CompanyRow> {
   return {
     key: 'companies',
@@ -89,28 +91,34 @@ export function createCompaniesConfig({
               value: (
                 <div className="flex items-center gap-2">
                   <span className="font-mono">{b.code}</span>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteBranch(b)}
-                    className="text-[11px] font-semibold text-[var(--red)] hover:underline"
-                  >
-                    Remove
-                  </button>
+                  {canManageBranches && (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteBranch(b)}
+                      className="text-[11px] font-semibold text-[var(--red)] hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ),
             })),
-            {
-              label: '',
-              value: (
-                <button
-                  type="button"
-                  onClick={() => onAddBranch(row)}
-                  className="text-[12px] font-semibold text-[var(--brand-accent-d)] hover:underline"
-                >
-                  + Add branch
-                </button>
-              ),
-            },
+            ...(canManageBranches
+              ? [
+                  {
+                    label: '',
+                    value: (
+                      <button
+                        type="button"
+                        onClick={() => onAddBranch(row)}
+                        className="text-[12px] font-semibold text-[var(--brand-accent-d)] hover:underline"
+                      >
+                        + Add branch
+                      </button>
+                    ),
+                  },
+                ]
+              : []),
           ],
         },
       ],

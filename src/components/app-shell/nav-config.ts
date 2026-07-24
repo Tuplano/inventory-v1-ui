@@ -90,3 +90,12 @@ export const navGroups: NavGroup[] = [
     ],
   },
 ]
+
+/** Permission code(s) required for a given nav `route` key, matching the route's `beforeLoad` guard. */
+export function getNavItemPermissions(route: string): string[] | undefined {
+  for (const group of navGroups) {
+    const item = group.items.find((navItem) => navItem.route === route)
+    if (item) return item.permissions
+  }
+  return undefined
+}

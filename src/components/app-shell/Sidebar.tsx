@@ -3,17 +3,17 @@ import { PanelLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/stores/ui-store'
 import { useLowStockCount } from '@/hooks/queries/use-inventory'
-import { useMyPermissions } from '@/hooks/queries/use-my-permissions'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 import { navGroups, type NavItem } from './nav-config'
 
 export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
   const lowStockCount = useLowStockCount()
-  const { data: grantedPermissions } = useMyPermissions()
+  const ability = useAbility()
 
-  const canSee = (item: NavItem) =>
-    !item.permissions || item.permissions.some((p) => grantedPermissions?.has(p))
+  const canSee = (item: NavItem) => canAny(ability, item.permissions)
 
   const visibleGroups = navGroups
     .map((group) => ({ ...group, items: group.items.filter(canSee) }))

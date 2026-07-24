@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { MovementFormDialog } from '@/components/movements/MovementFormDialog'
 import { createMovementsConfig } from '@/entities/movements.config'
@@ -8,8 +9,11 @@ import { useMovements } from '@/hooks/queries/use-movements'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
 import { useCursorPager } from '@/hooks/use-cursor-pager'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/movements')({
+  beforeLoad: (opts) => requirePermission(opts, 'movements'),
   validateSearch: (search) => entityTableSearchSchema.parse(search),
   component: MovementsPage,
 })
@@ -39,6 +43,8 @@ function MovementsPage() {
   }, [search.filter, debouncedQ])
 
   const { data, isLoading } = useMovements({ type, q: debouncedQ, cursor: pager.cursor })
+  const ability = useAbility()
+  const canCreate = canAny(ability, ['stock-movements.create'])
 
   return (
     <>
@@ -46,6 +52,7 @@ function MovementsPage() {
         config={config}
         rows={data?.rows ?? []}
         isLoading={isLoading}
+        canCreate={canCreate}
         onCreate={() => setFormOpen(true)}
         serverPagination={{
           hasPrev: pager.hasPrev,

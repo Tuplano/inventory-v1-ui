@@ -25,6 +25,7 @@ import { Route as AuthedProductsRouteImport } from './routes/_authed/products'
 import { Route as AuthedPermissionsRouteImport } from './routes/_authed/permissions'
 import { Route as AuthedMovementsRouteImport } from './routes/_authed/movements'
 import { Route as AuthedInventoryRouteImport } from './routes/_authed/inventory'
+import { Route as AuthedForbiddenRouteImport } from './routes/_authed/forbidden'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedCompaniesRouteImport } from './routes/_authed/companies'
 import { Route as AuthedCategoriesRouteImport } from './routes/_authed/categories'
@@ -114,6 +115,11 @@ const AuthedInventoryRoute = AuthedInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedForbiddenRoute = AuthedForbiddenRouteImport.update({
+  id: '/forbidden',
+  path: '/forbidden',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/forbidden': typeof AuthedForbiddenRoute
   '/inventory': typeof AuthedInventoryRoute
   '/movements': typeof AuthedMovementsRoute
   '/permissions': typeof AuthedPermissionsRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/categories': typeof AuthedCategoriesRoute
   '/companies': typeof AuthedCompaniesRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/forbidden': typeof AuthedForbiddenRoute
   '/inventory': typeof AuthedInventoryRoute
   '/movements': typeof AuthedMovementsRoute
   '/permissions': typeof AuthedPermissionsRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/_authed/categories': typeof AuthedCategoriesRoute
   '/_authed/companies': typeof AuthedCompaniesRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/forbidden': typeof AuthedForbiddenRoute
   '/_authed/inventory': typeof AuthedInventoryRoute
   '/_authed/movements': typeof AuthedMovementsRoute
   '/_authed/permissions': typeof AuthedPermissionsRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/companies'
     | '/dashboard'
+    | '/forbidden'
     | '/inventory'
     | '/movements'
     | '/permissions'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/companies'
     | '/dashboard'
+    | '/forbidden'
     | '/inventory'
     | '/movements'
     | '/permissions'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/_authed/categories'
     | '/_authed/companies'
     | '/_authed/dashboard'
+    | '/_authed/forbidden'
     | '/_authed/inventory'
     | '/_authed/movements'
     | '/_authed/permissions'
@@ -445,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedInventoryRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/forbidden': {
+      id: '/_authed/forbidden'
+      path: '/forbidden'
+      fullPath: '/forbidden'
+      preLoaderRoute: typeof AuthedForbiddenRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/dashboard': {
       id: '/_authed/dashboard'
       path: '/dashboard'
@@ -517,6 +536,7 @@ interface AuthedRouteChildren {
   AuthedCategoriesRoute: typeof AuthedCategoriesRoute
   AuthedCompaniesRoute: typeof AuthedCompaniesRoute
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedForbiddenRoute: typeof AuthedForbiddenRoute
   AuthedInventoryRoute: typeof AuthedInventoryRoute
   AuthedMovementsRoute: typeof AuthedMovementsRoute
   AuthedPermissionsRoute: typeof AuthedPermissionsRoute
@@ -540,6 +560,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCategoriesRoute: AuthedCategoriesRoute,
   AuthedCompaniesRoute: AuthedCompaniesRoute,
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedForbiddenRoute: AuthedForbiddenRoute,
   AuthedInventoryRoute: AuthedInventoryRoute,
   AuthedMovementsRoute: AuthedMovementsRoute,
   AuthedPermissionsRoute: AuthedPermissionsRoute,

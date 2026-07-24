@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { ChevronDown, ArrowRightLeft, ClipboardCheck, Fingerprint, Inbox, PackageCheck, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -26,8 +27,11 @@ import { useProducts } from '@/hooks/queries/use-products'
 import { useDeleteLocation } from '@/hooks/mutations/use-delete-location'
 import { useProposeAutoPlace } from '@/hooks/mutations/use-propose-auto-place'
 import { downloadAutoPlaceProposal } from '@/lib/pdf/auto-place-proposal'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/locations/$id')({
+  beforeLoad: (opts) => requirePermission(opts, 'locations'),
   component: LocationDetailPage,
 })
 
@@ -45,6 +49,8 @@ function LocationDetailPage() {
   const [adjustOpen, setAdjustOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [assignTarget, setAssignTarget] = useState<{ productId: string; productName: string; availableQty: number } | null>(null)
+  const ability = useAbility()
+  const canManage = canAny(ability, ['product-locations.manage'])
 
   const trackingByProduct = new Map(products.map((p) => [p.id, p.trackingType]))
 
@@ -86,48 +92,50 @@ function LocationDetailPage() {
               ' · ' + [location.aisle, location.bay, location.level, location.bin].filter(Boolean).join(' · ')}
           </div>
         </div>
-        <div className="flex gap-2">
-          {location.type === 'RECEIVING' && (
-            <Button
-              variant="outline"
-              disabled={proposeAutoPlace.isPending || location.contents.length === 0}
-              onClick={() =>
-                proposeAutoPlace.mutate(location.id, {
-                  onSuccess: (result) => {
-                    if (result.proposed.length > 0 || result.unplaced.length > 0) {
-                      downloadAutoPlaceProposal(location.name, result)
-                    }
-                  },
-                })
-              }
-            >
-              <PackageCheck data-icon="inline-start" />
-              Propose storage placement
+        {canManage && (
+          <div className="flex gap-2">
+            {location.type === 'RECEIVING' && (
+              <Button
+                variant="outline"
+                disabled={proposeAutoPlace.isPending || location.contents.length === 0}
+                onClick={() =>
+                  proposeAutoPlace.mutate(location.id, {
+                    onSuccess: (result) => {
+                      if (result.proposed.length > 0 || result.unplaced.length > 0) {
+                        downloadAutoPlaceProposal(location.name, result)
+                      }
+                    },
+                  })
+                }
+              >
+                <PackageCheck data-icon="inline-start" />
+                Propose storage placement
+              </Button>
+            )}
+            {unplacedStock.length > 0 && (
+              <Button variant="outline" onClick={() => setPlaceOpen(true)}>
+                <Inbox data-icon="inline-start" />
+                Place received stock
+              </Button>
+            )}
+            <Button onClick={() => setTransferOpen(true)}>
+              <ArrowRightLeft data-icon="inline-start" />
+              Transfer stock
             </Button>
-          )}
-          {unplacedStock.length > 0 && (
-            <Button variant="outline" onClick={() => setPlaceOpen(true)}>
-              <Inbox data-icon="inline-start" />
-              Place received stock
+            <Button variant="outline" onClick={() => setAdjustOpen(true)}>
+              <ClipboardCheck data-icon="inline-start" />
+              Adjust stock
             </Button>
-          )}
-          <Button onClick={() => setTransferOpen(true)}>
-            <ArrowRightLeft data-icon="inline-start" />
-            Transfer stock
-          </Button>
-          <Button variant="outline" onClick={() => setAdjustOpen(true)}>
-            <ClipboardCheck data-icon="inline-start" />
-            Adjust stock
-          </Button>
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            <Pencil data-icon="inline-start" />
-            Edit
-          </Button>
-          <Button variant="outline" className="text-[var(--red)]" onClick={() => setDeleteConfirmOpen(true)}>
-            <Trash2 data-icon="inline-start" />
-            Delete
-          </Button>
-        </div>
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Pencil data-icon="inline-start" />
+              Edit
+            </Button>
+            <Button variant="outline" className="text-[var(--red)]" onClick={() => setDeleteConfirmOpen(true)}>
+              <Trash2 data-icon="inline-start" />
+              Delete
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="mb-4 grid grid-cols-4 gap-3">
@@ -177,7 +185,7 @@ function LocationDetailPage() {
                     {c.serialNumbers ? `${c.serialNumbers.length} serial(s)` : c.receivingNumber}
                   </TableCell>
                   <TableCell className="text-right">
-                    {canAssignSerials && (
+                    {canAssignSerials && canManage && (
                       <button
                         type="button"
                         onClick={() =>

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { ToneBadge } from '@/components/entity-table/cells'
@@ -66,12 +65,11 @@ export function RecordDrawer({
                   Delete
                 </Button>
               )}
-              <Button
-                className="flex-1"
-                onClick={onEdit ?? (() => toast.info('Editing is not available in this preview'))}
-              >
-                Edit
-              </Button>
+              {onEdit && (
+                <Button className="flex-1" onClick={onEdit}>
+                  Edit
+                </Button>
+              )}
             </SheetFooter>
           </>
         )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { SerialFormDialog } from '@/components/serials/SerialFormDialog'
 import { createSerialsConfig, type SerialRow } from '@/entities/serials.config'
@@ -9,8 +10,11 @@ import { useCurrentBranch } from '@/hooks/queries/use-branches'
 import { useDeleteSerial } from '@/hooks/mutations/use-delete-serial'
 import { useCursorPager } from '@/hooks/use-cursor-pager'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/serials')({
+  beforeLoad: (opts) => requirePermission(opts, 'serials'),
   validateSearch: (search) => entityTableSearchSchema.parse(search),
   component: SerialsPage,
 })
@@ -39,6 +43,8 @@ function SerialsPage() {
   }, [search.filter, debouncedQ])
 
   const { data, isLoading } = useSerials({ status, q: debouncedQ, cursor: pager.cursor })
+  const ability = useAbility()
+  const canManage = canAny(ability, ['serial-numbers.manage'])
 
   return (
     <>
@@ -46,15 +52,20 @@ function SerialsPage() {
         config={config}
         rows={data?.rows ?? []}
         isLoading={isLoading}
+        canCreate={canManage}
         onCreate={() => {
           setEditingRow(null)
           setFormOpen(true)
         }}
-        onEditRow={(row) => {
-          setEditingRow(row)
-          setFormOpen(true)
-        }}
-        onDeleteRow={(row) => deleteSerial.mutate(row.id)}
+        onEditRow={
+          canManage
+            ? (row) => {
+                setEditingRow(row)
+                setFormOpen(true)
+              }
+            : undefined
+        }
+        onDeleteRow={canManage ? (row) => deleteSerial.mutate(row.id) : undefined}
         serverPagination={{
           hasPrev: pager.hasPrev,
           hasNext: !!data?.nextCursor,

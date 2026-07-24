@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { ChevronDown, Shield, Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ToneBadge } from '@/components/entity-table/cells'
@@ -12,8 +13,11 @@ import { useConfirmPo } from '@/hooks/mutations/use-confirm-po'
 import { useCancelPo } from '@/hooks/mutations/use-cancel-po'
 import { useClosePoLine } from '@/hooks/mutations/use-close-po-line'
 import { confirm } from '@/lib/confirm'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/purchase-orders/$id')({
+  beforeLoad: (opts) => requirePermission(opts, 'pos'),
   component: PurchaseOrderDetailPage,
 })
 
@@ -25,6 +29,9 @@ function PurchaseOrderDetailPage() {
   const cancelPo = useCancelPo()
   const closeLine = useClosePoLine()
   const [receiveOpen, setReceiveOpen] = useState(false)
+  const ability = useAbility()
+  const canManage = canAny(ability, ['purchase-orders.manage'])
+  const canReceive = canAny(ability, ['purchase-orders.receive'])
 
   if (isLoading) return null
   if (!po) {
@@ -75,19 +82,19 @@ function PurchaseOrderDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {po.canConfirm && (
+          {po.canConfirm && canManage && (
             <Button onClick={() => confirmPo.mutate(po.id)} disabled={confirmPo.isPending}>
               <Shield data-icon="inline-start" />
               Confirm PO
             </Button>
           )}
-          {po.canReceive && (
+          {po.canReceive && canReceive && (
             <Button onClick={() => setReceiveOpen(true)}>
               <Truck data-icon="inline-start" />
               Receive stock
             </Button>
           )}
-          {po.canCancel && (
+          {po.canCancel && canManage && (
             <Button variant="outline" className="text-[var(--red)]" onClick={handleCancel} disabled={cancelPo.isPending}>
               Cancel PO
             </Button>
@@ -99,12 +106,12 @@ function PurchaseOrderDetailPage() {
       <PoLineItemsTable
         lines={po.lines}
         grandTotal={po.grandTotal}
-        onCloseLine={handleCloseLine}
+        onCloseLine={canManage ? handleCloseLine : undefined}
         isClosing={closeLine.isPending}
       />
       <ReceivingHistoryTable receivings={po.receivings} />
 
-      {po.canReceive && (
+      {po.canReceive && canReceive && (
         <ReceiveStockModal
           open={receiveOpen}
           onOpenChange={setReceiveOpen}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
+import { requirePermission } from '@/lib/route-guards'
 import { Mail, Trash2 } from 'lucide-react'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { UserFormDialog } from '@/components/users/UserFormDialog'
@@ -14,8 +15,12 @@ import { useDeleteUser } from '@/hooks/mutations/use-delete-user'
 import { useInvites } from '@/hooks/queries/use-invites'
 import { useRevokeInvite } from '@/hooks/mutations/use-revoke-invite'
 import { useResendInvite } from '@/hooks/mutations/use-resend-invite'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
+import { useAuthStore } from '@/stores/auth-store'
 
 export const Route = createFileRoute('/_authed/users')({
+  beforeLoad: (opts) => requirePermission(opts, 'users'),
   validateSearch: (search) => entityTableSearchSchema.parse(search),
   component: UsersPage,
 })
@@ -31,6 +36,11 @@ function UsersPage() {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<UserRecord | null>(null)
   const deleteUser = useDeleteUser()
+  const ability = useAbility()
+  const { user } = useAuthStore()
+  const canManage = canAny(ability, ['users.manage'])
+  // Deleting a user is a global-ADMIN-only action on the API — no permission code gates it.
+  const isAdmin = user?.role === 'ADMIN'
 
   return (
     <>
@@ -38,15 +48,20 @@ function UsersPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        canCreate={canManage}
         onCreate={() => setInviteOpen(true)}
-        onEditRow={(row) => {
-          setEditingRow(row)
-          setFormOpen(true)
-        }}
-        onDeleteRow={(row) => deleteUser.mutate(row.id)}
+        onEditRow={
+          canManage
+            ? (row) => {
+                setEditingRow(row)
+                setFormOpen(true)
+              }
+            : undefined
+        }
+        onDeleteRow={isAdmin ? (row) => deleteUser.mutate(row.id) : undefined}
       />
 
-      {invites.length > 0 && (
+      {invites.length > 0 && canManage && (
         <div className="-mt-2 px-6 pb-6">
           <Card className="overflow-hidden p-0">
             <div className="border-b border-[var(--border-2)] px-4 py-2.5 text-[13px] font-semibold">

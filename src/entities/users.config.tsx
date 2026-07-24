@@ -1,5 +1,6 @@
 import type { EntityTableConfig, Tone } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
+import { UserAccessPanel } from '@/components/users/UserAccessPanel'
 
 export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF' | 'VIEWER'
 
@@ -42,6 +43,7 @@ export function createUsersConfig(companyName: string, companyCode: string): Ent
         render: (r) => <MonoCell value={new Date(r.createdAt).toLocaleDateString()} color="var(--text-3)" />,
       },
     ],
+    drawerExtra: UserAccessPanel,
     drawer: (row) => ({
       title: row.name,
       subtitle: row.email,

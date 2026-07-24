@@ -12,7 +12,7 @@ export function PoLineItemsTable({
 }: {
   lines: PoDetail['lines']
   grandTotal: number
-  onCloseLine: (lineId: string) => void
+  onCloseLine?: (lineId: string) => void
   isClosing: boolean
 }) {
   return (
@@ -64,7 +64,7 @@ export function PoLineItemsTable({
                 <TableCell className="text-right font-mono text-[12px]">{formatCurrency(l.cost)}</TableCell>
                 <TableCell className="text-right font-mono text-[12px] font-semibold">{formatCurrency(l.total)}</TableCell>
                 <TableCell className="text-right">
-                  {l.canClose && (
+                  {l.canClose && onCloseLine && (
                     <Button
                       variant="outline"
                       size="xs"
