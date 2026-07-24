@@ -33,8 +33,10 @@ import { Route as AuthedBatchesRouteImport } from './routes/_authed/batches'
 import { Route as AuthedAdjustmentsRouteImport } from './routes/_authed/adjustments'
 import { Route as AuthedPurchaseOrdersIndexRouteImport } from './routes/_authed/purchase-orders/index'
 import { Route as AuthedLocationsIndexRouteImport } from './routes/_authed/locations/index'
+import { Route as AuthedBomsIndexRouteImport } from './routes/_authed/boms/index'
 import { Route as AuthedPurchaseOrdersIdRouteImport } from './routes/_authed/purchase-orders/$id'
 import { Route as AuthedLocationsIdRouteImport } from './routes/_authed/locations/$id'
+import { Route as AuthedBomsIdRouteImport } from './routes/_authed/boms/$id'
 
 const SelectWorkspaceRoute = SelectWorkspaceRouteImport.update({
   id: '/select-workspace',
@@ -156,6 +158,11 @@ const AuthedLocationsIndexRoute = AuthedLocationsIndexRouteImport.update({
   path: '/locations/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedBomsIndexRoute = AuthedBomsIndexRouteImport.update({
+  id: '/boms/',
+  path: '/boms/',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedPurchaseOrdersIdRoute = AuthedPurchaseOrdersIdRouteImport.update({
   id: '/purchase-orders/$id',
   path: '/purchase-orders/$id',
@@ -164,6 +171,11 @@ const AuthedPurchaseOrdersIdRoute = AuthedPurchaseOrdersIdRouteImport.update({
 const AuthedLocationsIdRoute = AuthedLocationsIdRouteImport.update({
   id: '/locations/$id',
   path: '/locations/$id',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedBomsIdRoute = AuthedBomsIdRouteImport.update({
+  id: '/boms/$id',
+  path: '/boms/$id',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -189,8 +201,10 @@ export interface FileRoutesByFullPath {
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/boms/$id': typeof AuthedBomsIdRoute
   '/locations/$id': typeof AuthedLocationsIdRoute
   '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/boms/': typeof AuthedBomsIndexRoute
   '/locations/': typeof AuthedLocationsIndexRoute
   '/purchase-orders/': typeof AuthedPurchaseOrdersIndexRoute
 }
@@ -216,8 +230,10 @@ export interface FileRoutesByTo {
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/boms/$id': typeof AuthedBomsIdRoute
   '/locations/$id': typeof AuthedLocationsIdRoute
   '/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/boms': typeof AuthedBomsIndexRoute
   '/locations': typeof AuthedLocationsIndexRoute
   '/purchase-orders': typeof AuthedPurchaseOrdersIndexRoute
 }
@@ -245,8 +261,10 @@ export interface FileRoutesById {
   '/_authed/uom': typeof AuthedUomRoute
   '/_authed/users': typeof AuthedUsersRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/_authed/boms/$id': typeof AuthedBomsIdRoute
   '/_authed/locations/$id': typeof AuthedLocationsIdRoute
   '/_authed/purchase-orders/$id': typeof AuthedPurchaseOrdersIdRoute
+  '/_authed/boms/': typeof AuthedBomsIndexRoute
   '/_authed/locations/': typeof AuthedLocationsIndexRoute
   '/_authed/purchase-orders/': typeof AuthedPurchaseOrdersIndexRoute
 }
@@ -274,8 +292,10 @@ export interface FileRouteTypes {
     | '/uom'
     | '/users'
     | '/invite/$token'
+    | '/boms/$id'
     | '/locations/$id'
     | '/purchase-orders/$id'
+    | '/boms/'
     | '/locations/'
     | '/purchase-orders/'
   fileRoutesByTo: FileRoutesByTo
@@ -301,8 +321,10 @@ export interface FileRouteTypes {
     | '/uom'
     | '/users'
     | '/invite/$token'
+    | '/boms/$id'
     | '/locations/$id'
     | '/purchase-orders/$id'
+    | '/boms'
     | '/locations'
     | '/purchase-orders'
   id:
@@ -329,8 +351,10 @@ export interface FileRouteTypes {
     | '/_authed/uom'
     | '/_authed/users'
     | '/invite/$token'
+    | '/_authed/boms/$id'
     | '/_authed/locations/$id'
     | '/_authed/purchase-orders/$id'
+    | '/_authed/boms/'
     | '/_authed/locations/'
     | '/_authed/purchase-orders/'
   fileRoutesById: FileRoutesById
@@ -513,6 +537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedLocationsIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/boms/': {
+      id: '/_authed/boms/'
+      path: '/boms'
+      fullPath: '/boms/'
+      preLoaderRoute: typeof AuthedBomsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/purchase-orders/$id': {
       id: '/_authed/purchase-orders/$id'
       path: '/purchase-orders/$id'
@@ -525,6 +556,13 @@ declare module '@tanstack/react-router' {
       path: '/locations/$id'
       fullPath: '/locations/$id'
       preLoaderRoute: typeof AuthedLocationsIdRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/boms/$id': {
+      id: '/_authed/boms/$id'
+      path: '/boms/$id'
+      fullPath: '/boms/$id'
+      preLoaderRoute: typeof AuthedBomsIdRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
@@ -548,8 +586,10 @@ interface AuthedRouteChildren {
   AuthedSuppliersRoute: typeof AuthedSuppliersRoute
   AuthedUomRoute: typeof AuthedUomRoute
   AuthedUsersRoute: typeof AuthedUsersRoute
+  AuthedBomsIdRoute: typeof AuthedBomsIdRoute
   AuthedLocationsIdRoute: typeof AuthedLocationsIdRoute
   AuthedPurchaseOrdersIdRoute: typeof AuthedPurchaseOrdersIdRoute
+  AuthedBomsIndexRoute: typeof AuthedBomsIndexRoute
   AuthedLocationsIndexRoute: typeof AuthedLocationsIndexRoute
   AuthedPurchaseOrdersIndexRoute: typeof AuthedPurchaseOrdersIndexRoute
 }
@@ -572,8 +612,10 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedSuppliersRoute: AuthedSuppliersRoute,
   AuthedUomRoute: AuthedUomRoute,
   AuthedUsersRoute: AuthedUsersRoute,
+  AuthedBomsIdRoute: AuthedBomsIdRoute,
   AuthedLocationsIdRoute: AuthedLocationsIdRoute,
   AuthedPurchaseOrdersIdRoute: AuthedPurchaseOrdersIdRoute,
+  AuthedBomsIndexRoute: AuthedBomsIndexRoute,
   AuthedLocationsIndexRoute: AuthedLocationsIndexRoute,
   AuthedPurchaseOrdersIndexRoute: AuthedPurchaseOrdersIndexRoute,
 }

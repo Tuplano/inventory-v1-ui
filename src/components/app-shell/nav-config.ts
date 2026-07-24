@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   Box,
   ClipboardCheck,
+  Factory,
   Hash,
   Home,
   Landmark,
@@ -72,6 +73,10 @@ export const navGroups: NavGroup[] = [
       { route: 'pos', to: '/purchase-orders', label: 'Purchase orders', icon: ShoppingCart, permissions: ['purchase-orders.view'] },
       { route: 'receivings', to: '/receivings', label: 'Receivings', icon: Truck, permissions: ['purchase-orders.view'] },
     ],
+  },
+  {
+    label: 'Manufacturing',
+    items: [{ route: 'boms', to: '/boms', label: 'Bills of materials', icon: Factory, permissions: ['bom.view'] }],
   },
   {
     label: 'Admin',
