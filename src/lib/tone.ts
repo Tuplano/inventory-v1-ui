@@ -65,6 +65,8 @@ export function movementTypeTone(type: MovementType): Tone {
     TRANSFER_IN: 'accent',
     TRANSFER_OUT: 'accent',
     RETURN: 'teal',
+    PRODUCTION_CONSUME: 'red',
+    PRODUCTION_OUTPUT: 'green',
   }
   return map[type]
 }

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import type { BomRecord } from './use-boms'
-import type { ProductRecord } from '@/entities/products.config'
+import type { ProductRecord, TrackingType } from '@/entities/products.config'
 import type { UomRecord } from '@/entities/uom.config'
 
 export interface BomComponentDetail {
@@ -19,6 +19,8 @@ export interface BomDetail {
   productId: string
   productName: string
   productSku: string
+  /** Drives what ProduceBomModal asks for: batch fields when BATCH, serial numbers when SERIAL. */
+  productTrackingType: TrackingType
   name: string | null
   version: string
   isActive: boolean
@@ -58,6 +60,7 @@ export function useBom(id: string) {
         productId: bom.productId,
         productName: product?.name ?? '',
         productSku: product?.sku ?? '',
+        productTrackingType: product?.trackingType ?? 'NONE',
         name: bom.name,
         version: bom.version,
         isActive: bom.isActive,

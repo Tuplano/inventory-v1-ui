@@ -6,7 +6,15 @@ export type Tone = 'green' | 'amber' | 'red' | 'violet' | 'teal' | 'accent' | 'n
 export type TrackingMode = 'NONE' | 'BATCH' | 'SERIAL'
 export type LocationType = 'STORAGE' | 'RECEIVING' | 'STAGING' | 'DISPATCH' | 'GENERAL'
 export type SerialStatus = 'IN_STOCK' | 'ISSUED' | 'RETURNED' | 'DAMAGED'
-export type MovementType = 'RECEIVING' | 'ISSUE' | 'ADJUSTMENT' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'RETURN'
+export type MovementType =
+  | 'RECEIVING'
+  | 'ISSUE'
+  | 'ADJUSTMENT'
+  | 'TRANSFER_IN'
+  | 'TRANSFER_OUT'
+  | 'RETURN'
+  | 'PRODUCTION_CONSUME'
+  | 'PRODUCTION_OUTPUT'
 export type PoStatus = 'DRAFT' | 'CONFIRMED' | 'PARTIAL_RECEIVED' | 'FULLY_RECEIVED' | 'CLOSED' | 'CANCELLED'
 
 export const entityTableSearchSchema = z.object({

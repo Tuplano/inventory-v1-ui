@@ -66,7 +66,7 @@ export interface MovementRow {
 // `quantity` is always stored positive in the DB — direction comes from `type` (and, for
 // ADJUSTMENT, which of fromLocationId/toLocationId is set), never from the sign of the number.
 export function isOutgoingMovement(row: MovementRow): boolean {
-  if (row.type === 'ISSUE' || row.type === 'TRANSFER_OUT') return true
+  if (row.type === 'ISSUE' || row.type === 'TRANSFER_OUT' || row.type === 'PRODUCTION_CONSUME') return true
   if (row.type === 'ADJUSTMENT') return !!row.fromLocationId
   return false
 }
@@ -86,6 +86,7 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
       { key: 'ADJUSTMENT', label: 'Adjustment', queryParam: { key: 'type', value: 'ADJUSTMENT' } },
       { key: 'TRANSFER', label: 'Transfer', queryParam: { key: 'type', value: 'TRANSFER_IN,TRANSFER_OUT' } },
       { key: 'RETURN', label: 'Return', queryParam: { key: 'type', value: 'RETURN' } },
+      { key: 'PRODUCTION', label: 'Production', queryParam: { key: 'type', value: 'PRODUCTION_CONSUME,PRODUCTION_OUTPUT' } },
     ],
     columns: [
       { key: 'createdAt', header: 'Date', sortable: true, sortValue: (r) => r.createdAt, render: (r) => <MonoCell value={r.createdAt.slice(0, 10)} color="var(--text-2)" /> },

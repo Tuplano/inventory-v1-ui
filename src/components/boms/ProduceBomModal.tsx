@@ -1,13 +1,25 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Factory } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { formatNumber } from '@/lib/format'
 import { useInventory } from '@/hooks/queries/use-inventory'
+import { useLocations } from '@/hooks/queries/use-locations'
 import { useProduceBom } from '@/hooks/mutations/use-produce-bom'
 import type { BomDetail } from '@/hooks/queries/use-bom'
+
+/** Splits a serials textarea's raw text into trimmed, non-blank entries (one per line or comma). */
+function parseSerials(raw: string): string[] {
+  return raw
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
 
 export function ProduceBomModal({
   open,
@@ -19,18 +31,34 @@ export function ProduceBomModal({
   bom: BomDetail
 }) {
   const { data: inventory = [] } = useInventory()
+  const { data: locations = [] } = useLocations()
   const produceBom = useProduceBom()
 
   const [qty, setQty] = useState('1')
+  const [locationId, setLocationId] = useState('')
   const [reference, setReference] = useState('')
+  const [batchNumber, setBatchNumber] = useState('')
+  const [lotNumber, setLotNumber] = useState('')
+  const [manufacturingDate, setManufacturingDate] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [serialsRaw, setSerialsRaw] = useState('')
 
   useEffect(() => {
     if (!open) return
     setQty('1')
+    setLocationId('')
     setReference('')
+    setBatchNumber('')
+    setLotNumber('')
+    setManufacturingDate('')
+    setExpiryDate('')
+    setSerialsRaw('')
   }, [open])
 
   const quantityToProduce = Number(qty) || 0
+  const isBatchOutput = bom.productTrackingType === 'BATCH'
+  const isSerialOutput = bom.productTrackingType === 'SERIAL'
+  const serials = parseSerials(serialsRaw)
 
   const preview = bom.components.map((c) => {
     const required = c.quantity * quantityToProduce
@@ -39,12 +67,46 @@ export function ProduceBomModal({
   })
 
   const hasShortage = preview.some((p) => p.short)
-  const canSubmit = quantityToProduce > 0 && !hasShortage
+  const canSubmit =
+    quantityToProduce > 0 &&
+    !hasShortage &&
+    !!locationId &&
+    (!isBatchOutput || batchNumber.trim().length > 0) &&
+    (!isSerialOutput || (serials.length === quantityToProduce && new Set(serials).size === serials.length))
 
   function handleSubmit() {
+    if (!locationId) {
+      toast.warning('Select a destination location')
+      return
+    }
+    if (isBatchOutput && !batchNumber.trim()) {
+      toast.warning('Enter a batch number for the produced output')
+      return
+    }
+    if (isSerialOutput) {
+      if (new Set(serials).size !== serials.length) {
+        toast.warning('Duplicate serial numbers entered')
+        return
+      }
+      if (serials.length !== quantityToProduce) {
+        toast.warning(`Entered ${serials.length} serial(s), but quantity to produce is ${quantityToProduce} — they must match`)
+        return
+      }
+    }
     if (!canSubmit) return
+
     produceBom.mutate(
-      { bomId: bom.id, quantityToProduce, reference: reference || undefined },
+      {
+        bomId: bom.id,
+        quantityToProduce,
+        locationId,
+        reference: reference || undefined,
+        batchNumber: isBatchOutput ? batchNumber.trim() : undefined,
+        lotNumber: isBatchOutput ? lotNumber.trim() || undefined : undefined,
+        manufacturingDate: isBatchOutput ? manufacturingDate || undefined : undefined,
+        expiryDate: isBatchOutput ? expiryDate || undefined : undefined,
+        serialNumbers: isSerialOutput ? serials : undefined,
+      },
       { onSuccess: () => onOpenChange(false) },
     )
   }
@@ -64,7 +126,7 @@ export function ProduceBomModal({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-none items-end gap-4 border-b border-[var(--border-2)] bg-[var(--surface-2)] px-4 py-3">
+        <div className="flex flex-none flex-wrap items-end gap-4 border-b border-[var(--border-2)] bg-[var(--surface-2)] px-4 py-3">
           <div>
             <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
               Quantity to produce
@@ -78,6 +140,19 @@ export function ProduceBomModal({
           </div>
           <div>
             <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+              Destination location
+            </Label>
+            <NativeSelect className="w-[200px]" value={locationId} onChange={(e) => setLocationId(e.target.value)}>
+              <NativeSelectOption value="">Select a location</NativeSelectOption>
+              {locations.map((l) => (
+                <NativeSelectOption key={l.id} value={l.id}>
+                  {l.name} ({l.code})
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </div>
+          <div>
+            <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
               Reference
             </Label>
             <Input
@@ -88,6 +163,82 @@ export function ProduceBomModal({
             />
           </div>
         </div>
+
+        {isBatchOutput && (
+          <div className="flex flex-none flex-wrap items-end gap-3 border-b border-[var(--border-2)] px-4 py-3">
+            <div>
+              <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+                Batch number
+              </Label>
+              <Input
+                value={batchNumber}
+                onChange={(e) => setBatchNumber(e.target.value)}
+                placeholder="Required"
+                className="w-[160px] font-mono"
+              />
+            </div>
+            <div>
+              <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+                Lot number
+              </Label>
+              <Input
+                value={lotNumber}
+                onChange={(e) => setLotNumber(e.target.value)}
+                placeholder="Optional"
+                className="w-[160px] font-mono"
+              />
+            </div>
+            <div>
+              <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+                Manufacturing date
+              </Label>
+              <Input
+                type="date"
+                value={manufacturingDate}
+                onChange={(e) => setManufacturingDate(e.target.value)}
+                className="w-[150px] font-mono"
+              />
+            </div>
+            <div>
+              <Label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.03em] text-[var(--text-3)]">
+                Expiry date
+              </Label>
+              <Input
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                className="w-[150px] font-mono"
+              />
+            </div>
+          </div>
+        )}
+
+        {isSerialOutput && (
+          <div className="flex-none border-b border-[var(--border-2)] px-4 py-3">
+            <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Serial numbers</Label>
+            <Textarea
+              value={serialsRaw}
+              onChange={(e) => setSerialsRaw(e.target.value)}
+              placeholder="One serial per line"
+              rows={3}
+              className="w-full resize-none font-mono text-[12px]"
+            />
+            <div
+              className="mt-1 text-[10.5px] font-semibold"
+              style={{
+                color:
+                  serials.length === 0
+                    ? 'var(--text-3)'
+                    : serials.length === quantityToProduce && new Set(serials).size === serials.length
+                      ? 'var(--green)'
+                      : 'var(--red)',
+              }}
+            >
+              {serials.length} of {quantityToProduce || '?'} serial(s) entered
+              {new Set(serials).size !== serials.length ? ' · duplicates found' : ''}
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-auto">
           <table className="w-full text-sm">
