@@ -1,16 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { requirePermission } from '@/lib/route-guards'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
-import { MovementFormDialog } from '@/components/movements/MovementFormDialog'
 import { createMovementsConfig } from '@/entities/movements.config'
 import { entityTableSearchSchema, type EntityTableSearch, type MovementType } from '@/entities/types'
 import { useMovements } from '@/hooks/queries/use-movements'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
 import { useCursorPager } from '@/hooks/use-cursor-pager'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import { useAbility } from '@/hooks/use-ability'
-import { canAny } from '@/lib/ability'
 
 export const Route = createFileRoute('/_authed/movements')({
   beforeLoad: (opts) => requirePermission(opts, 'movements'),
@@ -23,7 +20,6 @@ function MovementsPage() {
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
   const config = createMovementsConfig(branch?.name ?? '')
-  const [formOpen, setFormOpen] = useState(false)
 
   function setCursor(cursor: string | undefined) {
     navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, cursor }), replace: true })
@@ -43,25 +39,18 @@ function MovementsPage() {
   }, [search.filter, debouncedQ])
 
   const { data, isLoading } = useMovements({ type, q: debouncedQ, cursor: pager.cursor })
-  const ability = useAbility()
-  const canCreate = canAny(ability, ['stock-movements.create'])
 
   return (
-    <>
-      <EntityTableView
-        config={config}
-        rows={data?.rows ?? []}
-        isLoading={isLoading}
-        canCreate={canCreate}
-        onCreate={() => setFormOpen(true)}
-        serverPagination={{
-          hasPrev: pager.hasPrev,
-          hasNext: !!data?.nextCursor,
-          onPrev: pager.goPrev,
-          onNext: () => pager.goNext(data?.nextCursor ?? null),
-        }}
-      />
-      <MovementFormDialog open={formOpen} onOpenChange={setFormOpen} />
-    </>
+    <EntityTableView
+      config={config}
+      rows={data?.rows ?? []}
+      isLoading={isLoading}
+      serverPagination={{
+        hasPrev: pager.hasPrev,
+        hasNext: !!data?.nextCursor,
+        onPrev: pager.goPrev,
+        onNext: () => pager.goNext(data?.nextCursor ?? null),
+      }}
+    />
   )
 }

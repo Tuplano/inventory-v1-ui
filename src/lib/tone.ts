@@ -62,6 +62,7 @@ export function movementTypeTone(type: MovementType): Tone {
     RECEIVING: 'green',
     ISSUE: 'amber',
     ADJUSTMENT: 'neutral',
+    DEFECTIVE: 'red',
     TRANSFER_IN: 'accent',
     TRANSFER_OUT: 'accent',
     RETURN: 'teal',

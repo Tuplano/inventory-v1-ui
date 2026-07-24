@@ -10,6 +10,7 @@ export type MovementType =
   | 'RECEIVING'
   | 'ISSUE'
   | 'ADJUSTMENT'
+  | 'DEFECTIVE'
   | 'TRANSFER_IN'
   | 'TRANSFER_OUT'
   | 'RETURN'

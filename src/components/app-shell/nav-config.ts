@@ -61,7 +61,7 @@ export const navGroups: NavGroup[] = [
         permissions: ['inventory.view'],
       },
       { route: 'movements', to: '/movements', label: 'Stock movements', icon: ArrowLeftRight, permissions: ['inventory.view'] },
-      { route: 'adjustments', to: '/adjustments', label: 'Adjustments', icon: ClipboardCheck, permissions: ['stock-movements.create'] },
+      { route: 'adjustments', to: '/adjustments', label: 'Adjustments', icon: ClipboardCheck, permissions: ['product-locations.manage'] },
       { route: 'locations', to: '/locations', label: 'Locations', icon: MapPin, permissions: ['product-locations.view'] },
       { route: 'batches', to: '/batches', label: 'Batches', icon: Layers, permissions: ['batches.view'] },
       { route: 'serials', to: '/serials', label: 'Serial numbers', icon: Hash, permissions: ['serial-numbers.view'] },

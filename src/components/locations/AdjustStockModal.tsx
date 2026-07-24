@@ -12,10 +12,12 @@ import { useProducts } from '@/hooks/queries/use-products'
 import { useBatches } from '@/hooks/queries/use-batches'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useLocation, type LocationContentLine } from '@/hooks/queries/use-location'
-import { useAdjustStock } from '@/hooks/mutations/use-adjust-stock'
+import { ADJUST_STOCK_REASON_LABELS, useAdjustStock, type AdjustStockReason } from '@/hooks/mutations/use-adjust-stock'
 import { cn } from '@/lib/utils'
 
 type Direction = 'DECREASE' | 'INCREASE'
+
+const DECREASE_REASONS: AdjustStockReason[] = ['COUNT_CORRECTION', 'DEFECTIVE', 'ISSUE']
 
 // Stable reference so `contents` doesn't become a new array (and re-trigger effects keyed on it)
 // on every render while locationDetail is still loading/undefined.
@@ -68,9 +70,18 @@ export function AdjustStockModal({
     return Object.entries(groups).map(([key, v]) => ({ key, ...v }))
   }, [contents])
 
+  // INCREASE is a count correction ("found more than recorded"), not a way to introduce a
+  // product to a bin it's never held — so it only offers products with an existing footprint
+  // at this location, same universe the decrease side already scopes to via `contents`.
+  const productsAtLocation = useMemo(() => {
+    const idsHere = new Set(contents.map((c) => c.productId))
+    return products.filter((p) => idsHere.has(p.id))
+  }, [products, contents])
+
   const [locationPickerOpen, setLocationPickerOpen] = useState(false)
   const [locationSearch, setLocationSearch] = useState('')
   const [direction, setDirection] = useState<Direction>('DECREASE')
+  const [reason, setReason] = useState<AdjustStockReason>('COUNT_CORRECTION')
   const [groupKey, setGroupKey] = useState('')
   const [increaseProductId, setIncreaseProductId] = useState('')
   const [increaseBatchId, setIncreaseBatchId] = useState('')
@@ -91,6 +102,7 @@ export function AdjustStockModal({
     setLocationId(defaultLocationId ?? '')
     setLocationSearch('')
     setDirection('DECREASE')
+    setReason('COUNT_CORRECTION')
     setIncreaseProductId('')
     setIncreaseBatchId('')
     setQuantity('')
@@ -108,11 +120,16 @@ export function AdjustStockModal({
     setGroupKey(decreaseGroups[0]?.key ?? '')
     setQuantity('')
     setSelectedSerials([])
+    // A product selected for increase at the previous location may not have a footprint at the
+    // new one — clear it rather than leave a stale id that no longer matches a rendered option.
+    setIncreaseProductId('')
+    setIncreaseBatchId('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationId, contents])
 
   function switchDirection(next: Direction) {
     setDirection(next)
+    setReason('COUNT_CORRECTION')
     setQuantity('')
     setSelectedSerials([])
     setNewSerialsRaw('')
@@ -158,6 +175,7 @@ export function AdjustStockModal({
             productId: selectedGroup.productId,
             locationId,
             direction,
+            reason,
             serialNumbers: selectedSerials,
             remarks: trimmedRemarks,
           },
@@ -181,6 +199,7 @@ export function AdjustStockModal({
           productId: selectedGroup.productId,
           locationId,
           direction,
+          reason,
           batchId: selectedGroup.batchId ?? undefined,
           quantity: qty,
           remarks: trimmedRemarks,
@@ -339,6 +358,19 @@ export function AdjustStockModal({
             <>
               {direction === 'DECREASE' ? (
                 <div>
+                  <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Reason</Label>
+                  <NativeSelect className="w-full" value={reason} onChange={(e) => setReason(e.target.value as AdjustStockReason)}>
+                    {DECREASE_REASONS.map((r) => (
+                      <NativeSelectOption key={r} value={r}>
+                        {ADJUST_STOCK_REASON_LABELS[r]}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </div>
+              ) : null}
+
+              {direction === 'DECREASE' ? (
+                <div>
                   <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Product / batch</Label>
                   {decreaseGroups.length === 0 ? (
                     <div className="text-xs text-[var(--text-3)]">Nothing at this location to adjust.</div>
@@ -364,24 +396,30 @@ export function AdjustStockModal({
                 <>
                   <div>
                     <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Product</Label>
-                    <NativeSelect
-                      className="w-full"
-                      value={increaseProductId}
-                      onChange={(e) => {
-                        setIncreaseProductId(e.target.value)
-                        setIncreaseBatchId('')
-                        setQuantity('')
-                        setNewSerialsRaw('')
-                        setFoundQuantity('')
-                      }}
-                    >
-                      <NativeSelectOption value="">Select a product</NativeSelectOption>
-                      {products.map((p) => (
-                        <NativeSelectOption key={p.id} value={p.id}>
-                          {p.sku} — {p.name}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
+                    {productsAtLocation.length === 0 ? (
+                      <div className="text-xs text-[var(--text-3)]">
+                        Nothing has ever been placed here — use Place received stock or a transfer first.
+                      </div>
+                    ) : (
+                      <NativeSelect
+                        className="w-full"
+                        value={increaseProductId}
+                        onChange={(e) => {
+                          setIncreaseProductId(e.target.value)
+                          setIncreaseBatchId('')
+                          setQuantity('')
+                          setNewSerialsRaw('')
+                          setFoundQuantity('')
+                        }}
+                      >
+                        <NativeSelectOption value="">Select a product</NativeSelectOption>
+                        {productsAtLocation.map((p) => (
+                          <NativeSelectOption key={p.id} value={p.id}>
+                            {p.sku} — {p.name}
+                          </NativeSelectOption>
+                        ))}
+                      </NativeSelect>
+                    )}
                   </div>
 
                   {increaseTracking === 'BATCH' && (

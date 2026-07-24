@@ -1,24 +1,6 @@
-import { z } from 'zod'
 import type { EntityTableConfig, MovementType } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 import { movementTypeTone } from '@/lib/tone'
-
-export const movementTypes = ['RECEIVING', 'ADJUSTMENT', 'TRANSFER_IN', 'TRANSFER_OUT', 'ISSUE', 'RETURN'] as const
-
-// ADJUSTMENT is excluded from what this form can create — it has a location/batch/serial-aware
-// replacement (the Adjustments page + AdjustStockModal, backed by POST /product-locations/adjustments).
-// The API rejects ADJUSTMENT on this endpoint too; see stock-movement.validation.ts.
-export const creatableMovementTypes = ['RECEIVING', 'TRANSFER_IN', 'TRANSFER_OUT', 'ISSUE', 'RETURN'] as const
-
-export const createStockMovementSchema = z.object({
-  productId: z.string().min(1, 'Product is required'),
-  type: z.enum(creatableMovementTypes),
-  quantity: z.number().positive('Quantity must be greater than zero'),
-  reference: z.string().optional(),
-  remarks: z.string().optional(),
-})
-
-export type CreateStockMovementInput = z.infer<typeof createStockMovementSchema>
 
 /** Raw wire shape from GET /stock-movements (Decimal fields arrive as strings). */
 export interface StockMovementRecord {
@@ -66,7 +48,7 @@ export interface MovementRow {
 // `quantity` is always stored positive in the DB — direction comes from `type` (and, for
 // ADJUSTMENT, which of fromLocationId/toLocationId is set), never from the sign of the number.
 export function isOutgoingMovement(row: MovementRow): boolean {
-  if (row.type === 'ISSUE' || row.type === 'TRANSFER_OUT' || row.type === 'PRODUCTION_CONSUME') return true
+  if (row.type === 'ISSUE' || row.type === 'DEFECTIVE' || row.type === 'TRANSFER_OUT' || row.type === 'PRODUCTION_CONSUME') return true
   if (row.type === 'ADJUSTMENT') return !!row.fromLocationId
   return false
 }
@@ -76,16 +58,19 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
     key: 'movements',
     title: 'Stock movements',
     subtitle: `Ledger · ${branchName}`,
-    primaryActionLabel: 'New movement',
     searchKeys: ['reference', 'code', 'name'],
     getRowId: (row) => row.id,
+    // ISSUE and DEFECTIVE are real again — both are reasons a decrease adjustment can be tagged
+    // with (see AdjustStockModal), each its own StockMovementType. RETURN still has no chip:
+    // nothing creates it (the manual stock-movement form it came from was removed), so it'd only
+    // ever match pre-existing historical rows, if any — it still renders correctly in "All".
     filters: [
       { key: 'all', label: 'All' },
       { key: 'RECEIVING', label: 'Receiving', queryParam: { key: 'type', value: 'RECEIVING' } },
-      { key: 'ISSUE', label: 'Issue', queryParam: { key: 'type', value: 'ISSUE' } },
       { key: 'ADJUSTMENT', label: 'Adjustment', queryParam: { key: 'type', value: 'ADJUSTMENT' } },
+      { key: 'DEFECTIVE', label: 'Defective', queryParam: { key: 'type', value: 'DEFECTIVE' } },
+      { key: 'ISSUE', label: 'Issue', queryParam: { key: 'type', value: 'ISSUE' } },
       { key: 'TRANSFER', label: 'Transfer', queryParam: { key: 'type', value: 'TRANSFER_IN,TRANSFER_OUT' } },
-      { key: 'RETURN', label: 'Return', queryParam: { key: 'type', value: 'RETURN' } },
       { key: 'PRODUCTION', label: 'Production', queryParam: { key: 'type', value: 'PRODUCTION_CONSUME,PRODUCTION_OUTPUT' } },
     ],
     columns: [

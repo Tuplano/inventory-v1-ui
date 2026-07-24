@@ -41,7 +41,7 @@ function AdjustmentsPage() {
 
   const { data, isLoading } = useMovements({ type: ['ADJUSTMENT'], direction, q: debouncedQ, cursor: pager.cursor })
   const ability = useAbility()
-  const canCreate = canAny(ability, ['stock-movements.create'])
+  const canCreate = canAny(ability, ['product-locations.manage'])
 
   return (
     <>
