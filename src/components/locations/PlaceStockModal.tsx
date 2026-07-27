@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { usePlaceStock } from '@/hooks/mutations/use-place-stock'
+import { SerialPickerField } from '@/components/locations/SerialPickerField'
 
 export function PlaceStockModal({
   open,
@@ -24,11 +25,11 @@ export function PlaceStockModal({
   const placeStock = usePlaceStock()
 
   const availableByProduct = contents.reduce<
-    Record<string, { name: string; sku: string; qty: number; serialNumbers: string[] | null }>
+    Record<string, { name: string; sku: string; qty: number; isSerialTracked: boolean }>
   >((acc, c) => {
-    const entry = acc[c.productId] ?? { name: c.productName, sku: c.productSku, qty: 0, serialNumbers: null }
+    const entry = acc[c.productId] ?? { name: c.productName, sku: c.productSku, qty: 0, isSerialTracked: false }
     entry.qty += c.quantity
-    if (c.serialNumbers) entry.serialNumbers = [...(entry.serialNumbers ?? []), ...c.serialNumbers]
+    if (c.isSerialTracked) entry.isSerialTracked = true
     acc[c.productId] = entry
     return acc
   }, {})
@@ -47,12 +48,7 @@ export function PlaceStockModal({
 
   const selectedProduct = availableByProduct[productId]
   const available = selectedProduct?.qty ?? 0
-  const isSerial = !!selectedProduct?.serialNumbers
-  const serialOptions = selectedProduct?.serialNumbers ?? []
-
-  function toggleSerial(sn: string) {
-    setSelectedSerials((prev) => (prev.includes(sn) ? prev.filter((s) => s !== sn) : [...prev, sn]))
-  }
+  const isSerial = !!selectedProduct?.isSerialTracked
 
   function handleProductChange(nextProductId: string) {
     setProductId(nextProductId)
@@ -119,32 +115,13 @@ export function PlaceStockModal({
           </div>
 
           {isSerial ? (
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <Label className="text-[11.5px] font-semibold text-[var(--text-2)]">Serial numbers</Label>
-                <button
-                  type="button"
-                  onClick={() => setSelectedSerials(selectedSerials.length === serialOptions.length ? [] : [...serialOptions])}
-                  className="text-[10px] font-semibold text-[var(--brand-accent)]"
-                >
-                  {selectedSerials.length === serialOptions.length ? 'Clear all' : 'Select all'}
-                </button>
-              </div>
-              <div className="max-h-[180px] overflow-auto rounded-lg border border-[var(--border-2)]">
-                {serialOptions.map((sn) => (
-                  <label
-                    key={sn}
-                    className="flex cursor-pointer items-center gap-2 border-b border-[var(--border-2)] px-2.5 py-1.5 text-[12px] font-mono last:border-b-0 hover:bg-[var(--surface-2)]"
-                  >
-                    <input type="checkbox" checked={selectedSerials.includes(sn)} onChange={() => toggleSerial(sn)} />
-                    {sn}
-                  </label>
-                ))}
-              </div>
-              <div className="mt-1 text-[10.5px] text-[var(--text-3)]">
-                {selectedSerials.length} of {serialOptions.length} selected
-              </div>
-            </div>
+            <SerialPickerField
+              productId={productId}
+              scope={{ unplaced: true }}
+              totalCount={available}
+              selected={selectedSerials}
+              onChange={setSelectedSerials}
+            />
           ) : (
             <div>
               <Label htmlFor="place-qty" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">

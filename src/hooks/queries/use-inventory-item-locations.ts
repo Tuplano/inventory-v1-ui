@@ -12,8 +12,9 @@ export interface InventoryItemLocationRecord {
   quantity: string
   receivingLineId: string | null
   batchId: string | null
-  /** Non-null only for serial-tracked products; the exact units currently at this location. */
-  serialNumbers: string[] | null
+  /** True for a serial-tracked line — `quantity` is the count. The actual serial numbers are
+   * fetched separately, paginated, via useLocationSerials. */
+  isSerialTracked: boolean
 }
 
 export interface InventoryItemLocationRow {
@@ -27,7 +28,7 @@ export interface InventoryItemLocationRow {
   quantity: number
   receivingLineId: string | null
   batchId: string | null
-  serialNumbers: string[] | null
+  isSerialTracked: boolean
 }
 
 export function useInventoryItemLocations(inventoryItemId: string, enabled = true) {

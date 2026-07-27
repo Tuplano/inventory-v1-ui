@@ -13,6 +13,7 @@ import { useBatches } from '@/hooks/queries/use-batches'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useLocation, type LocationContentLine } from '@/hooks/queries/use-location'
 import { ADJUST_STOCK_REASON_LABELS, useAdjustStock, type AdjustStockReason } from '@/hooks/mutations/use-adjust-stock'
+import { SerialPickerField } from '@/components/locations/SerialPickerField'
 import { cn } from '@/lib/utils'
 
 type Direction = 'DECREASE' | 'INCREASE'
@@ -58,13 +59,14 @@ export function AdjustStockModal({
   const decreaseGroups = useMemo(() => {
     const groups: Record<
       string,
-      { productId: string; batchId: string | null; name: string; sku: string; qty: number; serialNumbers: string[] | null }
+      { productId: string; batchId: string | null; name: string; sku: string; qty: number; isSerialTracked: boolean }
     > = {}
     for (const c of contents) {
       const key = `${c.productId}::${c.batchId ?? 'none'}`
-      const entry = groups[key] ?? { productId: c.productId, batchId: c.batchId, name: c.productName, sku: c.productSku, qty: 0, serialNumbers: null }
+      const entry =
+        groups[key] ?? { productId: c.productId, batchId: c.batchId, name: c.productName, sku: c.productSku, qty: 0, isSerialTracked: false }
       entry.qty += c.quantity
-      if (c.serialNumbers) entry.serialNumbers = [...(entry.serialNumbers ?? []), ...c.serialNumbers]
+      if (c.isSerialTracked) entry.isSerialTracked = true
       groups[key] = entry
     }
     return Object.entries(groups).map(([key, v]) => ({ key, ...v }))
@@ -138,14 +140,10 @@ export function AdjustStockModal({
 
   const selectedGroup = decreaseGroups.find((g) => g.key === groupKey)
   const decreaseTracking = selectedGroup ? trackingByProduct.get(selectedGroup.productId) : undefined
-  const isDecreaseSerial = decreaseTracking === 'SERIAL' && !!selectedGroup?.serialNumbers
+  const isDecreaseSerial = decreaseTracking === 'SERIAL' && !!selectedGroup?.isSerialTracked
 
   const increaseTracking = increaseProductId ? trackingByProduct.get(increaseProductId) : undefined
   const increaseBatchOptions = batches.filter((b) => b.productId === increaseProductId && b.isActive)
-
-  function toggleSerial(sn: string) {
-    setSelectedSerials((prev) => (prev.includes(sn) ? prev.filter((s) => s !== sn) : [...prev, sn]))
-  }
 
   function handleSubmit() {
     if (!locationId) {
@@ -444,38 +442,15 @@ export function AdjustStockModal({
 
               {(direction === 'DECREASE' ? isDecreaseSerial : increaseTracking === 'SERIAL') ? (
                 direction === 'DECREASE' ? (
-                  <div>
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <Label className="text-[11.5px] font-semibold text-[var(--text-2)]">Serial numbers</Label>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedSerials(
-                            selectedSerials.length === (selectedGroup?.serialNumbers?.length ?? 0)
-                              ? []
-                              : [...(selectedGroup?.serialNumbers ?? [])],
-                          )
-                        }
-                        className="text-[10px] font-semibold text-[var(--brand-accent)]"
-                      >
-                        {selectedSerials.length === (selectedGroup?.serialNumbers?.length ?? 0) ? 'Clear all' : 'Select all'}
-                      </button>
-                    </div>
-                    <div className="max-h-[180px] overflow-auto rounded-lg border border-[var(--border-2)]">
-                      {(selectedGroup?.serialNumbers ?? []).map((sn) => (
-                        <label
-                          key={sn}
-                          className="flex cursor-pointer items-center gap-2 border-b border-[var(--border-2)] px-2.5 py-1.5 text-[12px] font-mono last:border-b-0 hover:bg-[var(--surface-2)]"
-                        >
-                          <input type="checkbox" checked={selectedSerials.includes(sn)} onChange={() => toggleSerial(sn)} />
-                          {sn}
-                        </label>
-                      ))}
-                    </div>
-                    <div className="mt-1 text-[10.5px] text-[var(--text-3)]">
-                      {selectedSerials.length} of {selectedGroup?.serialNumbers?.length ?? 0} selected
-                    </div>
-                  </div>
+                  selectedGroup && (
+                    <SerialPickerField
+                      productId={selectedGroup.productId}
+                      scope={{ locationId }}
+                      totalCount={selectedGroup.qty}
+                      selected={selectedSerials}
+                      onChange={setSelectedSerials}
+                    />
+                  )
                 ) : (
                   <>
                     <div>

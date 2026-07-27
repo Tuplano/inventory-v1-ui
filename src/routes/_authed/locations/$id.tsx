@@ -5,8 +5,7 @@ import { ChevronDown, ArrowRightLeft, ClipboardCheck, Fingerprint, Inbox, Packag
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { MonoCell, ToneBadge } from '@/components/entity-table/cells'
+import { ToneBadge } from '@/components/entity-table/cells'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +21,7 @@ import { TransferStockModal } from '@/components/locations/TransferStockModal'
 import { PlaceStockModal } from '@/components/locations/PlaceStockModal'
 import { AdjustStockModal } from '@/components/locations/AdjustStockModal'
 import { AssignSerialsModal } from '@/components/locations/AssignSerialsModal'
+import { SerialListPopover } from '@/components/locations/SerialListPopover'
 import { useLocation } from '@/hooks/queries/use-location'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { useProducts } from '@/hooks/queries/use-products'
@@ -52,6 +52,7 @@ function LocationDetailPage() {
   const [assignTarget, setAssignTarget] = useState<{ productId: string; productName: string; availableQty: number } | null>(null)
   const ability = useAbility()
   const canManage = canAny(ability, ['product-locations.manage'])
+  const canViewSerials = canAny(ability, ['serial-numbers.view'])
 
   const trackingByProduct = new Map(products.map((p) => [p.id, p.trackingType]))
 
@@ -174,7 +175,7 @@ function LocationDetailPage() {
           <TableBody>
             {location.contents.map((c) => {
               // Unserialized lot for a SERIAL-tracked product — can be turned into real serial numbers.
-              const canAssignSerials = !c.serialNumbers && c.receivingLineId != null && trackingByProduct.get(c.productId) === 'SERIAL'
+              const canAssignSerials = !c.isSerialTracked && c.receivingLineId != null && trackingByProduct.get(c.productId) === 'SERIAL'
               return (
                 <TableRow key={c.receivingLineId ?? `serial-${c.productId}`} className="border-b-[var(--border-2)]">
                   <TableCell>
@@ -183,7 +184,15 @@ function LocationDetailPage() {
                   </TableCell>
                   <TableCell className="text-right font-mono text-[12px] font-semibold">{c.quantity.toLocaleString()}</TableCell>
                   <TableCell className="font-mono text-[12px] text-[var(--text-2)]">
-                    {c.serialNumbers ? <SerialListPopover serialNumbers={c.serialNumbers} /> : c.receivingNumber}
+                    {c.isSerialTracked ? (
+                      canViewSerials ? (
+                        <SerialListPopover productId={c.productId} scope={{ locationId: location.id }} count={c.quantity} />
+                      ) : (
+                        `${c.quantity.toLocaleString()} serial(s)`
+                      )
+                    ) : (
+                      c.receivingNumber
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     {canAssignSerials && canManage && (
@@ -258,25 +267,5 @@ function LocationDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
-}
-
-function SerialListPopover({ serialNumbers }: { serialNumbers: string[] }) {
-  return (
-    <Popover>
-      <PopoverTrigger className="font-mono text-[12px] text-[var(--brand-accent)] hover:underline">
-        {serialNumbers.length} serial(s)
-      </PopoverTrigger>
-      <PopoverContent align="start" className="max-h-64 overflow-y-auto">
-        <div className="mb-1 text-[11px] font-semibold uppercase text-[var(--text-3)]">
-          Serial numbers ({serialNumbers.length})
-        </div>
-        <div className="flex flex-col gap-1">
-          {serialNumbers.map((sn) => (
-            <MonoCell key={sn} value={sn} />
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
   )
 }

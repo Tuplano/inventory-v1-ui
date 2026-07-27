@@ -12,8 +12,10 @@ export interface LocationContentLine {
   receivingNumber: string | null
   receivingLineId: string | null
   batchId: string | null
-  /** Non-null only for serial-tracked products; the exact units currently at this location. */
-  serialNumbers: string[] | null
+  /** True for a serial-tracked line — `quantity` is the count. The actual serial numbers are
+   * fetched separately, paginated, via useLocationSerials — a bin can hold thousands of one
+   * product's serials, too many to embed in this list. */
+  isSerialTracked: boolean
   createdAt: string
 }
 

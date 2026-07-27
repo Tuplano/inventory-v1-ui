@@ -3,6 +3,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { Fingerprint, Inbox } from 'lucide-react'
 import { useInventoryItemLocations } from '@/hooks/queries/use-inventory-item-locations'
 import { AssignSerialsModal } from '@/components/locations/AssignSerialsModal'
+import { SerialListPopover } from '@/components/locations/SerialListPopover'
+import { useAbility } from '@/hooks/use-ability'
+import { canAny } from '@/lib/ability'
 import type { InventoryRow } from '@/entities/inventory.config'
 
 export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
@@ -13,6 +16,8 @@ export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
   )
 
   const isSerialTracked = row.trackingType === 'SERIAL'
+  const ability = useAbility()
+  const canViewSerials = canAny(ability, ['serial-numbers.view'])
 
   return (
     <div className="mb-5">
@@ -50,7 +55,7 @@ export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
         locations?.map((loc) => {
           const path = [loc.aisle, loc.bay, loc.level, loc.bin].filter(Boolean).join(' · ')
           // Unserialized lot for a SERIAL-tracked product sitting at this location.
-          const canAssignSerials = isSerialTracked && !loc.serialNumbers && loc.receivingLineId != null
+          const canAssignSerials = isSerialTracked && !loc.isSerialTracked && loc.receivingLineId != null
 
           return (
             <div
@@ -67,12 +72,12 @@ export function InventoryLocationsPanel({ row }: { row: InventoryRow }) {
                   {loc.locationCode}
                   {path && ` · ${path}`}
                 </div>
-                {loc.serialNumbers && (
-                  <div className="mt-0.5 font-mono text-[10px] text-[var(--text-3)]">{loc.serialNumbers.join(', ')}</div>
-                )}
               </button>
               <div className="flex flex-col items-end gap-1">
                 <div className="text-right font-mono text-[12.5px] font-medium">{loc.quantity.toLocaleString()}</div>
+                {loc.isSerialTracked && canViewSerials && (
+                  <SerialListPopover productId={row.productId} scope={{ locationId: loc.locationId }} count={loc.quantity} />
+                )}
                 {canAssignSerials && (
                   <button
                     type="button"
