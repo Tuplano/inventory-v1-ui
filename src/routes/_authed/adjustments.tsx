@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { requirePermission } from '@/lib/route-guards'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
 import { AdjustStockModal } from '@/components/locations/AdjustStockModal'
-import { createAdjustmentsConfig } from '@/entities/adjustments.config'
+import { ADJUSTMENT_TYPES, createAdjustmentsConfig } from '@/entities/adjustments.config'
 import { entityTableSearchSchema, type EntityTableSearch } from '@/entities/types'
 import { useMovements } from '@/hooks/queries/use-movements'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
@@ -39,7 +39,9 @@ function AdjustmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.filter, debouncedQ])
 
-  const { data, isLoading } = useMovements({ type: ['ADJUSTMENT'], direction, q: debouncedQ, cursor: pager.cursor })
+  // Every manual stock adjustment, not just count corrections — a decrease's reason is carried by
+  // the movement type (see ADJUSTMENT_TYPES), so all three belong on this page.
+  const { data, isLoading } = useMovements({ type: ADJUSTMENT_TYPES, direction, q: debouncedQ, cursor: pager.cursor })
   const ability = useAbility()
   const canCreate = canAny(ability, ['product-locations.manage'])
 

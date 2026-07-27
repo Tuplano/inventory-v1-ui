@@ -5,7 +5,8 @@ import { ChevronDown, ArrowRightLeft, ClipboardCheck, Fingerprint, Inbox, Packag
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ToneBadge } from '@/components/entity-table/cells'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { MonoCell, ToneBadge } from '@/components/entity-table/cells'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -182,7 +183,7 @@ function LocationDetailPage() {
                   </TableCell>
                   <TableCell className="text-right font-mono text-[12px] font-semibold">{c.quantity.toLocaleString()}</TableCell>
                   <TableCell className="font-mono text-[12px] text-[var(--text-2)]">
-                    {c.serialNumbers ? `${c.serialNumbers.length} serial(s)` : c.receivingNumber}
+                    {c.serialNumbers ? <SerialListPopover serialNumbers={c.serialNumbers} /> : c.receivingNumber}
                   </TableCell>
                   <TableCell className="text-right">
                     {canAssignSerials && canManage && (
@@ -257,5 +258,25 @@ function LocationDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  )
+}
+
+function SerialListPopover({ serialNumbers }: { serialNumbers: string[] }) {
+  return (
+    <Popover>
+      <PopoverTrigger className="font-mono text-[12px] text-[var(--brand-accent)] hover:underline">
+        {serialNumbers.length} serial(s)
+      </PopoverTrigger>
+      <PopoverContent align="start" className="max-h-64 overflow-y-auto">
+        <div className="mb-1 text-[11px] font-semibold uppercase text-[var(--text-3)]">
+          Serial numbers ({serialNumbers.length})
+        </div>
+        <div className="flex flex-col gap-1">
+          {serialNumbers.map((sn) => (
+            <MonoCell key={sn} value={sn} />
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }

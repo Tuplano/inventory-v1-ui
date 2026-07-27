@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { EntityTableConfig, Tone } from './types'
 import { MonoCell, NumberCell, ToneBadge } from '@/components/entity-table/cells'
+import { formatCurrency } from '@/lib/format'
 
 export const trackingTypes = ['NONE', 'BATCH', 'SERIAL'] as const
 export type TrackingType = (typeof trackingTypes)[number]
@@ -139,7 +140,7 @@ export function createProductsConfig(companyCode: string): EntityTableConfig<Pro
         {
           label: 'Pricing',
           rows: [
-            { label: 'Selling price', value: row.sellingPrice != null ? `$${Number(row.sellingPrice).toFixed(2)}` : '—' },
+            { label: 'Selling price', value: row.sellingPrice != null ? formatCurrency(Number(row.sellingPrice)) : '—' },
           ],
         },
         {
