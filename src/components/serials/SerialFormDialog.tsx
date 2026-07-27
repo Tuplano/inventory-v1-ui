@@ -17,18 +17,16 @@ import { useScopeStore } from '@/stores/scope-store'
 import type { SerialRow } from '@/entities/serials.config'
 
 const NONE = '__none__'
-const serialStatuses = ['IN_STOCK', 'ISSUED', 'RETURNED', 'DAMAGED'] as const
 
 const formSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
   serialNumber: z.string().min(1, 'Serial number is required'),
   currentLocationId: z.string(),
-  status: z.enum(serialStatuses),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-const emptyValues: FormValues = { productId: '', serialNumber: '', currentLocationId: NONE, status: 'IN_STOCK' }
+const emptyValues: FormValues = { productId: '', serialNumber: '', currentLocationId: NONE }
 
 export function SerialFormDialog({
   open,
@@ -65,9 +63,12 @@ export function SerialFormDialog({
   // A serial is only meant to identify a unit that's already recorded in this branch's
   // quantity — cap manual creation at what's not yet serialized, same idea as "Assign serials".
   // Scoped to just this product+branch (rather than fetching every serial in the company) since
-  // that's all the capacity check needs.
+  // that's all the capacity check needs. Only IN_STOCK counts: a DEFECTIVE/ISSUED serial stays in
+  // the table (not soft-deleted, for audit history) after its unit already left the recorded
+  // on-hand quantity, so counting every status here would double-subtract it and could show more
+  // "serialized" than actually recorded.
   const selectedProductId = watch('productId')
-  const { data: existingSerials } = useSerials({ productId: selectedProductId || undefined, branchId, limit: 100 })
+  const { data: existingSerials } = useSerials({ productId: selectedProductId || undefined, branchId, status: 'IN_STOCK', limit: 100 })
   const recordedQty = inventory.find((i) => i.productId === selectedProductId)?.quantity ?? 0
   const existingSerialCount = existingSerials?.rows.length ?? 0
   const remainingToSerialize = recordedQty - existingSerialCount
@@ -77,12 +78,7 @@ export function SerialFormDialog({
     if (!open) return
     reset(
       serial
-        ? {
-            productId: serial.productId,
-            serialNumber: serial.serialNumber,
-            currentLocationId: serial.currentLocationId ?? NONE,
-            status: serial.status,
-          }
+        ? { productId: serial.productId, serialNumber: serial.serialNumber, currentLocationId: serial.currentLocationId ?? NONE }
         : emptyValues,
     )
   }, [open, serial, reset])
@@ -90,16 +86,9 @@ export function SerialFormDialog({
   function onSubmit(values: FormValues) {
     const onSuccess = () => onOpenChange(false)
     if (isEdit) {
-      updateSerial.mutate(
-        {
-          id: serial.id,
-          input: {
-            status: values.status,
-            currentLocationId: values.currentLocationId === NONE ? null : values.currentLocationId,
-          },
-        },
-        { onSuccess },
-      )
+      // Status/location aren't editable here — see updateSerialSchema for why (they only change
+      // through Adjust/Transfer/Place/Assign, which keep stock quantities in sync).
+      updateSerial.mutate({ id: serial.id, input: { serialNumber: values.serialNumber } }, { onSuccess })
     } else {
       createSerial.mutate(
         {
@@ -162,55 +151,56 @@ export function SerialFormDialog({
                   <Input id="serial-number" className="font-mono" disabled={atCapacity} {...register('serialNumber')} />
                   {errors.serialNumber && <p className="mt-1 text-xs text-[var(--red)]">{errors.serialNumber.message}</p>}
                 </div>
+                <div>
+                  <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Location</Label>
+                  <Controller
+                    control={control}
+                    name="currentLocationId"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="None" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NONE}>None</SelectItem>
+                          {locations.map((l) => (
+                            <SelectItem key={l.id} value={l.id}>
+                              {l.code} — {l.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
               </>
             )}
 
-            {isEdit && (
-              <div>
-                <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Status</Label>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {serialStatuses.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s.replace('_', ' ')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+            {isEdit && serial && (
+              <>
+                <div>
+                  <Label htmlFor="serial-number-edit" className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">
+                    Serial number
+                  </Label>
+                  <Input id="serial-number-edit" className="font-mono" {...register('serialNumber')} />
+                  {errors.serialNumber && <p className="mt-1 text-xs text-[var(--red)]">{errors.serialNumber.message}</p>}
+                </div>
+                {/* Status and location aren't editable here — they only change through a real stock
+                    action (Adjust, Transfer, Place, Assign serials), which keeps quantities in
+                    sync. Shown read-only so this isn't a dead end for "where is this unit". */}
+                <div className="rounded-md border border-[var(--border-2)] px-3 py-2 text-[11.5px] text-[var(--text-3)]">
+                  <div>
+                    Status: <span className="font-medium text-[var(--text-2)]">{serial.status.replace('_', ' ')}</span>
+                  </div>
+                  <div>
+                    Location:{' '}
+                    <span className="font-medium text-[var(--text-2)]">
+                      {locations.find((l) => l.id === serial.currentLocationId)?.name ?? 'None'}
+                    </span>
+                  </div>
+                </div>
+              </>
             )}
-
-            <div>
-              <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Location</Label>
-              <Controller
-                control={control}
-                name="currentLocationId"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={NONE}>None</SelectItem>
-                      {locations.map((l) => (
-                        <SelectItem key={l.id} value={l.id}>
-                          {l.code} — {l.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
           </div>
 
           <DialogFooter>

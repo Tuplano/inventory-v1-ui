@@ -3,8 +3,6 @@ import type { EntityTableConfig, SerialStatus } from './types'
 import { MonoCell, SubCell, ToneBadge } from '@/components/entity-table/cells'
 import { serialStatusTone } from '@/lib/tone'
 
-const serialStatusValues = ['IN_STOCK', 'ISSUED', 'RETURNED', 'DAMAGED'] as const
-
 export const createSerialSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
   serialNumber: z.string().min(1, 'Serial number is required'),
@@ -12,10 +10,10 @@ export const createSerialSchema = z.object({
   currentLocationId: z.string().optional(),
 })
 
+// Deliberately just the identifier — status/location only ever change through the flows that keep
+// stock quantities in sync (Adjust/Transfer/Place/Assign serials), not this raw edit form.
 export const updateSerialSchema = z.object({
-  status: z.enum(serialStatusValues).optional(),
-  currentBranchId: z.string().nullable().optional(),
-  currentLocationId: z.string().nullable().optional(),
+  serialNumber: z.string().min(1, 'Serial number is required'),
 })
 
 export type CreateSerialInput = z.infer<typeof createSerialSchema>
