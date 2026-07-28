@@ -176,6 +176,10 @@ export function usePurchaseOrder(id: string) {
           const uom = uoms.find((u) => u.id === l.uomId)
           const receivedQty = Number(l.receivedQty)
           const returnedQty = Number(l.returnedQty ?? 0)
+          // Cap by what's actually still on hand from this receipt, not just receivedQty -
+          // returnedQty — stock can also have left through BOM production, transfers, or
+          // adjustments since it was received, none of which count as a "return".
+          const remaining = Math.max(0, Math.min(receivedQty - returnedQty, l.availableToReturn))
           return {
             id: l.id,
             receivingId: r.id,
@@ -189,7 +193,7 @@ export function usePurchaseOrder(id: string) {
             uomId: l.uomId,
             receivedQty,
             returnedQty,
-            remaining: Math.max(0, receivedQty - returnedQty),
+            remaining,
             unitCost: Number(l.unitCost),
             batchId: l.batchId,
           }

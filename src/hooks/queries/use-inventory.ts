@@ -39,8 +39,3 @@ export function useInventory() {
     enabled: !!companyId && !!branchId && !!grantedPermissions?.has('inventory.view'),
   })
 }
-
-export function useLowStockCount() {
-  const { data } = useInventory()
-  return data ? data.filter((i) => i.status !== 'ok').length : 0
-}

@@ -52,6 +52,9 @@ export interface DashboardData {
   categoryBars: CategoryBar[]
   lowStock: LowStockRow[]
   expiringBatches: ExpiringBatchRow[]
+  lowStockCount: number
+  expiringSoonCount: number
+  openPoCount: number
 }
 
 export function useDashboard() {

@@ -23,6 +23,10 @@ export interface ReceivingLineRecord {
   batchId: string | null
   toLocationId: string | null
   createdAt: string
+  /** Physical quantity still returnable right now (lot balance / IN_STOCK serial count) — can be
+   * lower than `receivedQty - returnedQty` once stock has left this receipt another way (BOM
+   * production, transfers, adjustments). Server-computed, not a serialized Decimal. */
+  availableToReturn: number
 }
 
 export interface ReceivingRecord {

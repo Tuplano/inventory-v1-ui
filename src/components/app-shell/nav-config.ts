@@ -26,7 +26,7 @@ export interface NavItem {
   to: string
   label: string
   icon: LucideIcon
-  badge?: 'lowStock'
+  badge?: 'lowStock' | 'expiringBatches' | 'openPos'
   /** Permission code(s) required to see this item. Omit for items visible to any authed user. */
   permissions?: string[]
 }
@@ -64,14 +64,28 @@ export const navGroups: NavGroup[] = [
       { route: 'movements', to: '/movements', label: 'Stock movements', icon: ArrowLeftRight, permissions: ['inventory.view'] },
       { route: 'adjustments', to: '/adjustments', label: 'Adjustments', icon: ClipboardCheck, permissions: ['product-locations.manage'] },
       { route: 'locations', to: '/locations', label: 'Locations', icon: MapPin, permissions: ['product-locations.view'] },
-      { route: 'batches', to: '/batches', label: 'Batches', icon: Layers, permissions: ['batches.view'] },
+      {
+        route: 'batches',
+        to: '/batches',
+        label: 'Batches',
+        icon: Layers,
+        badge: 'expiringBatches',
+        permissions: ['batches.view'],
+      },
       { route: 'serials', to: '/serials', label: 'Serial numbers', icon: Hash, permissions: ['serial-numbers.view'] },
     ],
   },
   {
     label: 'Purchasing',
     items: [
-      { route: 'pos', to: '/purchase-orders', label: 'Purchase orders', icon: ShoppingCart, permissions: ['purchase-orders.view'] },
+      {
+        route: 'pos',
+        to: '/purchase-orders',
+        label: 'Purchase orders',
+        icon: ShoppingCart,
+        badge: 'openPos',
+        permissions: ['purchase-orders.view'],
+      },
       { route: 'receivings', to: '/receivings', label: 'Receivings', icon: Truck, permissions: ['purchase-orders.view'] },
       { route: 'supplier-returns', to: '/supplier-returns', label: 'Supplier returns', icon: Undo2, permissions: ['supplier-returns.view'] },
     ],

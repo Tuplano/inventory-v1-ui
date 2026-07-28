@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { PanelLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/stores/ui-store'
-import { useLowStockCount } from '@/hooks/queries/use-inventory'
+import { useDashboard } from '@/hooks/queries/use-dashboard'
 import { useAbility } from '@/hooks/use-ability'
 import { canAny } from '@/lib/ability'
 import { navGroups, type NavItem } from './nav-config'
@@ -10,7 +10,7 @@ import { navGroups, type NavItem } from './nav-config'
 export function Sidebar() {
   const collapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
-  const lowStockCount = useLowStockCount()
+  const { data: dashboard } = useDashboard()
   const ability = useAbility()
 
   const canSee = (item: NavItem) => canAny(ability, item.permissions)
@@ -43,7 +43,14 @@ export function Sidebar() {
             )}
             {group.items.map((item) => {
               const Icon = item.icon
-              const badgeCount = item.badge === 'lowStock' ? lowStockCount : 0
+              const badgeCount =
+                item.badge === 'lowStock'
+                  ? (dashboard?.lowStockCount ?? 0)
+                  : item.badge === 'expiringBatches'
+                    ? (dashboard?.expiringSoonCount ?? 0)
+                    : item.badge === 'openPos'
+                      ? (dashboard?.openPoCount ?? 0)
+                      : 0
               return (
                 <Link
                   key={item.route}
