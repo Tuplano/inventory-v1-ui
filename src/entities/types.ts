@@ -14,6 +14,7 @@ export type MovementType =
   | 'TRANSFER_IN'
   | 'TRANSFER_OUT'
   | 'RETURN'
+  | 'RETURN_TO_SUPPLIER'
   | 'PRODUCTION_CONSUME'
   | 'PRODUCTION_OUTPUT'
 export type PoStatus = 'DRAFT' | 'CONFIRMED' | 'PARTIAL_RECEIVED' | 'FULLY_RECEIVED' | 'CLOSED' | 'CANCELLED'

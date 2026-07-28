@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { requirePermission } from '@/lib/route-guards'
-import { ChevronDown, Shield, Truck } from 'lucide-react'
+import { ChevronDown, Shield, Truck, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ToneBadge } from '@/components/entity-table/cells'
 import { PoSummaryCards } from '@/components/purchase-orders/PoSummaryCards'
 import { PoLineItemsTable } from '@/components/purchase-orders/PoLineItemsTable'
 import { ReceivingHistoryTable } from '@/components/purchase-orders/ReceivingHistoryTable'
 import { ReceiveStockModal } from '@/components/purchase-orders/ReceiveStockModal'
+import { SupplierReturnHistoryTable } from '@/components/purchase-orders/SupplierReturnHistoryTable'
+import { ReturnToSupplierModal } from '@/components/purchase-orders/ReturnToSupplierModal'
 import { usePurchaseOrder } from '@/hooks/queries/use-purchase-order'
 import { useConfirmPo } from '@/hooks/mutations/use-confirm-po'
 import { useCancelPo } from '@/hooks/mutations/use-cancel-po'
@@ -29,9 +31,11 @@ function PurchaseOrderDetailPage() {
   const cancelPo = useCancelPo()
   const closeLine = useClosePoLine()
   const [receiveOpen, setReceiveOpen] = useState(false)
+  const [returnOpen, setReturnOpen] = useState(false)
   const ability = useAbility()
   const canManage = canAny(ability, ['purchase-orders.manage'])
   const canReceive = canAny(ability, ['purchase-orders.receive'])
+  const canReturnStock = canAny(ability, ['supplier-returns.manage'])
 
   if (isLoading) return null
   if (!po) {
@@ -94,6 +98,12 @@ function PurchaseOrderDetailPage() {
               Receive stock
             </Button>
           )}
+          {po.canReturn && canReturnStock && (
+            <Button variant="outline" onClick={() => setReturnOpen(true)}>
+              <Undo2 data-icon="inline-start" />
+              Return to supplier
+            </Button>
+          )}
           {po.canCancel && canManage && (
             <Button variant="outline" className="text-[var(--red)]" onClick={handleCancel} disabled={cancelPo.isPending}>
               Cancel PO
@@ -110,11 +120,20 @@ function PurchaseOrderDetailPage() {
         isClosing={closeLine.isPending}
       />
       <ReceivingHistoryTable receivings={po.receivings} />
+      <SupplierReturnHistoryTable supplierReturns={po.supplierReturns} />
 
       {po.canReceive && canReceive && (
         <ReceiveStockModal
           open={receiveOpen}
           onOpenChange={setReceiveOpen}
+          po={po}
+          supplierName={po.supplierName}
+        />
+      )}
+      {po.canReturn && canReturnStock && (
+        <ReturnToSupplierModal
+          open={returnOpen}
+          onOpenChange={setReturnOpen}
           po={po}
           supplierName={po.supplierName}
         />

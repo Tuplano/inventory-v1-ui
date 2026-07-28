@@ -38,7 +38,10 @@ export function createAdjustmentsConfig(branchName: string): EntityTableConfig<M
   return {
     key: 'adjustments',
     title: 'Stock adjustments',
-    subtitle: `Corrections · ${branchName}`,
+    // Explicitly scoped to non-PO corrections so it doesn't get reached for as a catch-all —
+    // sending stock back to a supplier has its own page (Supplier returns) because it needs a
+    // PO/receiving-line reference, a reason, and a return number for the paper trail.
+    subtitle: `Manual corrections not tied to a PO (count, damage, staff use) · ${branchName}`,
     primaryActionLabel: 'New adjustment',
     searchKeys: ['code', 'name', 'remarks'],
     getRowId: (row) => row.id,

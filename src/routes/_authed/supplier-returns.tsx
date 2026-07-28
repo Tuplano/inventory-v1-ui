@@ -2,27 +2,27 @@ import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { requirePermission } from '@/lib/route-guards'
 import { EntityTableView } from '@/components/entity-table/EntityTableView'
-import { createReceivingsConfig } from '@/entities/receivings.config'
+import { createSupplierReturnsConfig } from '@/entities/supplier-returns.config'
 import { entityTableSearchSchema, type EntityTableSearch } from '@/entities/types'
-import { useReceivings } from '@/hooks/queries/use-receivings'
+import { useSupplierReturns } from '@/hooks/queries/use-supplier-returns'
 import { useCurrentBranch } from '@/hooks/queries/use-branches'
 import { useCursorPager } from '@/hooks/use-cursor-pager'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useAbility } from '@/hooks/use-ability'
 import { canAny } from '@/lib/ability'
-import { CreateReceivingDialog } from '@/components/purchase-orders/CreateReceivingDialog'
+import { CreateSupplierReturnDialog } from '@/components/purchase-orders/CreateSupplierReturnDialog'
 
-export const Route = createFileRoute('/_authed/receivings')({
-  beforeLoad: (opts) => requirePermission(opts, 'receivings'),
+export const Route = createFileRoute('/_authed/supplier-returns')({
+  beforeLoad: (opts) => requirePermission(opts, 'supplier-returns'),
   validateSearch: (search) => entityTableSearchSchema.parse(search),
-  component: ReceivingsPage,
+  component: SupplierReturnsPage,
 })
 
-function ReceivingsPage() {
+function SupplierReturnsPage() {
   const branch = useCurrentBranch()
   const search = useSearch({ strict: false }) as EntityTableSearch
   const navigate = useNavigate()
-  const config = createReceivingsConfig(branch?.name ?? '')
+  const config = createSupplierReturnsConfig(branch?.name ?? '')
 
   function setCursor(cursor: string | undefined) {
     navigate({ to: '.', search: (prev: Record<string, unknown>) => ({ ...prev, cursor }), replace: true })
@@ -36,9 +36,9 @@ function ReceivingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQ])
 
-  const { data, isLoading } = useReceivings({ q: debouncedQ, cursor: pager.cursor })
+  const { data, isLoading } = useSupplierReturns({ q: debouncedQ, cursor: pager.cursor })
   const ability = useAbility()
-  const canReceive = canAny(ability, ['purchase-orders.receive'])
+  const canReturn = canAny(ability, ['supplier-returns.manage'])
   const [createOpen, setCreateOpen] = useState(false)
 
   return (
@@ -47,7 +47,7 @@ function ReceivingsPage() {
         config={config}
         rows={data?.rows ?? []}
         isLoading={isLoading}
-        canCreate={canReceive}
+        canCreate={canReturn}
         onCreate={() => setCreateOpen(true)}
         serverPagination={{
           hasPrev: pager.hasPrev,
@@ -56,7 +56,7 @@ function ReceivingsPage() {
           onNext: () => pager.goNext(data?.nextCursor ?? null),
         }}
       />
-      <CreateReceivingDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateSupplierReturnDialog open={createOpen} onOpenChange={setCreateOpen} />
     </>
   )
 }

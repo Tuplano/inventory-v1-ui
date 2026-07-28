@@ -66,6 +66,7 @@ export function movementTypeTone(type: MovementType): Tone {
     TRANSFER_IN: 'accent',
     TRANSFER_OUT: 'accent',
     RETURN: 'teal',
+    RETURN_TO_SUPPLIER: 'red',
     PRODUCTION_CONSUME: 'red',
     PRODUCTION_OUTPUT: 'green',
   }

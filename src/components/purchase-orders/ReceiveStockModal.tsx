@@ -42,11 +42,15 @@ export function ReceiveStockModal({
   onOpenChange,
   po,
   supplierName,
+  onBack,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   po: PoDetail
   supplierName: string
+  /** When set, shows a "‹ Choose a different PO" link — used by CreateReceivingDialog's
+   * PO-picker flow so the user can back out to step 1 without closing the whole dialog. */
+  onBack?: () => void
 }) {
   const { data: locations = [] } = useLocations()
   const { data: batches = [] } = useBatches()
@@ -167,6 +171,15 @@ export function ReceiveStockModal({
               Against {po.number} · {supplierName} — number assigned on post · posts RECEIVING movements &amp; updates stock on hand
             </div>
           </div>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex-none text-[11.5px] font-semibold text-[var(--brand-accent)] hover:underline"
+            >
+              ‹ Choose a different PO
+            </button>
+          )}
         </DialogHeader>
 
         <div className="flex flex-none items-end gap-4 border-b border-[var(--border-2)] bg-[var(--surface-2)] px-4 py-3">

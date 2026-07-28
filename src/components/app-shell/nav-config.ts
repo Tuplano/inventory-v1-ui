@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Tag,
   Truck,
+  Undo2,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -72,6 +73,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { route: 'pos', to: '/purchase-orders', label: 'Purchase orders', icon: ShoppingCart, permissions: ['purchase-orders.view'] },
       { route: 'receivings', to: '/receivings', label: 'Receivings', icon: Truck, permissions: ['purchase-orders.view'] },
+      { route: 'supplier-returns', to: '/supplier-returns', label: 'Supplier returns', icon: Undo2, permissions: ['supplier-returns.view'] },
     ],
   },
   {

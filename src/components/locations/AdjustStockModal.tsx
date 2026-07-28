@@ -273,6 +273,14 @@ export function AdjustStockModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-3.5 py-2">
+          <div className="rounded-md bg-[var(--surface-2)] px-3 py-2 text-[11px] leading-[1.4] text-[var(--text-3)]">
+            For stock issues with <strong className="text-[var(--text-2)]">no purchase order involved</strong> — a physical count came up
+            short/over, staff pulled stock for use, or damaged stock that's being scrapped in-house. Might this go{' '}
+            <strong className="text-[var(--text-2)]">back to the supplier</strong> (refund, replacement, credit)? Use{' '}
+            <strong className="text-[var(--text-2)]">Supplier returns</strong> instead — once you adjust it out here as Defective,
+            it can no longer be selected for a supplier return.
+          </div>
+
           <div>
             <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Location</Label>
             <Popover
@@ -364,6 +372,12 @@ export function AdjustStockModal({
                       </NativeSelectOption>
                     ))}
                   </NativeSelect>
+                  {reason === 'DEFECTIVE' && (
+                    <div className="mt-1.5 text-[10.5px] leading-[1.4] text-[var(--amber)]">
+                      Going to the supplier for a refund/replacement? Cancel this and use Supplier returns instead — once
+                      adjusted out here, this stock can't be selected for a return anymore.
+                    </div>
+                  )}
                 </div>
               ) : null}
 

@@ -17,6 +17,7 @@ import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
 import { Route as AuthedUomRouteImport } from './routes/_authed/uom'
 import { Route as AuthedSuppliersRouteImport } from './routes/_authed/suppliers'
+import { Route as AuthedSupplierReturnsRouteImport } from './routes/_authed/supplier-returns'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed/settings'
 import { Route as AuthedSerialsRouteImport } from './routes/_authed/serials'
 import { Route as AuthedRolesRouteImport } from './routes/_authed/roles'
@@ -75,6 +76,11 @@ const AuthedUomRoute = AuthedUomRouteImport.update({
 const AuthedSuppliersRoute = AuthedSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSupplierReturnsRoute = AuthedSupplierReturnsRouteImport.update({
+  id: '/supplier-returns',
+  path: '/supplier-returns',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/roles': typeof AuthedRolesRoute
   '/serials': typeof AuthedSerialsRoute
   '/settings': typeof AuthedSettingsRoute
+  '/supplier-returns': typeof AuthedSupplierReturnsRoute
   '/suppliers': typeof AuthedSuppliersRoute
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/roles': typeof AuthedRolesRoute
   '/serials': typeof AuthedSerialsRoute
   '/settings': typeof AuthedSettingsRoute
+  '/supplier-returns': typeof AuthedSupplierReturnsRoute
   '/suppliers': typeof AuthedSuppliersRoute
   '/uom': typeof AuthedUomRoute
   '/users': typeof AuthedUsersRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/_authed/roles': typeof AuthedRolesRoute
   '/_authed/serials': typeof AuthedSerialsRoute
   '/_authed/settings': typeof AuthedSettingsRoute
+  '/_authed/supplier-returns': typeof AuthedSupplierReturnsRoute
   '/_authed/suppliers': typeof AuthedSuppliersRoute
   '/_authed/uom': typeof AuthedUomRoute
   '/_authed/users': typeof AuthedUsersRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/roles'
     | '/serials'
     | '/settings'
+    | '/supplier-returns'
     | '/suppliers'
     | '/uom'
     | '/users'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/roles'
     | '/serials'
     | '/settings'
+    | '/supplier-returns'
     | '/suppliers'
     | '/uom'
     | '/users'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/_authed/roles'
     | '/_authed/serials'
     | '/_authed/settings'
+    | '/_authed/supplier-returns'
     | '/_authed/suppliers'
     | '/_authed/uom'
     | '/_authed/users'
@@ -423,6 +435,13 @@ declare module '@tanstack/react-router' {
       path: '/suppliers'
       fullPath: '/suppliers'
       preLoaderRoute: typeof AuthedSuppliersRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/supplier-returns': {
+      id: '/_authed/supplier-returns'
+      path: '/supplier-returns'
+      fullPath: '/supplier-returns'
+      preLoaderRoute: typeof AuthedSupplierReturnsRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/settings': {
@@ -583,6 +602,7 @@ interface AuthedRouteChildren {
   AuthedRolesRoute: typeof AuthedRolesRoute
   AuthedSerialsRoute: typeof AuthedSerialsRoute
   AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedSupplierReturnsRoute: typeof AuthedSupplierReturnsRoute
   AuthedSuppliersRoute: typeof AuthedSuppliersRoute
   AuthedUomRoute: typeof AuthedUomRoute
   AuthedUsersRoute: typeof AuthedUsersRoute
@@ -609,6 +629,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedRolesRoute: AuthedRolesRoute,
   AuthedSerialsRoute: AuthedSerialsRoute,
   AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedSupplierReturnsRoute: AuthedSupplierReturnsRoute,
   AuthedSuppliersRoute: AuthedSuppliersRoute,
   AuthedUomRoute: AuthedUomRoute,
   AuthedUsersRoute: AuthedUsersRoute,

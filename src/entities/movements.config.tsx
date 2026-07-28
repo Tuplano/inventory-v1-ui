@@ -48,7 +48,8 @@ export interface MovementRow {
 // `quantity` is always stored positive in the DB — direction comes from `type` (and, for
 // ADJUSTMENT, which of fromLocationId/toLocationId is set), never from the sign of the number.
 export function isOutgoingMovement(row: MovementRow): boolean {
-  if (row.type === 'ISSUE' || row.type === 'DEFECTIVE' || row.type === 'TRANSFER_OUT' || row.type === 'PRODUCTION_CONSUME') return true
+  if (row.type === 'ISSUE' || row.type === 'DEFECTIVE' || row.type === 'TRANSFER_OUT' || row.type === 'PRODUCTION_CONSUME' || row.type === 'RETURN_TO_SUPPLIER')
+    return true
   if (row.type === 'ADJUSTMENT') return !!row.fromLocationId
   return false
 }
@@ -71,11 +72,12 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
       { key: 'DEFECTIVE', label: 'Defective', queryParam: { key: 'type', value: 'DEFECTIVE' } },
       { key: 'ISSUE', label: 'Issue', queryParam: { key: 'type', value: 'ISSUE' } },
       { key: 'TRANSFER', label: 'Transfer', queryParam: { key: 'type', value: 'TRANSFER_IN,TRANSFER_OUT' } },
+      { key: 'RETURN_TO_SUPPLIER', label: 'Supplier return', queryParam: { key: 'type', value: 'RETURN_TO_SUPPLIER' } },
       { key: 'PRODUCTION', label: 'Production', queryParam: { key: 'type', value: 'PRODUCTION_CONSUME,PRODUCTION_OUTPUT' } },
     ],
     columns: [
       { key: 'createdAt', header: 'Date', sortable: true, sortValue: (r) => r.createdAt, render: (r) => <MonoCell value={r.createdAt.slice(0, 10)} color="var(--text-2)" /> },
-      { key: 'type', header: 'Type', render: (r) => <ToneBadge tone={movementTypeTone(r.type)} label={r.type.replace('_', ' ')} /> },
+      { key: 'type', header: 'Type', render: (r) => <ToneBadge tone={movementTypeTone(r.type)} label={r.type.replace(/_/g, ' ')} /> },
       { key: 'name', header: 'Product', render: (r) => <SubCell main={r.name} sub={r.code} /> },
       {
         key: 'quantity',
@@ -98,7 +100,7 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
         {
           label: 'Movement',
           rows: [
-            { label: 'Type', value: row.type.replace('_', ' '), tone: movementTypeTone(row.type) },
+            { label: 'Type', value: row.type.replace(/_/g, ' '), tone: movementTypeTone(row.type) },
             { label: 'Quantity', value: `${isOutgoingMovement(row) ? '-' : '+'}${row.quantity.toLocaleString()} ${row.uom}` },
             { label: 'By', value: row.createdByName || '—' },
             { label: 'Date', value: row.createdAt.slice(0, 10) },
