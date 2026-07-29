@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
+import { fetchPage } from '@/hooks/queries/paged'
 import { useScopeStore } from '@/stores/scope-store'
 import { batchStatus, type BatchRecord, type BatchRow } from '@/entities/batches.config'
 import type { ProductRecord } from '@/entities/products.config'
@@ -7,15 +8,15 @@ import type { PurchaseOrderRecord } from './use-purchase-orders'
 
 export function useBatches() {
   const companyId = useScopeStore((s) => s.companyId)
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['batches', companyId],
-    queryFn: async (): Promise<BatchRow[]> => {
-      const [{ data: batches }, { data: products }, { data: purchaseOrders }] = await Promise.all([
-        apiClient.get<BatchRecord[]>('/batches'),
+    queryFn: async ({ pageParam }): Promise<{ items: BatchRow[]; nextCursor: string | null }> => {
+      const [page, { data: products }, { data: purchaseOrders }] = await Promise.all([
+        fetchPage<BatchRecord>('/batches', pageParam),
         apiClient.get<ProductRecord[]>('/products'),
         apiClient.get<PurchaseOrderRecord[]>('/purchase-orders'),
       ])
-      return batches.map((b) => {
+      const items = page.items.map((b) => {
         const product = products.find((p) => p.id === b.productId)
         const purchaseOrder = purchaseOrders.find((po) => po.id === b.purchaseOrderId)
         const initialQty = Number(b.initialQty)
@@ -42,7 +43,11 @@ export function useBatches() {
           daysLeft,
         }
       })
+      return { items, nextCursor: page.nextCursor }
     },
+    initialPageParam: '',
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    select: (data) => data.pages.flatMap((p) => p.items),
     enabled: !!companyId,
   })
 }

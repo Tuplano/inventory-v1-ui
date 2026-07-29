@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { SearchSelect } from '@/components/ui/search-select'
 import { useUnplacedStock } from '@/hooks/queries/use-unplaced-stock'
 import { usePlaceStock } from '@/hooks/mutations/use-place-stock'
 import { SerialPickerField } from '@/components/locations/SerialPickerField'
@@ -104,13 +104,18 @@ export function PlaceStockModal({
             {products.length === 0 ? (
               <div className="text-xs text-[var(--text-3)]">No unplaced stock at this branch.</div>
             ) : (
-              <NativeSelect className="w-full" value={productId} onChange={(e) => handleProductChange(e.target.value)}>
-                {products.map((p) => (
-                  <NativeSelectOption key={p.productId} value={p.productId}>
-                    {p.name} ({p.sku}) · {p.qty.toLocaleString()} unplaced
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <SearchSelect
+                value={productId}
+                onChange={handleProductChange}
+                placeholder="Select a product"
+                searchPlaceholder="Search products…"
+                options={products.map((p) => ({
+                  value: p.productId,
+                  label: p.name,
+                  sublabel: p.sku,
+                  hint: `${p.qty.toLocaleString()} unplaced`,
+                }))}
+              />
             )}
           </div>
 

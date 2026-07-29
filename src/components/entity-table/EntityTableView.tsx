@@ -27,6 +27,7 @@ export function EntityTableView<TRow>({
   onEditRow,
   onDeleteRow,
   serverPagination,
+  loadMore,
   canCreate = true,
 }: {
   config: EntityTableConfig<TRow>
@@ -37,6 +38,10 @@ export function EntityTableView<TRow>({
   onDeleteRow?: (row: TRow) => void
   /** When set, `rows` is already the current server-fetched page — filtering/sorting/local paging are skipped and Prev/Next drive the fetch instead. */
   serverPagination?: ServerPaginationControls
+  /** For locally paged tables whose `rows` are an incrementally fetched (cursor-paged) list:
+   * pressing Next on the last local page pulls the next server page instead of dead-ending.
+   * Ignored when `serverPagination` is set. */
+  loadMore?: { hasMore: boolean; isFetching: boolean; fetch: () => void }
   /** Set to false to hide the primary "New X" action for users without the create/manage permission. */
   canCreate?: boolean
 }) {
@@ -218,7 +223,11 @@ export function EntityTableView<TRow>({
         )}
 
         <div className="flex items-center justify-between border-t border-[var(--border-2)] bg-[var(--surface-2)] px-3.5 py-2 text-[11.5px] text-[var(--text-3)]">
-          <div>{serverPagination ? `${pageRows.length} records on this page` : `${pageRows.length} of ${rows.length} records`}</div>
+          <div>
+            {serverPagination
+              ? `${pageRows.length} records on this page`
+              : `${pageRows.length} of ${rows.length}${loadMore?.hasMore ? '+' : ''} records`}
+          </div>
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -235,8 +244,23 @@ export function EntityTableView<TRow>({
             )}
             <button
               type="button"
-              disabled={serverPagination ? !serverPagination.hasNext : page >= totalPages}
-              onClick={() => (serverPagination ? serverPagination.onNext() : setLocalPage((p) => Math.min(totalPages, p + 1)))}
+              disabled={
+                serverPagination
+                  ? !serverPagination.hasNext
+                  : page >= totalPages && (!loadMore?.hasMore || loadMore.isFetching)
+              }
+              onClick={() => {
+                if (serverPagination) {
+                  serverPagination.onNext()
+                  return
+                }
+                if (page >= totalPages && loadMore?.hasMore) {
+                  // `page` is clamped to totalPages, so the view advances on its own once the
+                  // freshly fetched rows extend the list.
+                  loadMore.fetch()
+                }
+                setLocalPage(page + 1)
+              }}
               className="rounded-md border border-border bg-card px-2.5 py-1 disabled:opacity-50"
             >
               Next

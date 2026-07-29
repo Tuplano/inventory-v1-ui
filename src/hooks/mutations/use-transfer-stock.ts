@@ -6,9 +6,13 @@ export interface TransferStockInput {
   productId: string
   fromLocationId: string
   toLocationId: string
-  /** For lot-tracked (BATCH/NONE) products. Mutually exclusive with serialNumbers. */
+  /** FIFO mode for lot-tracked (BATCH/NONE) products. Exactly one of quantity/lines/serialNumbers. */
   quantity?: number
-  /** For SERIAL-tracked products — the exact units to move. Mutually exclusive with quantity. */
+  /** Explicit-lot mode — the exact lot rows the staff physically moved, keyed by the
+   * ReceivingLineLocation row id from location contents. Preferred for batch-tracked stock so the
+   * system records the batch that actually moved instead of guessing FIFO. */
+  lines?: { receivingLineLocationId: string; quantity: number }[]
+  /** For SERIAL-tracked products — the exact units to move. */
   serialNumbers?: string[]
   remarks?: string
 }
@@ -20,7 +24,13 @@ export interface TransferStockResult {
   quantity: number
   /** Present only when the transfer was serial-tracked. */
   serialNumbers?: string[]
-  lines: { receivingLineId: string; receivingId: string; quantityMoved: number }[]
+  lines: {
+    receivingLineId: string | null
+    receivingId: string | null
+    receivingLineLocationId: string | null
+    batchId: string | null
+    quantityMoved: number
+  }[]
 }
 
 export function useTransferStock() {

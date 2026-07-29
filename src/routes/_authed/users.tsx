@@ -27,7 +27,7 @@ export const Route = createFileRoute('/_authed/users')({
 
 function UsersPage() {
   const company = useCurrentCompany()
-  const { data: rows = [], isLoading } = useUsers()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useUsers()
   const { data: invites = [] } = useInvites()
   const revokeInvite = useRevokeInvite()
   const resendInvite = useResendInvite()
@@ -48,6 +48,7 @@ function UsersPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => setInviteOpen(true)}
         onEditRow={

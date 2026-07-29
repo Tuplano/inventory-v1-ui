@@ -18,7 +18,7 @@ export const Route = createFileRoute('/_authed/boms/')({
 
 function BomsPage() {
   const branch = useCurrentBranch()
-  const { data: rows = [], isLoading } = useBoms()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useBoms()
   const config = createBomsConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const ability = useAbility()
@@ -30,6 +30,7 @@ function BomsPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => setFormOpen(true)}
       />

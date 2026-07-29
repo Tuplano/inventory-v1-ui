@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authed/inventory')({
 
 function InventoryPage() {
   const branch = useCurrentBranch()
-  const { data: rows = [], isLoading } = useInventory()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInventory()
   const config = createInventoryConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<InventoryRow | null>(null)
@@ -33,6 +33,7 @@ function InventoryPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         onEditRow={
           canManage
             ? (row) => {

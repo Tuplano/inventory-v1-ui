@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authed/categories')({
 
 function CategoriesPage() {
   const branch = useCurrentBranch()
-  const { data: rows = [], isLoading } = useCategories()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useCategories()
   const config = createCategoriesConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<CategoryRecord | null>(null)
@@ -33,6 +33,7 @@ function CategoriesPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => {
           setEditingRow(null)

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SearchSelect } from '@/components/ui/search-select'
 import { useCreateBatch } from '@/hooks/mutations/use-create-batch'
 import { useUpdateBatch } from '@/hooks/mutations/use-update-batch'
 import { useProducts } from '@/hooks/queries/use-products'
@@ -51,7 +52,7 @@ export function BatchFormDialog({
   batch?: BatchRow | null
 }) {
   const isEdit = !!batch
-  const { data: products = [] } = useProducts()
+  const { data: products = [], fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts()
   const { data: suppliers = [] } = useSuppliers()
   const createBatch = useCreateBatch()
   const updateBatch = useUpdateBatch()
@@ -144,18 +145,14 @@ export function BatchFormDialog({
                     control={control}
                     name="productId"
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select product" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {batchProducts.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.sku} — {p.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select product"
+                        searchPlaceholder="Search products…"
+                        options={batchProducts.map((p) => ({ value: p.id, label: p.name, sublabel: p.sku }))}
+                        loadMore={{ hasMore: !!hasNextPage, isLoading: isFetchingNextPage, onLoad: () => fetchNextPage() }}
+                      />
                     )}
                   />
                   {errors.productId && <p className="mt-1 text-xs text-[var(--red)]">{errors.productId.message}</p>}

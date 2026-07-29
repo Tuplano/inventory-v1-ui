@@ -11,7 +11,11 @@ export interface LocationContentLine {
   receivingId: string | null
   receivingNumber: string | null
   receivingLineId: string | null
+  /** The lot row's own id — the key for explicit-lot transfers. Null for serial-summary lines. */
+  receivingLineLocationId: string | null
   batchId: string | null
+  batchNumber: string | null
+  expiryDate: string | null
   /** True for a serial-tracked line — `quantity` is the count. The actual serial numbers are
    * fetched separately, paginated, via useLocationSerials — a bin can hold thousands of one
    * product's serials, too many to embed in this list. */

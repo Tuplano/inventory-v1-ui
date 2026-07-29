@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authed/suppliers')({
 
 function SuppliersPage() {
   const company = useCurrentCompany()
-  const { data: rows = [], isLoading } = useSuppliers()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useSuppliers()
   const config = createSuppliersConfig(company?.code ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<SupplierRecord | null>(null)
@@ -33,6 +33,7 @@ function SuppliersPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => {
           setEditingRow(null)

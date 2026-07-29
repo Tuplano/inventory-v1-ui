@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authed/batches')({
 
 function BatchesPage() {
   const branch = useCurrentBranch()
-  const { data: rows = [], isLoading } = useBatches()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useBatches()
   const config = createBatchesConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<BatchRow | null>(null)
@@ -33,6 +33,7 @@ function BatchesPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => {
           setEditingRow(null)

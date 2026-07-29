@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { PlusCircle, MinusCircle, ClipboardCheck, ChevronDown, Check } from 'lucide-react'
+import { PlusCircle, MinusCircle, ClipboardCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { SearchSelect } from '@/components/ui/search-select'
 import { useProducts } from '@/hooks/queries/use-products'
 import { useBatches } from '@/hooks/queries/use-batches'
 import { useLocations } from '@/hooks/queries/use-locations'
 import { useLocation, type LocationContentLine } from '@/hooks/queries/use-location'
 import { ADJUST_STOCK_REASON_LABELS, useAdjustStock, type AdjustStockReason } from '@/hooks/mutations/use-adjust-stock'
 import { SerialPickerField } from '@/components/locations/SerialPickerField'
-import { cn } from '@/lib/utils'
 
 type Direction = 'DECREASE' | 'INCREASE'
 
@@ -42,7 +41,7 @@ export function AdjustStockModal({
   /** Pre-fills the location picker when opened from a location's own detail page. Still changeable. */
   defaultLocationId?: string
 }) {
-  const { data: products = [] } = useProducts()
+  const { data: products = [], fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts()
   const { data: batches = [] } = useBatches()
   const { data: locations = [] } = useLocations()
   const adjustStock = useAdjustStock()
@@ -104,8 +103,6 @@ export function AdjustStockModal({
     return products.filter((p) => idsHere.has(p.id))
   }, [products, contents])
 
-  const [locationPickerOpen, setLocationPickerOpen] = useState(false)
-  const [locationSearch, setLocationSearch] = useState('')
   const [direction, setDirection] = useState<Direction>('DECREASE')
   const [reason, setReason] = useState<AdjustStockReason>('COUNT_CORRECTION')
   const [groupKey, setGroupKey] = useState('')
@@ -117,16 +114,9 @@ export function AdjustStockModal({
   const [foundQuantity, setFoundQuantity] = useState('')
   const [remarks, setRemarks] = useState('')
 
-  const filteredLocations = useMemo(() => {
-    const q = locationSearch.trim().toLowerCase()
-    if (!q) return locations
-    return locations.filter((l) => l.name.toLowerCase().includes(q) || l.code.toLowerCase().includes(q))
-  }, [locations, locationSearch])
-
   useEffect(() => {
     if (!open) return
     setLocationId(defaultLocationId ?? '')
-    setLocationSearch('')
     setDirection('DECREASE')
     setReason('COUNT_CORRECTION')
     setIncreaseProductId('')
@@ -308,58 +298,14 @@ export function AdjustStockModal({
 
           <div>
             <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Location</Label>
-            <Popover
-              open={locationPickerOpen}
-              onOpenChange={(next) => {
-                setLocationPickerOpen(next)
-                if (!next) setLocationSearch('')
-              }}
-            >
-              <PopoverTrigger
-                className={cn(
-                  'flex h-9 w-full items-center justify-between rounded-md border border-[var(--border-2)] bg-transparent px-3 text-[13px]',
-                  !locationName && 'text-[var(--text-3)]',
-                )}
-              >
-                <span className="truncate">{locationName || 'Select a location'}</span>
-                <ChevronDown className="size-3.5 shrink-0 text-[var(--text-3)]" />
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-[320px] p-2">
-                <Input
-                  autoFocus
-                  placeholder="Search locations…"
-                  value={locationSearch}
-                  onChange={(e) => setLocationSearch(e.target.value)}
-                  className="mb-2"
-                />
-                <div className="max-h-[220px] overflow-y-auto">
-                  {filteredLocations.length === 0 ? (
-                    <div className="px-2 py-3 text-center text-[12px] text-[var(--text-3)]">No locations found.</div>
-                  ) : (
-                    filteredLocations.map((l) => (
-                      <button
-                        key={l.id}
-                        type="button"
-                        onClick={() => {
-                          setLocationId(l.id)
-                          setLocationPickerOpen(false)
-                          setLocationSearch('')
-                        }}
-                        className={cn(
-                          'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] hover:bg-[var(--surface-3)]',
-                          l.id === locationId && 'bg-[var(--brand-accent-weak)]',
-                        )}
-                      >
-                        <span>
-                          {l.name} <span className="font-mono text-[10.5px] text-[var(--text-3)]">({l.code})</span>
-                        </span>
-                        {l.id === locationId && <Check className="size-3.5 shrink-0 text-[var(--brand-accent)]" />}
-                      </button>
-                    ))
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <SearchSelect
+              value={locationId}
+              onChange={setLocationId}
+              placeholder="Select a location"
+              searchPlaceholder="Search locations…"
+              emptyText="No locations found."
+              options={locations.map((l) => ({ value: l.id, label: l.name, sublabel: l.code }))}
+            />
           </div>
 
           <div className="flex gap-2">
@@ -412,22 +358,22 @@ export function AdjustStockModal({
                   {decreaseGroups.length === 0 ? (
                     <div className="text-xs text-[var(--text-3)]">Nothing at this location to adjust.</div>
                   ) : (
-                    <NativeSelect
-                      className="w-full"
+                    <SearchSelect
                       value={groupKey}
-                      onChange={(e) => {
-                        setGroupKey(e.target.value)
+                      onChange={(next) => {
+                        setGroupKey(next)
                         setQuantity('')
                         setSelectedSerials([])
                       }}
-                    >
-                      {decreaseGroups.map((g) => (
-                        <NativeSelectOption key={g.key} value={g.key}>
-                          {g.name} ({g.sku}){g.receivingNumber ? ` · via ${g.receivingNumber}` : ''}
-                          {g.batchId ? ` · batch` : ''} · {g.qty.toLocaleString()} available
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
+                      placeholder="Select what to adjust"
+                      searchPlaceholder="Search products…"
+                      options={decreaseGroups.map((g) => ({
+                        value: g.key,
+                        label: g.name,
+                        sublabel: g.sku,
+                        hint: `${g.receivingNumber ? `via ${g.receivingNumber} · ` : ''}${g.batchId ? 'batch · ' : ''}${g.qty.toLocaleString()} available`,
+                      }))}
+                    />
                   )}
                 </div>
               ) : (
@@ -439,39 +385,37 @@ export function AdjustStockModal({
                         Nothing has ever been placed here — use Place received stock or a transfer first.
                       </div>
                     ) : (
-                      <NativeSelect
-                        className="w-full"
+                      <SearchSelect
                         value={increaseProductId}
-                        onChange={(e) => {
-                          setIncreaseProductId(e.target.value)
+                        onChange={(next) => {
+                          setIncreaseProductId(next)
                           setIncreaseBatchId('')
                           setQuantity('')
                           setNewSerialsRaw('')
                           setFoundQuantity('')
                         }}
-                      >
-                        <NativeSelectOption value="">Select a product</NativeSelectOption>
-                        {productsAtLocation.map((p) => (
-                          <NativeSelectOption key={p.id} value={p.id}>
-                            {p.sku} — {p.name}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
+                        placeholder="Select a product"
+                        searchPlaceholder="Search products…"
+                        options={productsAtLocation.map((p) => ({ value: p.id, label: p.name, sublabel: p.sku }))}
+                        loadMore={{ hasMore: !!hasNextPage, isLoading: isFetchingNextPage, onLoad: () => fetchNextPage() }}
+                      />
                     )}
                   </div>
 
                   {increaseTracking === 'BATCH' && (
                     <div>
                       <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Batch</Label>
-                      <NativeSelect className="w-full" value={increaseBatchId} onChange={(e) => setIncreaseBatchId(e.target.value)}>
-                        <NativeSelectOption value="">Select a batch</NativeSelectOption>
-                        {increaseBatchOptions.map((b) => (
-                          <NativeSelectOption key={b.id} value={b.id}>
-                            {b.batchNumber}
-                            {b.lotNumber ? ` · ${b.lotNumber}` : ''}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
+                      <SearchSelect
+                        value={increaseBatchId}
+                        onChange={setIncreaseBatchId}
+                        placeholder="Select a batch"
+                        searchPlaceholder="Search batches…"
+                        options={increaseBatchOptions.map((b) => ({
+                          value: b.id,
+                          label: b.batchNumber,
+                          sublabel: b.lotNumber ?? undefined,
+                        }))}
+                      />
                       {increaseProductId && increaseBatchOptions.length === 0 && (
                         <div className="mt-1 text-[10.5px] text-[var(--text-3)]">No active batches for this product yet.</div>
                       )}

@@ -21,7 +21,7 @@ export const Route = createFileRoute('/_authed/locations/')({
 
 function LocationsPage() {
   const branch = useCurrentBranch()
-  const { data: rows = [], isLoading } = useLocations()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useLocations()
   const { data: unplacedStock = [] } = useUnplacedStock()
   const config = createLocationsConfig(branch?.name ?? '')
   const [formOpen, setFormOpen] = useState(false)
@@ -52,6 +52,7 @@ function LocationsPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => setFormOpen(true)}
       />

@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authed/uom')({
 
 function UomPage() {
   const company = useCurrentCompany()
-  const { data: rows = [], isLoading } = useUoms()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useUoms()
   const config = createUomConfig(company?.code ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<UomRecord | null>(null)
@@ -33,6 +33,7 @@ function UomPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => {
           setEditingRow(null)

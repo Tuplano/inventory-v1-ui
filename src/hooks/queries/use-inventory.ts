@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { fetchPage } from '@/hooks/queries/paged'
 import { useScopeStore } from '@/stores/scope-store'
 import { useMyPermissions } from '@/hooks/queries/use-my-permissions'
 import type { InventoryItemRecord, InventoryRow } from '@/entities/inventory.config'
@@ -7,12 +7,12 @@ import type { InventoryItemRecord, InventoryRow } from '@/entities/inventory.con
 export function useInventory() {
   const { companyId, branchId } = useScopeStore()
   const { data: grantedPermissions } = useMyPermissions()
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['inventory', companyId, branchId],
-    queryFn: async (): Promise<InventoryRow[]> => {
-      const { data: items } = await apiClient.get<InventoryItemRecord[]>('/inventory-items')
+    queryFn: async ({ pageParam }): Promise<{ items: InventoryRow[]; nextCursor: string | null }> => {
+      const page = await fetchPage<InventoryItemRecord>('/inventory-items', pageParam)
 
-      return items.map((i) => {
+      const items = page.items.map((i) => {
         const quantity = Number(i.quantity)
         const minStockLevel = i.minStockLevel != null ? Number(i.minStockLevel) : null
         const maxStockLevel = i.maxStockLevel != null ? Number(i.maxStockLevel) : null
@@ -35,7 +35,11 @@ export function useInventory() {
           floatingQty: i.floatingQty,
         }
       })
+      return { items, nextCursor: page.nextCursor }
     },
+    initialPageParam: '',
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    select: (data) => data.pages.flatMap((p) => p.items),
     enabled: !!companyId && !!branchId && !!grantedPermissions?.has('inventory.view'),
   })
 }

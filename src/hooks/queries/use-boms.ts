@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
+import { fetchPage } from '@/hooks/queries/paged'
 import { useScopeStore } from '@/stores/scope-store'
 import type { BomRow } from '@/entities/boms.config'
 import type { ProductRecord } from '@/entities/products.config'
@@ -29,14 +30,14 @@ export interface BomRecord {
 
 export function useBoms() {
   const companyId = useScopeStore((s) => s.companyId)
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['boms', companyId],
-    queryFn: async (): Promise<BomRow[]> => {
-      const [{ data: boms }, { data: products }] = await Promise.all([
-        apiClient.get<BomRecord[]>('/boms'),
+    queryFn: async ({ pageParam }): Promise<{ items: BomRow[]; nextCursor: string | null }> => {
+      const [page, { data: products }] = await Promise.all([
+        fetchPage<BomRecord>('/boms', pageParam),
         apiClient.get<ProductRecord[]>('/products'),
       ])
-      return boms.map((b) => {
+      const items = page.items.map((b) => {
         const product = products.find((p) => p.id === b.productId)
         return {
           id: b.id,
@@ -50,7 +51,11 @@ export function useBoms() {
           createdAt: b.createdAt.slice(0, 10),
         }
       })
+      return { items, nextCursor: page.nextCursor }
     },
+    initialPageParam: '',
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    select: (data) => data.pages.flatMap((p) => p.items),
     enabled: !!companyId,
   })
 }

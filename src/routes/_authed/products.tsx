@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authed/products')({
 
 function ProductsPage() {
   const company = useCurrentCompany()
-  const { data: rows = [], isLoading } = useProducts()
+  const { data: rows = [], isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts()
   const config = createProductsConfig(company?.code ?? '')
   const [formOpen, setFormOpen] = useState(false)
   const [editingRow, setEditingRow] = useState<ProductRow | null>(null)
@@ -33,6 +33,7 @@ function ProductsPage() {
         config={config}
         rows={rows}
         isLoading={isLoading}
+        loadMore={{ hasMore: !!hasNextPage, isFetching: isFetchingNextPage, fetch: () => fetchNextPage() }}
         canCreate={canManage}
         onCreate={() => {
           setEditingRow(null)
