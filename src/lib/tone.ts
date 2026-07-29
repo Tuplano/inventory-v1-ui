@@ -69,6 +69,7 @@ export function movementTypeTone(type: MovementType): Tone {
     RETURN_TO_SUPPLIER: 'red',
     PRODUCTION_CONSUME: 'red',
     PRODUCTION_OUTPUT: 'green',
+    SERIAL_ASSIGNMENT: 'violet',
   }
   return map[type]
 }
@@ -78,6 +79,7 @@ export function serialStatusTone(status: SerialStatus): Tone {
     IN_STOCK: 'green',
     ISSUED: 'amber',
     RETURNED: 'accent',
+    RETURNED_TO_SUPPLIER: 'red',
     DAMAGED: 'red',
   }
   return map[status]

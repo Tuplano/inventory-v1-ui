@@ -15,6 +15,7 @@ export interface StockMovementRecord {
   createdById: string | null
   createdBy: { id: string; name: string } | null
   purchaseOrderLineId: string | null
+  receivingLineId: string | null
   fromLocationId: string | null
   toLocationId: string | null
   batchId: string | null
@@ -54,6 +55,17 @@ export function isOutgoingMovement(row: MovementRow): boolean {
   return false
 }
 
+// SERIAL_ASSIGNMENT converts anonymous lot quantity into tracked serials in place — stock on
+// hand doesn't change, so it's neither incoming nor outgoing and renders unsigned/neutral.
+export function isNeutralMovement(row: MovementRow): boolean {
+  return row.type === 'SERIAL_ASSIGNMENT'
+}
+
+function signedQuantity(row: MovementRow): string {
+  if (isNeutralMovement(row)) return row.quantity.toLocaleString()
+  return (isOutgoingMovement(row) ? '-' : '+') + row.quantity.toLocaleString()
+}
+
 export function createMovementsConfig(branchName: string): EntityTableConfig<MovementRow> {
   return {
     key: 'movements',
@@ -74,6 +86,7 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
       { key: 'TRANSFER', label: 'Transfer', queryParam: { key: 'type', value: 'TRANSFER_IN,TRANSFER_OUT' } },
       { key: 'RETURN_TO_SUPPLIER', label: 'Supplier return', queryParam: { key: 'type', value: 'RETURN_TO_SUPPLIER' } },
       { key: 'PRODUCTION', label: 'Production', queryParam: { key: 'type', value: 'PRODUCTION_CONSUME,PRODUCTION_OUTPUT' } },
+      { key: 'SERIAL_ASSIGNMENT', label: 'Serial assign', queryParam: { key: 'type', value: 'SERIAL_ASSIGNMENT' } },
     ],
     columns: [
       { key: 'createdAt', header: 'Date', sortable: true, sortValue: (r) => r.createdAt, render: (r) => <MonoCell value={r.createdAt.slice(0, 10)} color="var(--text-2)" /> },
@@ -83,8 +96,11 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
         key: 'quantity',
         header: 'Qty',
         render: (r) => (
-          <span className="font-mono text-[12px] font-semibold" style={{ color: isOutgoingMovement(r) ? 'var(--red)' : 'var(--green)' }}>
-            {(isOutgoingMovement(r) ? '-' : '+') + r.quantity.toLocaleString()} {r.uom}
+          <span
+            className="font-mono text-[12px] font-semibold"
+            style={{ color: isNeutralMovement(r) ? 'var(--text-2)' : isOutgoingMovement(r) ? 'var(--red)' : 'var(--green)' }}
+          >
+            {signedQuantity(r)} {r.uom}
           </span>
         ),
       },
@@ -101,7 +117,7 @@ export function createMovementsConfig(branchName: string): EntityTableConfig<Mov
           label: 'Movement',
           rows: [
             { label: 'Type', value: row.type.replace(/_/g, ' '), tone: movementTypeTone(row.type) },
-            { label: 'Quantity', value: `${isOutgoingMovement(row) ? '-' : '+'}${row.quantity.toLocaleString()} ${row.uom}` },
+            { label: 'Quantity', value: `${signedQuantity(row)} ${row.uom}` },
             { label: 'By', value: row.createdByName || '—' },
             { label: 'Date', value: row.createdAt.slice(0, 10) },
           ],

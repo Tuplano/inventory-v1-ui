@@ -16,6 +16,9 @@ export interface AdjustStockInput {
   direction: 'INCREASE' | 'DECREASE'
   reason?: AdjustStockReason
   batchId?: string
+  /** DECREASE only — pins the deduction to one specific receiving line's lot instead of letting
+   * the backend FIFO-consume oldest-first across every lot of this product (+batch) at the bin. */
+  receivingLineId?: string
   quantity?: number
   serialNumbers?: string[]
   remarks: string

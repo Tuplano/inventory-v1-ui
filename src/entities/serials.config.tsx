@@ -49,24 +49,25 @@ export function createSerialsConfig(branchName: string): EntityTableConfig<Seria
       { key: 'IN_STOCK', label: 'In stock', queryParam: { key: 'status', value: 'IN_STOCK' } },
       { key: 'ISSUED', label: 'Issued', queryParam: { key: 'status', value: 'ISSUED' } },
       { key: 'RETURNED', label: 'Returned', queryParam: { key: 'status', value: 'RETURNED' } },
+      { key: 'RETURNED_TO_SUPPLIER', label: 'To supplier', queryParam: { key: 'status', value: 'RETURNED_TO_SUPPLIER' } },
       { key: 'DAMAGED', label: 'Damaged', queryParam: { key: 'status', value: 'DAMAGED' } },
     ],
     columns: [
       { key: 'serialNumber', header: 'Serial #', sortable: true, sortValue: (r) => r.serialNumber, render: (r) => <MonoCell value={r.serialNumber} weight={600} /> },
       { key: 'name', header: 'Product', render: (r) => <SubCell main={r.name} sub={r.code} /> },
-      { key: 'status', header: 'Status', render: (r) => <ToneBadge tone={serialStatusTone(r.status)} label={r.status.replace('_', ' ')} dot /> },
+      { key: 'status', header: 'Status', render: (r) => <ToneBadge tone={serialStatusTone(r.status)} label={r.status.replace(/_/g, ' ')} dot /> },
       { key: 'locationLabel', header: 'Location', render: (r) => <MonoCell value={r.locationLabel} color="var(--text-2)" /> },
     ],
     drawer: (row) => ({
       title: row.name,
       subtitle: row.serialNumber,
-      badge: { label: row.status.replace('_', ' '), tone: serialStatusTone(row.status) },
+      badge: { label: row.status.replace(/_/g, ' '), tone: serialStatusTone(row.status) },
       sections: [
         {
           label: 'Unit',
           rows: [
             { label: 'Product', value: row.name },
-            { label: 'Status', value: row.status.replace('_', ' ') },
+            { label: 'Status', value: row.status.replace(/_/g, ' ') },
             { label: 'Location', value: row.locationLabel },
             { label: 'Branch', value: branchName },
           ],

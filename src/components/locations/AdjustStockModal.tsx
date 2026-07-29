@@ -54,17 +54,41 @@ export function AdjustStockModal({
 
   const trackingByProduct = useMemo(() => new Map(products.map((p) => [p.id, p.trackingType])), [products])
 
-  // What's already at this bin, grouped by product + batch (batch precision matters for a count
-  // correction, unlike a transfer which just moves total quantity FIFO regardless of batch).
+  // What's already at this bin, grouped by product + batch + receiving line. Keeping each
+  // receiving line separate (rather than summing every lot of a product/batch together) means a
+  // correction targets the exact receipt the user is looking at instead of the backend silently
+  // FIFO-consuming oldest-first across receipts the user never chose — see the receivingLineId
+  // passed through to useAdjustStock below. Serial-tracked lines have no lot of their own
+  // (receivingLineId is null for those, per LocationContentLine) and stay grouped by product+batch
+  // since serial selection pins the exact units anyway.
   const decreaseGroups = useMemo(() => {
     const groups: Record<
       string,
-      { productId: string; batchId: string | null; name: string; sku: string; qty: number; isSerialTracked: boolean }
+      {
+        productId: string
+        batchId: string | null
+        receivingLineId: string | null
+        receivingNumber: string | null
+        name: string
+        sku: string
+        qty: number
+        isSerialTracked: boolean
+      }
     > = {}
     for (const c of contents) {
-      const key = `${c.productId}::${c.batchId ?? 'none'}`
+      const key = `${c.productId}::${c.batchId ?? 'none'}::${c.receivingLineId ?? 'none'}`
       const entry =
-        groups[key] ?? { productId: c.productId, batchId: c.batchId, name: c.productName, sku: c.productSku, qty: 0, isSerialTracked: false }
+        groups[key] ??
+        {
+          productId: c.productId,
+          batchId: c.batchId,
+          receivingLineId: c.receivingLineId,
+          receivingNumber: c.receivingNumber,
+          name: c.productName,
+          sku: c.productSku,
+          qty: 0,
+          isSerialTracked: false,
+        }
       entry.qty += c.quantity
       if (c.isSerialTracked) entry.isSerialTracked = true
       groups[key] = entry
@@ -199,6 +223,7 @@ export function AdjustStockModal({
           direction,
           reason,
           batchId: selectedGroup.batchId ?? undefined,
+          receivingLineId: selectedGroup.receivingLineId ?? undefined,
           quantity: qty,
           remarks: trimmedRemarks,
         },
@@ -383,7 +408,7 @@ export function AdjustStockModal({
 
               {direction === 'DECREASE' ? (
                 <div>
-                  <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Product / batch</Label>
+                  <Label className="mb-1.5 block text-[11.5px] font-semibold text-[var(--text-2)]">Product / receiving / batch</Label>
                   {decreaseGroups.length === 0 ? (
                     <div className="text-xs text-[var(--text-3)]">Nothing at this location to adjust.</div>
                   ) : (
@@ -398,7 +423,8 @@ export function AdjustStockModal({
                     >
                       {decreaseGroups.map((g) => (
                         <NativeSelectOption key={g.key} value={g.key}>
-                          {g.name} ({g.sku}){g.batchId ? ` · batch` : ''} · {g.qty.toLocaleString()} available
+                          {g.name} ({g.sku}){g.receivingNumber ? ` · via ${g.receivingNumber}` : ''}
+                          {g.batchId ? ` · batch` : ''} · {g.qty.toLocaleString()} available
                         </NativeSelectOption>
                       ))}
                     </NativeSelect>

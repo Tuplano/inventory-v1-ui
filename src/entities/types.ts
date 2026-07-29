@@ -5,7 +5,7 @@ import type { LucideIcon } from 'lucide-react'
 export type Tone = 'green' | 'amber' | 'red' | 'violet' | 'teal' | 'accent' | 'neutral'
 export type TrackingMode = 'NONE' | 'BATCH' | 'SERIAL'
 export type LocationType = 'STORAGE' | 'RECEIVING' | 'STAGING' | 'DISPATCH' | 'GENERAL'
-export type SerialStatus = 'IN_STOCK' | 'ISSUED' | 'RETURNED' | 'DAMAGED'
+export type SerialStatus = 'IN_STOCK' | 'ISSUED' | 'RETURNED' | 'RETURNED_TO_SUPPLIER' | 'DAMAGED'
 export type MovementType =
   | 'RECEIVING'
   | 'ISSUE'
@@ -17,6 +17,7 @@ export type MovementType =
   | 'RETURN_TO_SUPPLIER'
   | 'PRODUCTION_CONSUME'
   | 'PRODUCTION_OUTPUT'
+  | 'SERIAL_ASSIGNMENT'
 export type PoStatus = 'DRAFT' | 'CONFIRMED' | 'PARTIAL_RECEIVED' | 'FULLY_RECEIVED' | 'CLOSED' | 'CANCELLED'
 
 export const entityTableSearchSchema = z.object({
