@@ -3,7 +3,6 @@ import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
 import type { PurchaseOrderRow } from '@/entities/purchase-orders.config'
 import type { PoStatus } from '@/entities/types'
-import type { SupplierRecord } from '@/entities/suppliers.config'
 
 export interface PurchaseOrderLineRecord {
   id: string
@@ -17,6 +16,9 @@ export interface PurchaseOrderLineRecord {
   isClosed: boolean
   closedAt: string | null
   createdAt: string
+  /** Display joins embedded by the API. */
+  product: { name: string; sku: string; trackingType: 'NONE' | 'BATCH' | 'SERIAL' }
+  uom: { abbreviation: string }
 }
 
 export interface PurchaseOrderRecord {
@@ -31,6 +33,8 @@ export interface PurchaseOrderRecord {
   createdById: string | null
   createdAt: string
   lines: PurchaseOrderLineRecord[]
+  /** Display join embedded by the API. */
+  supplier: { name: string } | null
 }
 
 export function usePurchaseOrders() {
@@ -38,10 +42,7 @@ export function usePurchaseOrders() {
   return useQuery({
     queryKey: ['purchase-orders', branchId],
     queryFn: async (): Promise<PurchaseOrderRow[]> => {
-      const [{ data: pos }, { data: suppliers }] = await Promise.all([
-        apiClient.get<PurchaseOrderRecord[]>('/purchase-orders'),
-        apiClient.get<SupplierRecord[]>('/suppliers'),
-      ])
+      const { data: pos } = await apiClient.get<PurchaseOrderRecord[]>('/purchase-orders')
       return pos
         .filter((p) => p.branchId === branchId)
         .map((p) => {
@@ -53,7 +54,7 @@ export function usePurchaseOrders() {
             number: p.poNumber,
             status: p.status,
             orderDate: p.createdAt.slice(0, 10),
-            supplierName: suppliers.find((s) => s.id === p.supplierId)?.name ?? '',
+            supplierName: p.supplier?.name ?? '',
             lineCount: p.lines.length,
             value,
             progress: ordered ? Math.round((received / ordered) * 100) : 0,

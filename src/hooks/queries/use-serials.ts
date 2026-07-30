@@ -3,11 +3,15 @@ import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
 import type { SerialRecord, SerialRow } from '@/entities/serials.config'
 import type { SerialStatus } from '@/entities/types'
-import type { ProductRecord } from '@/entities/products.config'
-import type { ProductLocationRecord } from '@/entities/locations.config'
+
+/** Display joins embedded by the API — no client-side lookup-table fetches needed. */
+type SerialListItem = SerialRecord & {
+  product: { sku: string; name: string }
+  currentLocation: { code: string } | null
+}
 
 interface SerialsPage {
-  items: SerialRecord[]
+  items: SerialListItem[]
   nextCursor: string | null
 }
 
@@ -32,27 +36,16 @@ export function useSerials(params: UseSerialsParams = {}) {
   return useQuery({
     queryKey: ['serials', companyId, scopeBranchId, status, productId, branchId, q, cursor, limit],
     queryFn: async (): Promise<SerialsResult> => {
-      const [{ data: page }, { data: products }, locations] = await Promise.all([
-        apiClient.get<SerialsPage>('/serial-numbers', {
-          params: { status, productId, branchId, q: q || undefined, cursor, limit },
-        }),
-        apiClient.get<ProductRecord[]>('/products'),
-        apiClient
-          .get<ProductLocationRecord[]>('/product-locations')
-          .then((res) => res.data)
-          .catch(() => [] as ProductLocationRecord[]),
-      ])
-
-      const rows = page.items.map((s) => {
-        const product = products.find((p) => p.id === s.productId)
-        const location = locations.find((l) => l.id === s.currentLocationId)
-        return {
-          ...s,
-          code: product?.sku ?? '',
-          name: product?.name ?? '',
-          locationLabel: location?.code ?? s.currentLocationId ?? '—',
-        }
+      const { data: page } = await apiClient.get<SerialsPage>('/serial-numbers', {
+        params: { status, productId, branchId, q: q || undefined, cursor, limit },
       })
+
+      const rows = page.items.map((s) => ({
+        ...s,
+        code: s.product.sku,
+        name: s.product.name,
+        locationLabel: s.currentLocation?.code ?? s.currentLocationId ?? '—',
+      }))
 
       return { rows, nextCursor: page.nextCursor }
     },

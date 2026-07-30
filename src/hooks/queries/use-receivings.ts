@@ -2,12 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
 import type { ReceivingRow } from '@/entities/receivings.config'
-import type { PurchaseOrderRecord } from './use-purchase-orders'
-import type { SupplierRecord } from '@/entities/suppliers.config'
-import type { ProductRecord } from '@/entities/products.config'
-import type { UomRecord } from '@/entities/uom.config'
-import type { UserRecord } from '@/entities/users.config'
-import type { ProductLocationRecord } from '@/entities/locations.config'
 
 export interface ReceivingLineRecord {
   id: string
@@ -27,6 +21,10 @@ export interface ReceivingLineRecord {
    * lower than `receivedQty - returnedQty` once stock has left this receipt another way (BOM
    * production, transfers, adjustments). Server-computed, not a serialized Decimal. */
   availableToReturn: number
+  /** Display joins embedded by the API. */
+  product: { sku: string; name: string; trackingType: 'NONE' | 'BATCH' | 'SERIAL' }
+  uom: { abbreviation: string }
+  toLocation: { code: string } | null
 }
 
 export interface ReceivingRecord {
@@ -41,6 +39,9 @@ export interface ReceivingRecord {
   createdById: string | null
   createdAt: string
   lines: ReceivingLineRecord[]
+  /** Display joins embedded by the API. */
+  purchaseOrder: { poNumber: string; supplier: { name: string } | null } | null
+  createdBy: { name: string } | null
 }
 
 interface ReceivingsPage {
@@ -66,35 +67,23 @@ export function useReceivings(params: UseReceivingsParams = {}) {
   return useQuery({
     queryKey: ['receivings', companyId, branchId, q, cursor, limit],
     queryFn: async (): Promise<ReceivingsResult> => {
-      const [{ data: page }, { data: purchaseOrders }, { data: suppliers }, { data: products }, { data: uoms }, { data: users }, { data: locations }] =
-        await Promise.all([
-          apiClient.get<ReceivingsPage>('/receivings', { params: { branchId, q: q || undefined, cursor, limit } }),
-          apiClient.get<PurchaseOrderRecord[]>('/purchase-orders'),
-          apiClient.get<SupplierRecord[]>('/suppliers'),
-          apiClient.get<ProductRecord[]>('/products'),
-          apiClient.get<UomRecord[]>('/uom'),
-          // Permission-gated (users.view / product-locations.view) separately from receivings —
-          // fall back to an empty lookup table (and thus the raw ID) instead of failing the whole
-          // page for a viewer who can post receivings but can't browse users or locations.
-          apiClient.get<UserRecord[]>('/users').catch(() => ({ data: [] as UserRecord[] })),
-          apiClient.get<ProductLocationRecord[]>('/product-locations').catch(() => ({ data: [] as ProductLocationRecord[] })),
-        ])
-      const productCode = (productId: string) => products.find((p) => p.id === productId)?.sku ?? productId
-      const uomAbbr = (uomId: string) => uoms.find((u) => u.id === uomId)?.abbreviation ?? ''
-      const userName = (userId: string | null) => (userId ? (users.find((u) => u.id === userId)?.name ?? userId) : '—')
-      const locationLabel = (locationId: string | null) => (locationId ? (locations.find((l) => l.id === locationId)?.code ?? locationId) : '—')
+      const { data: page } = await apiClient.get<ReceivingsPage>('/receivings', {
+        params: { branchId, q: q || undefined, cursor, limit },
+      })
 
+      // Product SKUs for line display come embedded per line now — expose the same lookup shape
+      // the row consumers already use.
       const rows = page.items.map((r) => {
-        const po = purchaseOrders.find((p) => p.id === r.purchaseOrderId)
+        const skuByProduct = new Map(r.lines.map((l) => [l.productId, l.product.sku]))
         return {
           id: r.id,
           number: r.receivingNumber,
           poId: r.purchaseOrderId,
-          poNumber: po?.poNumber ?? '',
-          supplierName: suppliers.find((s) => s.id === po?.supplierId)?.name ?? '',
+          poNumber: r.purchaseOrder?.poNumber ?? '',
+          supplierName: r.purchaseOrder?.supplier?.name ?? '',
           ref: r.referenceNumber ?? '—',
           date: r.receivedDate.slice(0, 10),
-          by: userName(r.createdById),
+          by: r.createdBy?.name ?? (r.createdById ? r.createdById : '—'),
           lineCount: r.lines.length,
           units: r.lines.reduce((a, l) => a + Number(l.receivedQty), 0),
           value: r.lines.reduce((a, l) => a + Number(l.receivedQty) * Number(l.unitCost), 0),
@@ -103,10 +92,10 @@ export function useReceivings(params: UseReceivingsParams = {}) {
             purchaseOrderLineId: l.purchaseOrderLineId,
             productId: l.productId,
             qty: Number(l.receivedQty),
-            uom: uomAbbr(l.uomId),
-            toLoc: locationLabel(l.toLocationId),
+            uom: l.uom.abbreviation,
+            toLoc: l.toLocation?.code ?? '—',
           })),
-          productCode,
+          productCode: (productId: string) => skuByProduct.get(productId) ?? productId,
         }
       })
 

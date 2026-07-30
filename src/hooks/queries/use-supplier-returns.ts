@@ -2,12 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { useScopeStore } from '@/stores/scope-store'
 import type { SupplierReturnRow } from '@/entities/supplier-returns.config'
-import type { PurchaseOrderRecord } from './use-purchase-orders'
-import type { SupplierRecord } from '@/entities/suppliers.config'
-import type { ProductRecord } from '@/entities/products.config'
-import type { UomRecord } from '@/entities/uom.config'
-import type { UserRecord } from '@/entities/users.config'
-import type { ProductLocationRecord } from '@/entities/locations.config'
 
 export interface SupplierReturnLineRecord {
   id: string
@@ -22,6 +16,10 @@ export interface SupplierReturnLineRecord {
   fromLocationId: string
   serialNumberId: string | null
   createdAt: string
+  /** Display joins embedded by the API. */
+  product: { sku: string }
+  uom: { abbreviation: string }
+  fromLocation: { code: string } | null
 }
 
 export interface SupplierReturnRecord {
@@ -39,6 +37,9 @@ export interface SupplierReturnRecord {
   createdAt: string
   updatedAt: string
   lines: SupplierReturnLineRecord[]
+  /** Display joins embedded by the API. */
+  purchaseOrder: { poNumber: string; supplier: { name: string } | null } | null
+  createdBy: { name: string } | null
 }
 
 interface SupplierReturnsPage {
@@ -64,37 +65,22 @@ export function useSupplierReturns(params: UseSupplierReturnsParams = {}) {
   return useQuery({
     queryKey: ['supplier-returns', companyId, branchId, q, cursor, limit],
     queryFn: async (): Promise<SupplierReturnsResult> => {
-      const [{ data: page }, { data: purchaseOrders }, { data: suppliers }, { data: products }, { data: uoms }, { data: users }, { data: locations }] =
-        await Promise.all([
-          apiClient.get<SupplierReturnsPage>('/supplier-returns', { params: { branchId, q: q || undefined, cursor, limit } }),
-          apiClient.get<PurchaseOrderRecord[]>('/purchase-orders'),
-          apiClient.get<SupplierRecord[]>('/suppliers'),
-          apiClient.get<ProductRecord[]>('/products'),
-          apiClient.get<UomRecord[]>('/uom'),
-          // Both of these are permission-gated (users.view / product-locations.view) separately
-          // from supplier-returns itself — fall back to an empty lookup table (and thus the raw
-          // ID) rather than failing the whole page for a viewer who can post returns but can't
-          // browse the users or locations lists.
-          apiClient.get<UserRecord[]>('/users').catch(() => ({ data: [] as UserRecord[] })),
-          apiClient.get<ProductLocationRecord[]>('/product-locations').catch(() => ({ data: [] as ProductLocationRecord[] })),
-        ])
-      const productCode = (productId: string) => products.find((p) => p.id === productId)?.sku ?? productId
-      const uomAbbr = (uomId: string) => uoms.find((u) => u.id === uomId)?.abbreviation ?? ''
-      const userName = (userId: string | null) => (userId ? (users.find((u) => u.id === userId)?.name ?? userId) : '—')
-      const locationLabel = (locationId: string) => locations.find((l) => l.id === locationId)?.code ?? locationId
+      const { data: page } = await apiClient.get<SupplierReturnsPage>('/supplier-returns', {
+        params: { branchId, q: q || undefined, cursor, limit },
+      })
 
       const rows = page.items.map((r) => {
-        const po = purchaseOrders.find((p) => p.id === r.purchaseOrderId)
+        const skuByProduct = new Map(r.lines.map((l) => [l.productId, l.product.sku]))
         return {
           id: r.id,
           number: r.returnNumber,
           poId: r.purchaseOrderId,
-          poNumber: po?.poNumber ?? '',
-          supplierName: suppliers.find((s) => s.id === po?.supplierId)?.name ?? '',
+          poNumber: r.purchaseOrder?.poNumber ?? '',
+          supplierName: r.purchaseOrder?.supplier?.name ?? '',
           ref: r.referenceNumber ?? '—',
           reason: r.reason ?? '—',
           date: r.returnDate.slice(0, 10),
-          by: userName(r.createdById),
+          by: r.createdBy?.name ?? (r.createdById ? r.createdById : '—'),
           lineCount: r.lines.length,
           units: r.lines.reduce((a, l) => a + Number(l.quantity), 0),
           value: r.lines.reduce((a, l) => a + Number(l.quantity) * Number(l.unitCost), 0),
@@ -103,10 +89,10 @@ export function useSupplierReturns(params: UseSupplierReturnsParams = {}) {
             receivingLineId: l.receivingLineId,
             productId: l.productId,
             qty: Number(l.quantity),
-            uom: uomAbbr(l.uomId),
-            fromLoc: locationLabel(l.fromLocationId),
+            uom: l.uom.abbreviation,
+            fromLoc: l.fromLocation?.code ?? l.fromLocationId,
           })),
-          productCode,
+          productCode: (productId: string) => skuByProduct.get(productId) ?? productId,
         }
       })
 

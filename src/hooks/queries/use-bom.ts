@@ -1,8 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
-import type { BomRecord } from './use-boms'
-import type { ProductRecord, TrackingType } from '@/entities/products.config'
-import type { UomRecord } from '@/entities/uom.config'
+import type { BomComponentRecord, BomRecord } from './use-boms'
+import type { TrackingType } from '@/entities/products.config'
+
+/** Display joins embedded by the API on the detail endpoint. */
+type BomDetailRecord = Omit<BomRecord, 'product' | 'components'> & {
+  product: { name: string; sku: string; trackingType: TrackingType; baseUom: { abbreviation: string } }
+  components: (BomComponentRecord & {
+    componentProduct: { name: string; sku: string; baseUom: { abbreviation: string } }
+    uom: { abbreviation: string } | null
+  })[]
+}
 
 export interface BomComponentDetail {
   id: string
@@ -32,35 +40,25 @@ export function useBom(id: string) {
   return useQuery({
     queryKey: ['bom', id],
     queryFn: async (): Promise<BomDetail | null> => {
-      const [{ data: bom }, { data: products }, { data: uoms }] = await Promise.all([
-        apiClient.get<BomRecord>(`/boms/${id}`),
-        apiClient.get<ProductRecord[]>('/products'),
-        apiClient.get<UomRecord[]>('/uom'),
-      ])
+      const { data: bom } = await apiClient.get<BomDetailRecord>(`/boms/${id}`)
       if (!bom) return null
 
-      const product = products.find((p) => p.id === bom.productId)
-
-      const components: BomComponentDetail[] = bom.components.map((c) => {
-        const componentProduct = products.find((p) => p.id === c.componentProductId)
-        const uom = c.uomId ? uoms.find((u) => u.id === c.uomId) : undefined
-        return {
-          id: c.id,
-          componentProductId: c.componentProductId,
-          name: componentProduct?.name ?? '',
-          code: componentProduct?.sku ?? '',
-          uom: uom?.abbreviation ?? componentProduct?.baseUom.abbreviation ?? '',
-          quantity: Number(c.quantity),
-          notes: c.notes,
-        }
-      })
+      const components: BomComponentDetail[] = bom.components.map((c) => ({
+        id: c.id,
+        componentProductId: c.componentProductId,
+        name: c.componentProduct.name,
+        code: c.componentProduct.sku,
+        uom: c.uom?.abbreviation ?? c.componentProduct.baseUom.abbreviation,
+        quantity: Number(c.quantity),
+        notes: c.notes,
+      }))
 
       return {
         id: bom.id,
         productId: bom.productId,
-        productName: product?.name ?? '',
-        productSku: product?.sku ?? '',
-        productTrackingType: product?.trackingType ?? 'NONE',
+        productName: bom.product.name,
+        productSku: bom.product.sku,
+        productTrackingType: bom.product.trackingType,
         name: bom.name,
         version: bom.version,
         isActive: bom.isActive,

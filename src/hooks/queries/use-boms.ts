@@ -1,9 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { apiClient } from '@/lib/api-client'
 import { fetchPage } from '@/hooks/queries/paged'
 import { useScopeStore } from '@/stores/scope-store'
 import type { BomRow } from '@/entities/boms.config'
-import type { ProductRecord } from '@/entities/products.config'
 
 export interface BomComponentRecord {
   id: string
@@ -26,6 +24,8 @@ export interface BomRecord {
   createdAt: string
   updatedAt: string
   components: BomComponentRecord[]
+  /** Display join embedded by the API. */
+  product: { name: string; sku: string }
 }
 
 export function useBoms() {
@@ -33,17 +33,13 @@ export function useBoms() {
   return useInfiniteQuery({
     queryKey: ['boms', companyId],
     queryFn: async ({ pageParam }): Promise<{ items: BomRow[]; nextCursor: string | null }> => {
-      const [page, { data: products }] = await Promise.all([
-        fetchPage<BomRecord>('/boms', pageParam),
-        apiClient.get<ProductRecord[]>('/products'),
-      ])
+      const page = await fetchPage<BomRecord>('/boms', pageParam)
       const items = page.items.map((b) => {
-        const product = products.find((p) => p.id === b.productId)
         return {
           id: b.id,
           productId: b.productId,
-          productName: product?.name ?? '',
-          productSku: product?.sku ?? '',
+          productName: b.product.name,
+          productSku: b.product.sku,
           name: b.name,
           version: b.version,
           isActive: b.isActive,
